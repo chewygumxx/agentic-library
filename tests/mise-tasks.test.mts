@@ -10,7 +10,9 @@
 
 // What keeps a task's skip honest, in this repository's tasks and in the
 // skill's template: a staged run watches git's index by an absolute path,
-// and a check watches the lockfile and tool pins that govern it.
+// and a check watches the lockfile and tool pins that govern it. And what
+// keeps both staged by default: --all, never an unset $usage_staged, turns
+// a run to every file.
 
 import { describe, expect, it } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
@@ -91,8 +93,7 @@ it("the skill recommends no config-wide index variable", () => {
     expect(text).toContain("--path-format=absolute --git-path index");
 });
 
-describe("this repository's staged runs", () => {
-    const path = files["this repository"];
+describe.each(Object.entries(files))("%s's staged runs", (_, path) => {
     const staged = tasks(path).filter(([, task]) =>
         task.usage?.includes("--staged"),
     );
@@ -125,4 +126,12 @@ describe("this repository's staged runs", () => {
             }
         }
     });
+});
+
+it("the skill teaches staged runs by default, and --all", () => {
+    const skill = join(root, "skills", "configuring-mise-tasks", "SKILL.md");
+    const text = readFileSync(skill, "utf8");
+    expect(text).toContain('flag "--staged" negate="--all" default=#true');
+    expect(text).not.toMatch(/usage_staged:[+-]/);
+    expect(text).toContain('"check": "mise run check --all"');
 });
