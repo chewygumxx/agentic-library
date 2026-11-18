@@ -66,8 +66,8 @@ first `0.1.0`.
 `main` that bumps each changed skill's `version`, and
 `.config/release-please-manifest.json`. Merging publishes a GitHub
 release per skill, tagged `skill-<skill>@<version>`, which starts
-`.github/workflows/publish.yaml` to stage it on npm, where it waits for
-the maintainer's 2FA approval. Both act as the
+`.github/workflows/publish.yaml` to publish it on npm with provenance:
+merging the release pull request is the approval. Both act as the
 `release-please-agentic-library` GitHub App, whose events start other
 workflows where `GITHUB_TOKEN`'s would not.
 
