@@ -17,10 +17,34 @@
 description = "Test the publishing-skills-to-npm skill's script"
 depends     = [ "test:publishing-skills-to-npm:*" ]
 
-["test:publishing-skills-to-npm:skill-packages"]
-description = "Test skill-packages.mjs: checking, writing and next steps for skill packages"
+["test:publishing-skills-to-npm:frontmatter"]
+description = "Test skill-packages.mjs's frontmatter reader: what YAML reads, or a refusal"
 tags        = [
     "test",
     "covers:skills/publishing-skills-to-npm/scripts/skill-packages.mjs",
 ]
-run         = "bun test ./tests/publishing-skills-to-npm/skill-packages.test.mts"
+run         = "bun test ./tests/publishing-skills-to-npm/frontmatter.test.mts"
+
+["test:publishing-skills-to-npm:check"]
+description = "Test skill-packages.mjs check: drift, names, licences, release entries, --pack and --online"
+tags        = [
+    "test",
+    "covers:skills/publishing-skills-to-npm/scripts/skill-packages.mjs",
+]
+run         = "bun test ./tests/publishing-skills-to-npm/check.test.mts"
+
+["test:publishing-skills-to-npm:write"]
+description = "Test skill-packages.mjs write: what it derives and keeps, all or nothing"
+tags        = [
+    "test",
+    "covers:skills/publishing-skills-to-npm/scripts/skill-packages.mjs",
+]
+run         = "bun test ./tests/publishing-skills-to-npm/write.test.mts"
+
+["test:publishing-skills-to-npm:next"]
+description = "Test skill-packages.mjs next: the commands it suggests for each state of a package"
+tags        = [
+    "test",
+    "covers:skills/publishing-skills-to-npm/scripts/skill-packages.mjs",
+]
+run         = "bun test ./tests/publishing-skills-to-npm/next.test.mts"
