@@ -2,7 +2,7 @@
 ctime: 2026-11-02
 mtime: 2026-11-09
 spdx: GPL-3.0-only
-title: agent-library
+title: agentic-library
 description: >-
   Curated agent asset catalogue prioritising harness and model compatibility.
 ---
@@ -14,7 +14,7 @@ description: >-
    -
    -->
 
-# agent-library
+# agentic-library
 
 Deployable agent assets for provision of terse context that is both model aware
 and harness invariant. Models with greater reasoning capacity are not burdened
@@ -36,8 +36,8 @@ Install all of them, or one, into a project, or with `--global` for every
 project:
 
 ```sh
-bunx skills add chewygumxx/agent-library
-bunx skills add chewygumxx/agent-library --skill worktrees --global
+bunx skills add chewygumxx/agentic-library
+bunx skills add chewygumxx/agentic-library --skill worktrees --global
 ```
 
 `agent-stewardship` is configured by a roster in your agent instructions
