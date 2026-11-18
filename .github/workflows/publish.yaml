@@ -1,0 +1,81 @@
+# vim:set expandtab shiftwidth=4 filetype=yaml foldlevel=3:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/.github/workflows/publish.yaml
+#
+#
+
+# Stages one skill's package per `skill-<skill>@<version>` tag, e.g.
+# `skill-mapping-tests@1.1.0` stages `skills/mapping-tests` if its version
+# matches. A staged version is not installable until it is approved on
+# npmjs.com with the maintainer's 2FA, so this workflow alone can never
+# release a package. A private package is refused.
+#
+# Authentication is npm trusted publishing: npm exchanges this job's OIDC
+# token for a short-lived credential, so no NPM_TOKEN secret exists. Each
+# package must first be published once by hand, then have this repository
+# and workflow added under its npm Settings > Trusted Publisher with the
+# stage publish permission.
+
+name: Publish
+
+on:
+    push:
+        tags:
+            - "skill-*@*"
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    check:
+        uses: chewygumxx/.github/.github/workflows/lint.yaml@v1
+
+    publish:
+        needs: check
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            id-token: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Setup Bun and Node
+              uses: jdx/mise-action@v4
+
+            - name: Bun Install
+              run: bun install --frozen-lockfile
+
+            - name: Resolve Package
+              id: package
+              env:
+                  TAG: ${{ github.ref_name }}
+              run: |
+                  name="${TAG%@*}"
+                  version="${TAG##*@}"
+                  dir="skills/${name#skill-}"
+                  test -f "$dir/package.json" || { echo "::error::No package at $dir"; exit 1; }
+                  read -r actual_name actual_version private < <(jq -r '[.name, .version, (.private // false)] | @tsv' "$dir/package.json")
+                  test "$actual_name" = "@chewygumxx/$name" || { echo "::error::$dir is $actual_name, tag says @chewygumxx/$name"; exit 1; }
+                  test "$actual_version" = "$version" || { echo "::error::$dir is $actual_version, tag says $version"; exit 1; }
+                  test "$private" = false || { echo "::error::$dir is private"; exit 1; }
+                  echo "dir=$dir" >> "$GITHUB_OUTPUT"
+
+            # npm, from mise's Node: Bun cannot stage a publish or publish by
+            # trusted publishing. The package's prepack copies in the licence.
+            - name: Publish
+              env:
+                  DIR: ${{ steps.package.outputs.dir }}
+              run: npm stage publish --workspace "$DIR"
