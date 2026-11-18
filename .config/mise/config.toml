@@ -49,6 +49,7 @@ hk = "2.13.0"
 
 [tools."pypi:skill-seekers"]
 version   = "3.6.0"
+extras    = [ "mcp" ]
 depends   = [ "uv" ]
 lazy      = true
 lazy_bins = [ "skill-seekers" ]
