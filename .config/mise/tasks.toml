@@ -179,11 +179,21 @@ run         = [
 description = "Find unused files and dependencies with knip"
 run         = "bunx --bun --no-install knip"
 
+# publint packs each skill as npm would, so it reads the skill's files too.
 ["lint:package"]
-description = "Check package.json is sorted"
-sources     = [ "bun.lock", ".config/mise/config.toml", "package.json" ]
+description = "Check every package.json is sorted, and lint each skill's package with publint"
+sources     = [
+    "bun.lock",
+    ".config/mise/config.toml",
+    "package.json",
+    "skills/**/*",
+    "!skills/*/LICENSE",
+]
 outputs     = { auto = true }
-run         = "bunx --bun --no-install sort-package-json --check package.json"
+run         = [
+    "bunx --bun --no-install sort-package-json --check package.json skills/*/package.json",
+    'for dir in skills/*/; do bunx --bun --no-install publint --level warning "$dir" || exit 1; done',
+]
 
 ["lint:types"]
 description = "Type-check with tsc"
