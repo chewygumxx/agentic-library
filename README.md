@@ -60,7 +60,8 @@ names the project it was imported from.
   and `.claude/skills/`. Run it once after cloning: both directories are
   gitignored, and `bun install` only relinks skills already fetched.
 - `mise run test` runs the tests; `mise run check` runs them and every
-  other check CI runs; `mise run commit` composes a commit. `mise tasks`
-  lists the rest. `bun run check` runs `mise run check`, for CI.
+  other check CI runs, linting the staged files alone, or every file
+  with `--all`; `mise run commit` composes a commit. `mise tasks` lists
+  the rest. `bun run check` runs `mise run check --all`, for CI.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
