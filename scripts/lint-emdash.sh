@@ -4,7 +4,7 @@
 
 #
 #
-# ~chewygumxx/agent-library.git
+# ~chewygumxx/agentic-library.git
 # ::: :/scripts/lint-emdash.sh
 #
 #

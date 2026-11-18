@@ -13,7 +13,7 @@ tags:
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/docs/reports/2026-11-11_mise-tasks.md
    -
    -->

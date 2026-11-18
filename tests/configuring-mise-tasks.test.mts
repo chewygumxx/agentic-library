@@ -3,7 +3,7 @@
 
 //
 //
-// ~chewygumxx/agent-library.git
+// ~chewygumxx/agentic-library.git
 // ::: :/tests/configuring-mise-tasks.test.mts
 //
 //

@@ -8,7 +8,7 @@ description: >-
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/skills/agent-stewardship/references/budgets.md
    -
    -->

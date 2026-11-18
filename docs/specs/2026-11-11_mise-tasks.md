@@ -15,7 +15,7 @@ tags:
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/docs/specs/2026-11-11_mise-tasks.md
    -
    -->

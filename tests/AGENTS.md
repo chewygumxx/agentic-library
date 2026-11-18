@@ -5,7 +5,7 @@ description: How the tests are laid out, mapped and kept whole
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/tests/AGENTS.md
    -
    -->

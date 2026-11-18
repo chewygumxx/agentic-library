@@ -1,6 +1,6 @@
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/skills/fragmenting-tests/references/splitting.md
    -
    -->

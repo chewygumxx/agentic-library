@@ -4,7 +4,7 @@
 
 #
 #
-# ~chewygumxx/agent-library.git
+# ~chewygumxx/agentic-library.git
 # ::: :/skills/configuring-mise-tasks/scripts/with-files.sh
 #
 #

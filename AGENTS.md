@@ -5,7 +5,7 @@ description: Repository agent instructions
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/AGENTS.md
    -
    -->

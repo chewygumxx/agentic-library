@@ -9,7 +9,7 @@ description: >-
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/README.md
    -
    -->

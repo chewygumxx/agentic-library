@@ -9,7 +9,7 @@ license: GPL-3.0-only
 
 <!--
    -
-   - ~chewygumxx/agent-library.git
+   - ~chewygumxx/agentic-library.git
    - ::: :/skills/compact-summary/SKILL.md
    -
    -->
