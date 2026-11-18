@@ -44,7 +44,9 @@ and a `workspace:*` devDependency in the root `package.json`.
 To release one, bump its `version` and commit, then push a tag
 `skill-<skill>@<version>`. `.github/workflows/publish.yaml` stages it on
 npm, where it waits for the maintainer's 2FA approval. A package's first
-version is published by hand, before its trusted publisher can be set.
+version is published by hand, before its trusted publisher can be set,
+with `npm publish --workspace skills/<skill> --provenance=false`: its
+`publishConfig` asks for provenance, which only CI can attest.
 A `private` package is never published.
 
 ## Git Hooks
