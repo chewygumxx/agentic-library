@@ -145,3 +145,9 @@ or argument only raises its command's effect when it is supplied.
 A `global=#true` flag works on its command and every descendant, before or
 after the subcommand word. A non-global flag may still precede one of its
 command's subcommands, `mycli run --force task`, but is not inherited.
+
+Short flags bundle, `-vf` for `-v -f`, but usage 7.4 binds only the
+first letter of a non-global flag's bundle before a subcommand word:
+`mycli -vf run task` sets `--verbose` and passes `f` to `run` as a
+positional, and `-vv` counts one. Spell such flags apart, or make them
+global, and check the line with `usage explain`.
