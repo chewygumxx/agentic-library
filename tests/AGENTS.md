@@ -18,7 +18,7 @@ description: How the tests are laid out, mapped and kept whole
 - A file past 20 KiB, or holding several subjects' tests, becomes a
   directory, `<subject>/`: a `<part>.test.mts` for each part, one script
   or module with every `describe` about it, and beside them what they
-  share, such as `tests/agent-stewardship/`'s `harness.mts`, its
+  share, such as `tests/coordinating-agents/`'s `harness.mts`, its
   stand-ins and their `tasks.toml`.
 - Bun runs a file only if its own name holds `.test.`; a directory's name
   counts for nothing. So name every test file `*.test.mts`, and name no
@@ -87,7 +87,7 @@ that runs anything but one test file; a task without `test` or any
 
 ## Directory Infrastructure
 
-From `tests/agent-stewardship/`, which a new directory may follow:
+From `tests/coordinating-agents/`, which a new directory may follow:
 
 - Bun loads a shared module once for all the test files, so hooks it
   registers on load reach only the first. The harness exports

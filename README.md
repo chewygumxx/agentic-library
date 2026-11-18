@@ -26,7 +26,7 @@ harnesses.
 
 | Skill                            | For                                                  |
 | -------------------------------- | ---------------------------------------------------- |
-| `agent-stewardship`              | Running agents within their context and usage limits |
+| `coordinating-agents`            | Running agents within their context and usage limits |
 | `compact-summary`                | Writing and rating a compaction's instructions       |
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
 | `fragmenting-tests`              | Splitting long tests, mapped by mise tasks           |
@@ -42,9 +42,9 @@ bunx skills add chewygumxx/agentic-library
 bunx skills add chewygumxx/agentic-library --skill worktrees --global
 ```
 
-`agent-stewardship` is configured by a roster in your agent instructions
+`coordinating-agents` is configured by a roster in your agent instructions
 and states what each of its parts needs. See its
-[`SKILL.md`](./skills/agent-stewardship/SKILL.md).
+[`SKILL.md`](./skills/coordinating-agents/SKILL.md).
 
 A skill here must stand alone once copied out of this repository:
 `tests/skills.test.mts` fails one that links outside itself, or that still

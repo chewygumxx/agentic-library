@@ -60,7 +60,7 @@ tags        = [
     "test",
     "covers:.config/mise/config.toml",
     "covers:tests/tasks.toml",
-    "covers:tests/agent-stewardship/tasks.toml",
+    "covers:tests/coordinating-agents/tasks.toml",
 ]
 run         = "bun test ./tests/test-tasks.test.mts"
 
