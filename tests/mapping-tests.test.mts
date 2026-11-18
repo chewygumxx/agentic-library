@@ -4,11 +4,11 @@
 //
 //
 // ~chewygumxx/agentic-library.git
-// ::: :/tests/fragmenting-tests.test.mts
+// ::: :/tests/mapping-tests.test.mts
 //
 //
 
-// The fragmenting-tests skill's bundled files: its guard stays the one this
+// The mapping-tests skill's bundled files: its guard stays the one this
 // repository runs, and its task template keeps the map's rules.
 
 import { describe, expect, it } from "bun:test";
@@ -17,7 +17,7 @@ import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
 const skills = join(root, "skills");
-const assets = join(skills, "fragmenting-tests", "assets");
+const assets = join(skills, "mapping-tests", "assets");
 // A skill's file, its lines joined, as a sentence may wrap anywhere.
 const read = (name: string, file = "SKILL.md") =>
     readFileSync(join(skills, name, file), "utf8").replace(/\s+/g, " ");
@@ -46,7 +46,7 @@ const body = (path: string) =>
         .filter((line) => !/^(\/\/|#) ::: :\//.test(line))
         .join("\n");
 
-describe("fragmenting-tests", () => {
+describe("mapping-tests", () => {
     it("bundles the guard as this repository runs it", () => {
         expect(body(join(assets, "test-tasks.mts"))).toBe(
             body(join(root, "tests", "test-tasks.test.mts")),
@@ -85,13 +85,13 @@ describe("fragmenting-tests", () => {
             /includes = \[("[^"]+")\]/,
         )?.[1];
         expect(theirs).toBe('".config/mise/tasks/*.task.toml"');
-        expect(read("fragmenting-tests", "references/adopting.md")).toContain(
+        expect(read("mapping-tests", "references/adopting.md")).toContain(
             `includes = [${theirs}, "tests/tasks.toml", "tests/*/tasks.toml"]`,
         );
     });
 
     it("and configuring-mise-tasks both keep `test` from running the map", () => {
-        for (const name of ["fragmenting-tests", "configuring-mise-tasks"]) {
+        for (const name of ["mapping-tests", "configuring-mise-tasks"]) {
             expect([name, skill(name).includes(notSubTasks)]).toEqual([
                 name,
                 true,
@@ -102,10 +102,7 @@ describe("fragmenting-tests", () => {
     it("and configuring-mise-tasks tell a test that runs commands alike", () => {
         const texts = {
             "configuring-mise-tasks": skill("configuring-mise-tasks"),
-            "fragmenting-tests": read(
-                "fragmenting-tests",
-                "references/splitting.md",
-            ),
+            "mapping-tests": read("mapping-tests", "references/splitting.md"),
         };
         for (const [name, text] of Object.entries(texts)) {
             for (const sentence of spawning) {

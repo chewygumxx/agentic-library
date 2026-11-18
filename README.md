@@ -29,7 +29,7 @@ harnesses.
 | `coordinating-agents`            | Running agents within their context and usage limits |
 | `compacting-context`             | Writing and rating a compaction's instructions       |
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
-| `fragmenting-tests`              | Splitting long tests, mapped by mise tasks           |
+| `mapping-tests`                  | Splitting long tests, mapped by mise tasks           |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
 | `usage-spec`                     | Writing CLI specs in KDL and generating from them    |
 | `worktrees`                      | Making git worktrees that come out whole             |

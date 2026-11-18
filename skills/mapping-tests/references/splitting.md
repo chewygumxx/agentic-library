@@ -1,7 +1,7 @@
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/fragmenting-tests/references/splitting.md
+   - ::: :/skills/mapping-tests/references/splitting.md
    -
    -->
 

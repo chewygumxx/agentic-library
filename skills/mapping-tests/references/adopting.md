@@ -1,7 +1,7 @@
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/fragmenting-tests/references/adopting.md
+   - ::: :/skills/mapping-tests/references/adopting.md
    -
    -->
 

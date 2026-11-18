@@ -75,7 +75,7 @@ Remove any other entry, and change its mentions from `bun run <name>` to
   Tasks that map single test files, `test:<subject>`, are the exception:
   they live beside the tests, in `tests/tasks.toml` and a test
   directory's own `tasks.toml`, which the include's glob lists too, as
-  the fragmenting-tests skill sets out.
+  the mapping-tests skill sets out.
   The runtime's file is named for it, such as `bun.task.toml`, and holds
   `dev`, `start` and `build` and any task that runs one of its scripts,
   such as `eval` or `skills`. Each file opens with the house header

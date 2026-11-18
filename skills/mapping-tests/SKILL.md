@@ -1,5 +1,5 @@
 ---
-name: fragmenting-tests
+name: mapping-tests
 description: >-
   Use when adding, moving, renaming or deleting a test file, or changing
   what one runs, in a repository whose tests are mapped by mise tasks;
@@ -11,11 +11,11 @@ license: GPL-3.0-only
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/fragmenting-tests/SKILL.md
+   - ::: :/skills/mapping-tests/SKILL.md
    -
    -->
 
-# Fragmenting tests
+# Mapping tests
 
 Every test file stays small enough to read whole, 20 KiB at most, and has
 a mise task naming what it tests and the paths it covers. `mise tasks`

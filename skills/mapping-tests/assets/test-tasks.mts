@@ -4,7 +4,7 @@
 //
 //
 // ~chewygumxx/agentic-library.git
-// ::: :/skills/fragmenting-tests/assets/test-tasks.mts
+// ::: :/skills/mapping-tests/assets/test-tasks.mts
 //
 //
 

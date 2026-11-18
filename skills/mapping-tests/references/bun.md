@@ -1,7 +1,7 @@
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/fragmenting-tests/references/bun.md
+   - ::: :/skills/mapping-tests/references/bun.md
    -
    -->
 

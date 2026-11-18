@@ -23,20 +23,20 @@ tags        = [
 ]
 run         = "bun test ./tests/configuring-mise-tasks.test.mts"
 
-["test:fragmenting-tests"]
-description = "Test the fragmenting-tests skill's bundled files, and its agreement with configuring-mise-tasks"
-tags        = [
-    "test",
-    "covers:tests/test-tasks.test.mts",
-    "covers:skills/fragmenting-tests",
-    "covers:skills/configuring-mise-tasks/SKILL.md",
-]
-run         = "bun test ./tests/fragmenting-tests.test.mts"
-
 ["test:lint-emdash"]
 description = "Test lint-emdash.sh in a throwaway git repository"
 tags        = [ "test", "covers:scripts/lint-emdash.sh" ]
 run         = "bun test ./tests/lint-emdash.test.mts"
+
+["test:mapping-tests"]
+description = "Test the mapping-tests skill's bundled files, and its agreement with configuring-mise-tasks"
+tags        = [
+    "test",
+    "covers:tests/test-tasks.test.mts",
+    "covers:skills/mapping-tests",
+    "covers:skills/configuring-mise-tasks/SKILL.md",
+]
+run         = "bun test ./tests/mapping-tests.test.mts"
 
 ["test:mise-tasks"]
 description = "Test that the mise tasks, here and in the skill's template, skip honestly"
