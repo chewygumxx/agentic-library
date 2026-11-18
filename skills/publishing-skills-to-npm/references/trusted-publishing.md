@@ -7,13 +7,18 @@
 
 # Trusted publishing
 
-npm exchanges a CI job's OIDC token for a credential that lasts the job
-and is good only for that repository and workflow file. Nothing long
-lived exists to leak, and npm can sign a provenance statement naming the
-run that built each version. Facts below are npm's documentation as of
-late 2026, or the npm 11 CLI, as marked; the registry has moved faster
-than the CLI's help, so where they disagree, believe the registry's
-settings page.
+npm exchanges a CI job's OIDC token for a short-lived credential, good
+only for the repository and workflow file the publisher names. Nothing
+long-lived exists to leak, and npm can sign a provenance statement
+naming the run that built each version. Facts below are npm's
+documentation as of late 2026, or the npm 11 CLI, as marked; the
+registry has moved faster than the CLI's help, so where they disagree,
+believe the registry's settings page.
+
+Contents: [what it needs](#what-it-needs),
+[the first version](#the-first-version-by-hand),
+[the publisher](#the-publisher), [the 2-day window](#the-2-day-window),
+[settings](#settings-worth-having), [after a publish](#after-a-publish).
 
 ## What it needs
 
@@ -25,7 +30,10 @@ settings page.
 - `permissions: id-token: write` on the publishing job, and nothing it
   does not need, as it holds the credential.
 - The package's `repository.url` matching the repository the publisher
-  names.
+  names, and, if the publisher names a GitHub environment, the job
+  running in it.
+- For provenance, a public repository and a public package; without
+  either, npm publishes with none.
 - The package already on npm, as a publisher is set on its settings:
   its first version is published by hand.
 
@@ -46,7 +54,8 @@ versions carry no provenance; every one after does.
 ## The publisher
 
 Set it on the package's npmjs.com settings, Trusted Publisher, or with
-npm 11's CLI, which also needs your 2FA:
+npm's CLI, which needs npm 11.15 or later, write access to the package,
+2FA on the account, and a login that is no token bypassing 2FA:
 
 ```sh
 npm trust github '@<scope>/skill-<skill>' --repo '<owner>/<repo>' \
@@ -106,10 +115,14 @@ new one, even with unchanged contents.
 
 The run's log shows `Signed provenance statement`, a Sigstore
 transparency log entry, then `+ <package>@<version>` once npm took it.
-npm then processes the version for a few minutes, so poll with a bound
-rather than conclude from the first empty answer. A release whose
-publish failed has published nothing: re-run the job for it, on the same
-commit. A release that exists does not prove a publish happened; the
-registry does.
+npm then processes the version for a few minutes, as observed, so poll
+with a bound rather than conclude from the first empty answer.
+
+A release that exists does not prove a publish happened, nor does a
+failed job prove one did not: the upload can land before a later step
+fails. Ask the registry for the exact version first. Not there, re-run
+the job, which publishes from the release's own commit; there, compare
+its provenance's source commit with the release's before trusting it.
+A first version published by hand has no release, and no provenance.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

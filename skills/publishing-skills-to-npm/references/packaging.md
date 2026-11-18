@@ -24,8 +24,11 @@ keeps a scope's skills apart from its other packages.
 
 ## What sync does with it
 
-The sync reads the dependencies the project declares, in all four
-fields. In each installed package it takes a root `SKILL.md`, failing
+The sync reads the dependencies the project declares, in
+`dependencies`, `devDependencies`, `optionalDependencies` and
+`peerDependencies`, and with `--recursive`, those of its workspaces; a
+package reaches further only by naming skills in its own `skills`
+field. In each installed package it takes a root `SKILL.md`, failing
 that every `skills/<name>/SKILL.md` and `dist/skills/<name>/SKILL.md`;
 a package per skill with `SKILL.md` at its root is the simplest that
 fits. It links the package's whole directory, records each skill's
@@ -80,11 +83,30 @@ with `test ! -d node_modules/skills || skills experimental_sync ...`.
   by any range the workspace satisfies, so the script writes `*` where
   `package-lock.json` is the lockfile.
 
-## A manifest the script cannot read
+## Renaming or retiring a published skill
 
-The script reads the frontmatter's plain, quoted and block scalars, and
-skips a nested mapping such as `metadata`. Anything else, such as a flow
-sequence, it refuses rather than guess at, naming the line. Rewrite that
-value as a plain or block scalar, or check that field by hand.
+A published package cannot be renamed, only replaced. Add the skill
+under its new name, as a new package with its own first publish and
+trusted publisher; then, once the new name is out:
+
+- remove the old directory, and let `write` drop its release-please
+  entries and `check` point out its root devDependency;
+- `npm deprecate '@<scope>/skill-<old>' 'Renamed to @<scope>/skill-<new>'`,
+  so consumers installing it are told where it went;
+- tell consumers to swap the dependency: their sync then removes the old
+  skill's link, which it made, and adds the new one. A link it did not
+  make, or a skill installed by `skills add`, it leaves for them to
+  remove by hand.
+
+## Frontmatter the script cannot read
+
+The script reads plain, quoted and block scalars, folding a plain one
+across lines as YAML does, and skips a nested mapping such as
+`metadata`. In `name`, `description` and `license` it refuses what it
+cannot read exactly, naming why: a block scalar's indentation indicator,
+a more-indented line in a folded scalar, a quoted value over several
+lines, a flow value, or a value YAML reads as no string, such as `true`.
+Rewrite that value as a plain or block scalar. A key it never uses, it
+skips whatever it holds.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

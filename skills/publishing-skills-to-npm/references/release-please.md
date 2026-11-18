@@ -13,6 +13,10 @@ that bumps their versions, and once it merges, publishes a GitHub
 release per bumped skill. Here is why the configuration and the two
 workflows are as they are.
 
+Contents: [the configuration](#the-configuration),
+[what releases a skill](#what-releases-a-skill),
+[the workflows](#the-workflows), [bootstrapping](#bootstrapping).
+
 ## The configuration
 
 [`assets/release-please.json`](../assets/release-please.json) goes to
@@ -61,7 +65,8 @@ release.
 - **A GitHub App's token.** Events made with `GITHUB_TOKEN` start no
   further workflows, apart from dispatches: release-please's releases
   would never start `publish.yaml`, nor its pull request's commits CI. An
-  App's installation token starts both, and needs read and write on
+  App's installation token, or a suitably scoped personal token, starts
+  both. The App needs read and write on
   contents, pull requests and issues, which hold the labels
   release-please tracks its pull requests by. Keep its private key a
   secret and its client ID a variable. With an App, the repository need
@@ -73,7 +78,9 @@ release.
   off, runs the sync with `--no-frozen-lockfile`, and pushes the result
   as the App, so CI runs on it. Frozen is the sync's default in CI, so
   an install whose `prepare` syncs would refuse the very change the job
-  exists to make.
+  exists to make. A dispatch of the workflow re-runs the job, for a
+  refresh that failed. The node strategy does update a package's own
+  `package-lock.json`, but skill packages have none.
 - **The pull request's title** is its commit's message, `chore: release
   main` by default for one pull request across the packages; a
   commit-message linter must accept it.
@@ -83,27 +90,30 @@ release.
 - **Publishing in two jobs.** `publish.yaml` checks the package and
   reads the tag back in a job with no write permission, then publishes
   in one that holds the OIDC token and runs nothing but npm: it installs
-  no dependencies, as `npm publish` needs none.
+  no dependencies, as `npm publish` needs none, restores no cache, and
+  names the registry. The check refuses a package whose scripts would
+  run during the publish, other than the licence copy, or whose
+  `publishConfig` would redirect it, so the job runs none of the
+  package's own code.
 
-actionlint, to 1.7.12 at least, predates `create-github-app-token`'s
-`client-id`, and reports it unknown and `app-id` missing: ignore those
-two messages for that action. A `paths:` glob of
-`**/.github/workflows/**` matches the `./`-prefixed paths a file-listing
-wrapper may pass, where `.github/workflows/**` does not.
+The workflow templates' comments carry what applies to them alone, such
+as the actionlint messages to ignore for `create-github-app-token`.
 
 ## Bootstrapping
 
 To find a skill's last release, release-please lists GitHub releases,
 then looks for the tag its manifest version implies. While any skill
 has neither, it walks `main` back to `bootstrap-sha`, or by default 500
-commits, and counts each `feat` and `fix` on the way as unreleased.
+commits, and counts each releasable commit on the way as unreleased.
+`last-release-sha` is a different, global stop for every skill, meant
+for a single run: leave it unset.
 
 - Set `bootstrap-sha` to `main`'s tip before the change adding
   release-please. It stays in `main`'s history however that change
   merges, where a commit of its branch would not survive a squash.
-- Before merging, check that no commit since touches a skill as a `feat`
-  or `fix`, or the first run proposes it; on a squash, the pull
-  request's title is that commit.
+- Before merging, check that no commit since touches a skill with
+  release notes to give, or the first run proposes it; on a squash, the
+  pull request's title is that commit.
 - Once each skill has a release, release-please counts from those. A new
   skill uses the bootstrap again until its own first.
 
