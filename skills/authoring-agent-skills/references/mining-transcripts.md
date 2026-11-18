@@ -12,6 +12,15 @@ what a skill should have said, though not always something that should
 outlive the moment. Those turns are scattered among thousands of tool
 calls, so pull them out first, then sort them before any becomes a rule.
 
+## Contents
+
+- Running the miner
+- What to look for
+- Sorting before drafting
+- Before publishing turns
+- A sample
+- When it misreads
+
 ## Running the miner
 
 ```sh
