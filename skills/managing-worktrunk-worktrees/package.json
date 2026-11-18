@@ -1,7 +1,7 @@
 {
     "name": "@chewygumxx/skill-managing-worktrunk-worktrees",
     "version": "0.0.1",
-    "description": "Operates and configures Worktrunk, the `wt` CLI for Git worktrees. Use when running `wt switch`, inspecting, merging, or removing Worktrunk checkouts, or troubleshooting shell integration, `.config/wt.toml` hooks and approvals, ignored-file copying, aliases, or LLM commits.",
+    "description": "Manages Git worktrees and their setup with the Worktrunk `wt` CLI. Use when a task calls for `wt switch`, `wt list`, `wt merge`, or `wt remove`, or for Worktrunk shell integration, `.config/wt.toml` hooks and approvals, aliases, ignored-file copying, or LLM commits.",
     "keywords": [
         "agent-skills"
     ],

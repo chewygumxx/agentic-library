@@ -57,7 +57,7 @@
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
       "version": "0.0.1",
-      "computedHash": "a11e4a74a629b9a3e373e2de406237c6ff699aee8838b4912bb3bd56ba799db4"
+      "computedHash": "8237a21dd9db7ae7d01434532323311c27898a5b5f9de9a4bd98c15f2ca1cc13"
     },
     "mapping-tests": {
       "source": "@chewygumxx/skill-mapping-tests",

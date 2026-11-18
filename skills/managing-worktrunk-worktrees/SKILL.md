@@ -1,14 +1,15 @@
 ---
 name: managing-worktrunk-worktrees
 description: >-
-  Operates and configures Worktrunk, the `wt` CLI for Git worktrees.
-  Use when running `wt switch`, inspecting, merging, or removing
-  Worktrunk checkouts, or troubleshooting shell integration,
-  `.config/wt.toml` hooks and approvals, ignored-file copying, aliases,
+  Manages Git worktrees and their setup with the Worktrunk `wt` CLI.
+  Use when a task calls for `wt switch`, `wt list`, `wt merge`, or
+  `wt remove`, or for Worktrunk shell integration,
+  `.config/wt.toml` hooks and approvals, aliases, ignored-file copying,
   or LLM commits.
 compatibility: >-
-  Command examples target Worktrunk v0.82.0. Running them requires Git
-  and the Worktrunk CLI. The optional headless switch helper uses Python 3.
+  Requires Worktrunk and Git 2.43 or newer to run commands. Examples
+  were verified on Worktrunk v0.82.0. The optional headless switch helper
+  uses the Python 3 standard library.
 license: GPL-3.0-only
 ---
 
@@ -20,6 +21,12 @@ license: GPL-3.0-only
    -->
 
 # Managing Worktrunk worktrees
+
+## Quick reference
+
+Run `wt list` for Worktrunk status, `wt switch <branch>` to select a
+checkout, or `wt step diff --branch <branch>` to see the branch's net
+changes including uncommitted work.
 
 Use `wt --version` and `wt <command> --help` when the installed CLI's
 options matter. Use `git worktree list --porcelain` for a local inventory.
@@ -33,7 +40,7 @@ default `wt merge` can stage untracked files and remove the checkout.
 For pending project commands, inspect `wt config approvals list` and
 have the user review them with interactive `wt config approvals add`.
 
-## References
+## References by task
 
 - Read [Worktree operations](references/worktrees.md) to switch,
   inspect, merge, or remove a checkout. For headless switching, run

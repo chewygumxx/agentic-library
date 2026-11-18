@@ -31,29 +31,36 @@
   and supported pull or merge request URLs identify forge branches.
   Fork checkouts can fetch refs and set a push remote.
 - `--path <path>` overrides the template for a new worktree in v0.82.0
-  and is experimental. `-x <program> -- <args>` runs a program inside
-  the selected worktree. For pipelines or redirection, invoke a shell
-  explicitly and pass template values as separate arguments if needed.
+  and is experimental. Put the switch target before `--`, which
+  Worktrunk uses to pass arguments to the program named by `-x`.
+  For pipelines or redirection, invoke a shell explicitly and pass
+  template values as separate arguments if needed.
+
 [Full switch reference](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/switch.md)
 
 ## Switch from a script
 
 Run the [switch helper](../scripts/switch-path.py) from the skill
-directory to print the selected path for a subsequent tool call.
+directory. This example creates `docs/review` from the local `develop`
+branch in `/src/service` and checks Git status in the returned checkout.
 
 ```sh
-python3 scripts/switch-path.py /src/service docs/review --create --base develop
+checkout=$(python3 scripts/switch-path.py /src/service docs/review \
+  --create --base develop) &&
+  git -C "$checkout" status --short --branch
 ```
 
-The helper runs `wt switch` with hooks enabled. It emits only the
-checkout path on success. On failure it retains the exit status and
-reports any surviving checkout to stderr. Pass `--wt git-wt` on
-Windows if needed. Check the exit status before starting the next task.
+The helper runs `wt switch` with hooks enabled. On success, the Git
+status starts with `## docs/review`. On failure, the helper retains the
+exit status and reports any surviving checkout to stderr. Pass
+`--wt git-wt` on Windows if needed. Omit `--create` and `--base` to
+switch to an existing branch.
 
-For native JSON or `-x`, run `wt switch --no-cd --format=json`
-directly. The `path` field can be present on failure. `-x` runs in the
-selected checkout with output on stderr. Only blocking hooks gate
-completion, so check background setup before using its outputs.
+For native JSON, `-x`, or an environment without Python, run
+`wt switch --no-cd --format=json` with the branch and relevant options.
+The `path` field can be present on failure. `-x` runs in the selected
+checkout with output on stderr. Only blocking hooks gate completion,
+so check background setup before using its outputs.
 
 ## Inspect
 
@@ -90,13 +97,6 @@ and target before running the pipeline.
 
 - Keep the source's separate commits with `--no-squash`. A new commit
   can still be made and a rebase can still change earlier commit IDs.
-- Keep the exact commits on a clean source and retain its worktree
-  with `wt merge develop --no-commit --no-rebase --no-remove`.
-  In v0.82.0, `--no-rebase` requires `develop` to be an ancestor of
-  the source, including when `--no-ff` requests a merge commit. A
-  divergent target stops the command without moving either branch.
-  If both histories must be preserved, perform a regular Git merge
-  from the target checkout after reviewing any required project checks.
 - `--stage=all` includes untracked files, `--stage=tracked` stages
   tracked changes, and `--stage=none` uses the existing index.
 - A rebase conflict leaves the source worktree in a rebase. Inspect it
@@ -104,6 +104,25 @@ and target before running the pipeline.
 - Use `wt step commit`, `wt step squash`, `wt step rebase`, and
   `wt step push` for individual operations. `wt step push` fast-forwards
   a local target and updates its checkout when present.
+
+### Keep the exact source commits
+
+From another checkout in the same repository, fast-forward `develop`
+to a clean `feature/auth` while keeping the source worktree. The
+ancestry check gates the merge, and the final command prints two
+matching commit IDs when the expected fast-forward succeeds.
+
+```sh
+git merge-base --is-ancestor develop feature/auth &&
+  wt merge develop --branch feature/auth --no-commit --no-rebase --no-remove &&
+  git rev-parse develop feature/auth
+```
+
+In v0.82.0, `--no-rebase` requires the ancestry relation even when
+`--no-ff` requests a merge commit. A divergent target stops the command
+without moving either branch. If both histories must be preserved,
+perform a regular Git merge from the target checkout after reviewing
+any required project checks.
 
 [Merge pipeline and flags](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/merge.md)
 [Step command reference](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/step.md)
@@ -128,6 +147,17 @@ and target before running the pipeline.
   experimental `wt step relocate`, `wt step promote`, and `wt remove
   --reap` move checkouts or manage processes. Read the matching command
   reference before using them.
+
+After inspecting a clean feature checkout, remove it and verify its
+branch when the user wants to keep the branch.
+
+```sh
+wt remove --foreground --no-delete-branch feature/auth &&
+  git rev-parse --verify refs/heads/feature/auth
+```
+
+Use `git worktree list --porcelain` to confirm that the checkout path
+is gone. This also works when the branch has unmerged commits.
 
 [Removal and recovery reference](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/remove.md)
 
