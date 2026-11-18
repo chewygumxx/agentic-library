@@ -65,6 +65,17 @@ Transcripts hold whatever was pasted into them: tokens, internal names,
 other people's words. Read the output before it leaves the machine, and
 `--redact '<regex>=<text>'` what must not, as often as needed.
 
+## A sample
+
+[`assets/sample-turns.jsonl`](../assets/sample-turns.jsonl) is one
+person's turns across a few weeks of writing, reviewing and releasing a
+collection of skills with Claude Code and Codex, published with their
+consent, with home directories and an upstream project's name
+redacted. Query it, as above, for an example of the output and of what
+is worth mining: a review brief reused word for word across skills, a
+preference for scripts over rules to memorise, and agents agreeing on
+reasons before changing anything.
+
 ## When it misreads
 
 Transcript formats are the clients' internals and change without

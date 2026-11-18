@@ -1,5 +1,6 @@
 {
     "import": ["@chewygumxx/cspell-config"],
+    "ignorePaths": ["skills/*/assets/sample-*.jsonl"],
     "words": [
         "agentskills",
         "anthropics",
