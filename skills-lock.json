@@ -19,7 +19,7 @@
     },
     "skill-builder": {
       "source": "yusufkaraaslan/Skill_Seekers",
-      "ref": "78f981132d2ada87ec03798447ec9831910030f8",
+      "ref": "d26c2e3e0384c664a6fcc71ca10ddcd26026ac0b",
       "sourceType": "github",
       "skillPath": "skills/skill-seekers/SKILL.md",
       "computedHash": "c8e1f7a5cfe134aa510c83e7a997c61c7328e877de9837619d34259a773754ce",
