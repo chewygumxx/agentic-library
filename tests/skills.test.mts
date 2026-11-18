@@ -20,6 +20,10 @@ const root = join(import.meta.dir, "..", "skills");
 const skills = readdirSync(root);
 // The project these skills were imported from, and its users' accounts.
 const imported = /dorothy|cgumxx|vtracey/i;
+// Sample data records what was said, and may name the project; it leans
+// on nothing, so only a private account is kept out of it.
+const sample = /\/assets\/sample-[^/]*$/;
+const privateAccount = /vtracey/i;
 
 const files = (skill: string) =>
     readdirSync(join(root, skill), { recursive: true, withFileTypes: true })
@@ -78,7 +82,8 @@ describe.each(skills)("%s", (skill) => {
 
     it("names nothing of the project it came from", () => {
         for (const file of files(skill)) {
-            const hits = readFileSync(file, "utf8").match(imported);
+            const pattern = sample.test(file) ? privateAccount : imported;
+            const hits = readFileSync(file, "utf8").match(pattern);
             expect([relative(root, file), hits]).toEqual([
                 relative(root, file),
                 null,
