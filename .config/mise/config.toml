@@ -39,7 +39,7 @@ node = "24"
 "aqua:editorconfig-checker/editorconfig-checker" = "4.0.2"
 
 # TOML
-"aqua:tombi-toml/tombi" = "1.5.5"
+"aqua:tombi-toml/tombi" = "1.11.3"
 
 # Shell
 "aqua:koalaman/shellcheck" = "0.11.0"
