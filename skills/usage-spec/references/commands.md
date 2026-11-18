@@ -78,7 +78,8 @@ cmd "old" hide=#true
 - `disable_help`, `disable_help_flag`, `disable_help_subcommand`,
   `disable_version_flag`; a declared flag takes the role over with
   `action="help"`, `"help_short"`, `"help_long"`, `"help_all"` or
-  `"version"`.
+  `"version"`. Generated specs write the parser's own `-h` and `-V` out
+  so, with `builtin=#true`, which keeps them out of the synopsis.
 
 ## Unknown words
 
