@@ -164,13 +164,17 @@ usage complete-word -f mycli.usage.kdl -- mycli deploy api --env ''
 
 - `lint` reports what parses but is wrong: a duplicate flag, a required
   argument after an optional one, a variadic that is not last, missing
-  help, an example its own spec rejects. Add `-W` to fail on warnings,
-  `--sorted` to hold declaration order.
+  help, an example its own spec rejects. It fails on an error; add `-W`
+  to fail on warnings, `--sorted` to hold declaration order, `-q` for
+  the findings alone and `--format json` for them as data.
 - `explain` prints which token bound to what, every value that came from
   `env`, a `default` or `default_if`, and which declaration lost to it.
   `-e KEY=VALUE` replaces the whole environment, for a reproducible report.
-- `complete-word` prints what Tab offers at the last word; `''` asks for
-  every candidate.
+  It exits `0` even when the line does not parse, and lists the errors:
+  read the report, not the exit code.
+- `complete-word` prints what Tab offers at the last word, or at the
+  word `--cword N` names; `''` asks for every candidate. `--shell` gives
+  them as that shell's script would receive them.
 
 A KDL error, or a node or property the running usage does not know, fails
 the parse with the offending span. A spec newer than the installed usage
