@@ -109,12 +109,14 @@ and target before running the pipeline.
 
 From another checkout in the same repository, fast-forward `develop`
 to a clean `feature/auth` while keeping the source worktree. The
-ancestry check gates the merge, and the final command prints two
-matching commit IDs when the expected fast-forward succeeds.
+ancestry check gates the merge. `--ff` overrides a user preference for
+merge commits. The final command prints two matching commit IDs when
+the expected fast-forward succeeds.
 
 ```sh
 git merge-base --is-ancestor develop feature/auth &&
-  wt merge develop --branch feature/auth --no-commit --no-rebase --no-remove &&
+  wt merge develop --branch feature/auth --no-commit --no-rebase \
+    --no-remove --ff &&
   git rev-parse develop feature/auth
 ```
 
