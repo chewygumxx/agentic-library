@@ -18,8 +18,8 @@
 
 # Declaratively Sourced
 node_modules/
-.agents/
-.claude/
+.agents/skills/
+.claude/skills/
 
 # Skill Seekers' MCP Scratch, Written Where It Runs
 /configs/
