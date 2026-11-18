@@ -51,7 +51,9 @@ scope; see `https://usage.jdx.dev/rust/` and `https://usage.jdx.dev/go/`.
 
 - **Printed by the CLI itself**, by a framework integration such as
   `mycli --usage-spec`, or `mycli __usage_spec__` from the Rust framework.
-  Every `usage` command that takes `-f` takes `-` for stdin, so pipe it.
+  Pipe it: every `usage` command that reads a spec takes `-` for stdin,
+  as `-f -` or, to `lint` and `diff`, as the file itself. `usage mcp`
+  alone cannot, as stdin is its transport.
 
 ## KDL in brief
 
