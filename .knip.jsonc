@@ -27,8 +27,9 @@
             "entry": ["scripts/skill-packages.mjs"]
         }
     },
-    // A skill's assets are copied out to other repositories, never run here.
-    "ignore": ["skills/*/assets/**"],
+    // A skill's assets are copied out to other repositories, never run here;
+    // a vendored bundle exports what its library does, used or not.
+    "ignore": ["skills/*/assets/**", "skills/*/scripts/vendor/**"],
     "ignoreDependencies": [
         // The shared configurations, named by path in the mise tasks,
         // by `extends` or `import`, or from `.secretlintrc.json`.

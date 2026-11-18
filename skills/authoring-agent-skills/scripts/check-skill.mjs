@@ -12,14 +12,13 @@
 // Usage: check-skill.mjs [options] <skill-dir|skills-dir>...
 //
 // Checks agent skills against the Agent Skills specification, the limits
-// Anthropic's and Codex's clients enforce, and the authoring practices
-// those sources agree on, so an agent need not hold the rules in mind
-// while writing. Errors break a client; warnings are practices to weigh.
-// Run with --help for the options.
+// of the client they target, and the authoring practices their sources
+// agree on, so an agent need not hold the rules in mind while writing.
+// Run with --help for the options and what each finding's level means.
 //
-// Node alone, no dependencies, read-only. It reads the subset of YAML
-// that frontmatter uses, and reports what it cannot read rather than
-// guess.
+// Node alone and read-only. Frontmatter is read by the yaml package,
+// bundled in vendor/ under its own licence, so its YAML is YAML's, not a
+// subset's.
 
 import { spawnSync } from "node:child_process";
 import {
@@ -31,6 +30,7 @@ import {
 } from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
+import { parseDocument } from "./vendor/yaml.mjs";
 
 const USAGE = `usage: check-skill.mjs [options] <skill-dir|skills-dir>...
 
@@ -39,6 +39,8 @@ a skills directory, and prints one finding per line:
   <skill> <error|warning> <code> <file>[:<line>] <message>
 
 options:
+  --target <any|portable|claude-code>
+                Which clients the skill must load in; default any.
   --json        Print the findings as one JSON array instead.
   --strict      Exit 1 on warnings too.
   --run-help    Also run each executable script with --help, expecting
@@ -51,9 +53,18 @@ options:
 Exit codes: 0 no errors; 1 errors, or warnings with --strict; 2 a bad
 option or a path holding no skill.
 
-Errors: what the specification, claude.ai, the Claude API or Codex
-reject. Warnings: the practices of Anthropic's best practices and
-agentskills.io, which a skill may break on purpose.`;
+Errors are what the target refuses; warnings, practices a skill may
+break on purpose, and limits only some clients enforce:
+  any          Errors: what the Agent Skills specification forbids.
+               Keys and forms only some clients accept are warnings.
+               For a collection of skills with different targets.
+  portable     Also errors: anything claude.ai or the Claude API refuse
+               on upload, such as a key outside the specification, a
+               name holding anthropic or claude, or an XML tag in the
+               description. For a skill meant for every client.
+  claude-code  Claude Code's own keys and forms pass; the rest as any.`;
+
+const TARGETS = ["any", "portable", "claude-code"];
 
 // The specification's fields, which every client accepts.
 const SPEC_KEYS = new Set([
@@ -113,6 +124,7 @@ function main() {
         parsed = parseArgs({
             allowPositionals: true,
             options: {
+                target: { type: "string", default: "any" },
                 json: { type: "boolean", default: false },
                 strict: { type: "boolean", default: false },
                 "run-help": { type: "boolean", default: false },
@@ -128,6 +140,12 @@ function main() {
     if (options.help) {
         process.stdout.write(`${USAGE}\n`);
         return;
+    }
+    if (!TARGETS.includes(options.target)) {
+        process.stderr.write(
+            `--target must be one of ${TARGETS.join(", ")}, not ${options.target}\n`,
+        );
+        process.exit(2);
     }
     if (!positionals.length) {
         process.stderr.write(`no skill given\n\n${USAGE}\n`);
@@ -208,21 +226,28 @@ function checkSkill(dir, options) {
         add("error", code, file, line, message);
     const warn = (code, message, file = "SKILL.md", line = null) =>
         add("warning", code, file, line, message);
+    // A finding whose level depends on the target: error, warning, or
+    // nothing, as the target's entry says.
+    const by = (levels, code, message) => {
+        const level = levels[options.target];
+        if (level) add(level, code, "SKILL.md", null, message);
+    };
 
     const text = readFileSync(join(dir, "SKILL.md"), "utf8");
-    let front;
-    let body;
-    let bodyStart;
+    let parsed;
     try {
-        ({ front, body, bodyStart } = parseFrontmatter(text));
+        parsed = parseFrontmatter(text);
     } catch (e) {
-        error("frontmatter", e.message, "SKILL.md", 1);
+        error("frontmatter", e.message, "SKILL.md", e.line ?? 1);
         return findings;
     }
+    const { front, body, bodyStart, notes } = parsed;
+    for (const note of notes)
+        warn(note.code, note.message, "SKILL.md", note.line);
 
-    checkName(front.name, skill, error, warn);
-    checkDescription(front.description, error, warn);
-    checkKeys(front, error, warn);
+    checkName(front.name, skill, error, warn, by);
+    checkDescription(front.description, error, warn, by);
+    checkKeys(front, error, warn, by);
 
     const lines = body.split("\n").length;
     if (lines > BODY_LINES) {
@@ -244,9 +269,22 @@ function checkSkill(dir, options) {
     return findings;
 }
 
-function checkName(name, dir, error, warn) {
-    if (typeof name !== "string" || name === "") {
+// Anthropic's upload rules: errors for a portable skill, warnings for a
+// collection, and warnings in Claude Code, which documents no such ban.
+const UPLOAD = { any: "warning", portable: "error", "claude-code": "warning" };
+// What Claude Code alone accepts: fine there, refused on upload.
+const CLAUDE_CODE_ONLY = { any: "warning", portable: "error" };
+
+function checkName(name, dir, error, warn, by) {
+    if (name === undefined || name === null || name === "") {
         error("name-missing", "frontmatter has no name");
+        return;
+    }
+    if (typeof name !== "string") {
+        error(
+            "name-type",
+            `name is YAML's ${typeOf(name)} ${String(name)}, not a string; quote it`,
+        );
         return;
     }
     if (name !== dir) {
@@ -265,9 +303,10 @@ function checkName(name, dir, error, warn) {
         );
     }
     if (/anthropic|claude/.test(name)) {
-        error(
+        by(
+            UPLOAD,
             "name-reserved",
-            `name ${name} holds anthropic or claude, which Anthropic reserves`,
+            `name ${name} holds anthropic or claude, which claude.ai and the Claude API refuse`,
         );
     }
     const first = name.split("-")[0];
@@ -284,9 +323,20 @@ function checkName(name, dir, error, warn) {
     }
 }
 
-function checkDescription(description, error, warn) {
-    if (typeof description !== "string" || description.trim() === "") {
+function checkDescription(description, error, warn, by) {
+    if (description === undefined || description === null) {
         error("description-missing", "frontmatter has no description");
+        return;
+    }
+    if (typeof description !== "string") {
+        error(
+            "description-type",
+            `description is YAML's ${typeOf(description)}, not a string; quote it`,
+        );
+        return;
+    }
+    if (description.trim() === "") {
+        error("description-missing", "description is empty");
         return;
     }
     if (description.length > 1024) {
@@ -294,11 +344,18 @@ function checkDescription(description, error, warn) {
             "description-length",
             `description is ${description.length} characters; at most 1024`,
         );
+    } else if (description.length > 200) {
+        by(
+            { portable: "warning" },
+            "description-claude-ai",
+            `description is ${description.length} characters; claude.ai's help on custom skills gives 200 as its limit, where the specification and the Claude API give 1,024: test an upload`,
+        );
     }
     if (/<\/?[A-Za-z][^>]*>/.test(description)) {
-        error(
+        by(
+            UPLOAD,
             "description-xml",
-            "description holds an XML tag, which Anthropic rejects",
+            "description holds an XML tag, which claude.ai and the Claude API refuse",
         );
     } else if (/[<>]/.test(description)) {
         warn(
@@ -325,25 +382,36 @@ function checkDescription(description, error, warn) {
     }
 }
 
-function checkKeys(front, error, warn) {
+function checkKeys(front, error, warn, by) {
     for (const key of Object.keys(front)) {
         if (SPEC_KEYS.has(key)) continue;
         if (CLAUDE_CODE_KEYS.has(key)) {
-            warn(
+            by(
+                CLAUDE_CODE_ONLY,
                 "key-claude-code",
-                `${key} is Claude Code's alone: claude.ai and the Claude API reject the skill, and other clients ignore it`,
+                `${key} is Claude Code's alone: claude.ai and the Claude API refuse the skill, and other clients ignore it`,
             );
         } else {
-            warn(
+            by(
+                { any: "warning", portable: "error", "claude-code": "warning" },
                 "key-unknown",
-                `${key} is in no specification: clients ignore it, and claude.ai and the Claude API reject the skill; put it under metadata`,
+                `${key} is in no specification: clients ignore it, and claude.ai and the Claude API refuse the skill; put it under metadata`,
+            );
+        }
+    }
+    for (const key of ["license", "compatibility"]) {
+        const value = front[key];
+        if (value !== undefined && typeof value !== "string") {
+            error(
+                `${key}-type`,
+                `${key} is YAML's ${typeOf(value)}, not a string; quote it`,
             );
         }
     }
     const compatibility = front.compatibility;
-    if (compatibility !== undefined) {
-        if (typeof compatibility !== "string" || compatibility.trim() === "") {
-            error("compatibility", "compatibility is not a non-empty string");
+    if (typeof compatibility === "string") {
+        if (compatibility.trim() === "") {
+            error("compatibility", "compatibility is empty; leave it out");
         } else if (compatibility.length > 500) {
             error(
                 "compatibility",
@@ -353,24 +421,38 @@ function checkKeys(front, error, warn) {
     }
     const metadata = front.metadata;
     if (metadata !== undefined) {
-        if (
-            !metadata ||
-            typeof metadata !== "object" ||
-            Array.isArray(metadata) ||
-            Object.values(metadata).some((v) => typeof v !== "string")
-        ) {
+        const entries = metadata instanceof Map ? [...metadata] : null;
+        const bad = entries?.find(
+            ([k, v]) => typeof k !== "string" || typeof v !== "string",
+        );
+        if (!entries) {
             error(
                 "metadata",
-                "metadata is not a mapping of string keys to string values; quote numbers, as version: '1.0'",
+                `metadata is YAML's ${typeOf(metadata)}, not a mapping of strings to strings`,
+            );
+        } else if (bad) {
+            error(
+                "metadata",
+                `metadata's ${String(bad[0])} maps a ${typeOf(bad[0])} to a ${typeOf(bad[1])}, not a string to a string; quote it, as version: "1.0"`,
             );
         }
     }
     const tools = front["allowed-tools"];
     if (tools !== undefined && typeof tools !== "string") {
-        warn(
-            "allowed-tools",
-            "allowed-tools is not a space-separated string, the specification's form; Claude Code alone also reads a list",
-        );
+        const list =
+            Array.isArray(tools) && tools.every((t) => typeof t === "string");
+        if (list) {
+            by(
+                CLAUDE_CODE_ONLY,
+                "allowed-tools",
+                "allowed-tools is a list, which Claude Code alone reads; the specification's form is a space-separated string",
+            );
+        } else {
+            error(
+                "allowed-tools",
+                `allowed-tools is YAML's ${typeOf(tools)}; write a space-separated string`,
+            );
+        }
     }
     if (front.license === undefined) {
         warn(
@@ -378,6 +460,14 @@ function checkKeys(front, error, warn) {
             "no license: say on what terms the skill may be copied",
         );
     }
+}
+
+function typeOf(value) {
+    if (value === null) return "null";
+    if (Array.isArray(value)) return "sequence";
+    if (value instanceof Map) return "mapping";
+    if (value instanceof Date) return "timestamp";
+    return typeof value;
 }
 
 // Links, references and scripts. What an agent reads is SKILL.md and
@@ -572,133 +662,76 @@ function linkTargets(line) {
 
 // ------------------------------------------------------------ frontmatter
 
-// Reads the frontmatter's top-level keys: plain, quoted and block
-// scalars, and one level of mapping or sequence beneath a key. What it
-// cannot read is an error, never a guess.
+// The frontmatter's mapping, read as YAML 1.2, with mappings kept as Maps
+// so a key keeps its own type. Errors carry the line in SKILL.md.
+// Clients read YAML with different libraries, some of them YAML 1.1,
+// where yes, on and 1:20 are no strings: a value that reads otherwise
+// under 1.1 is noted.
 function parseFrontmatter(text) {
     if (!/^---\r?\n/.test(text)) {
         throw new Error(
             "SKILL.md does not open with ---, so no client reads its frontmatter",
         );
     }
-    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n?/);
+    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n?---[ \t]*(\r?\n|$)/);
     if (!match) throw new Error("frontmatter is never closed with ---");
-    const lines = match[1].split(/\r?\n/);
+    const yaml = match[1];
+    const fail = (problem) => {
+        const err = new Error(`frontmatter: ${problem.message.split("\n")[0]}`);
+        err.line = (problem.linePos?.[0]?.line ?? 0) + 1;
+        return err;
+    };
+    const read = (version) => {
+        const doc = parseDocument(yaml, {
+            version,
+            uniqueKeys: true,
+            prettyErrors: true,
+        });
+        return doc;
+    };
+    const doc = read("1.2");
+    if (doc.errors.length) throw fail(doc.errors[0]);
+    const notes = doc.warnings.map((w) => ({
+        code: "frontmatter-unsupported",
+        message: `frontmatter: ${w.message.split("\n")[0]}; its meaning cannot be checked`,
+        line: (w.linePos?.[0]?.line ?? 0) + 1,
+    }));
+    const value = doc.toJS({ mapAsMap: true, maxAliasCount: 100 });
+    if (!(value instanceof Map)) {
+        throw new Error("frontmatter is not a mapping of keys to values");
+    }
     const front = {};
-    const indented = (l) => l.trim() === "" || /^\s/.test(l);
-    for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        if (line.trim() === "" || /^\s*#/.test(line)) continue;
-        const key = line.match(/^([A-Za-z0-9_-]+):(?:[ \t]+(.*))?$/);
-        if (!key) {
-            throw new Error(`cannot read frontmatter line ${i + 2}: ${line}`);
+    for (const [key, field] of value) {
+        if (typeof key !== "string") {
+            throw new Error(`frontmatter key ${String(key)} is not a string`);
         }
-        const [, name, rest = ""] = key;
-        if (name in front) throw new Error(`${name} appears twice`);
-        const nested = [];
-        while (i + 1 < lines.length && indented(lines[i + 1])) {
-            nested.push(lines[++i]);
+        front[key] = field;
+    }
+
+    const old = read("1.1");
+    if (!old.errors.length) {
+        const then = old.toJS({ mapAsMap: true, maxAliasCount: 100 });
+        for (const key of [...SPEC_KEYS]) {
+            const now = front[key];
+            const was = then instanceof Map ? then.get(key) : undefined;
+            const pairs =
+                now instanceof Map && was instanceof Map
+                    ? [...now].map(([k, v]) => [`${key}.${k}`, v, was.get(k)])
+                    : [[key, now, was]];
+            for (const [where, a, b] of pairs) {
+                if (a === undefined || a instanceof Map) continue;
+                if (typeof a !== typeof b || String(a) !== String(b)) {
+                    notes.push({
+                        code: "yaml-version",
+                        message: `${where} reads as ${typeOf(a)} ${JSON.stringify(a)} in YAML 1.2 but ${typeOf(b)} ${JSON.stringify(b)} in YAML 1.1, which some clients use; quote it`,
+                        line: null,
+                    });
+                }
+            }
         }
-        front[name] = readValue(name, rest.trim(), nested);
     }
     const bodyStart = match[0].split("\n").length - 1;
-    return { front, body: text.slice(match[0].length), bodyStart };
-}
-
-function readValue(name, rest, body) {
-    const block = rest.match(/^([>|])([+-]?)[ \t]*(#.*)?$/);
-    if (block) return blockScalar(name, body, block[1], block[2]);
-    const filled = body.filter((l) => l.trim() !== "");
-    if (rest === "" || rest.startsWith("#")) {
-        return filled.length ? collection(name, filled) : null;
-    }
-    if (rest.startsWith("'") || rest.startsWith('"')) {
-        if (filled.length) {
-            throw new Error(
-                `${name}'s quoted value continues onto another line, which this script does not read`,
-            );
-        }
-        return quoted(name, rest);
-    }
-    if (/^\[.*\]$/.test(rest)) {
-        return rest
-            .slice(1, -1)
-            .split(",")
-            .map((item) => scalar(name, item.trim()))
-            .filter((item) => item !== "");
-    }
-    if (/^[{&*!%@`]/.test(rest)) {
-        throw new Error(`${name}'s value is YAML this script does not read`);
-    }
-    // A plain scalar folds: lines join with a space.
-    return [rest.replace(/\s+#.*$/, ""), ...filled.map((l) => l.trim())].join(
-        " ",
-    );
-}
-
-function scalar(name, text) {
-    if (text.startsWith("'") || text.startsWith('"')) return quoted(name, text);
-    const plain = text.replace(/\s+#.*$/, "");
-    if (/^(true|false|yes|no|on|off)$/i.test(plain)) {
-        return /^(true|yes|on)$/i.test(plain);
-    }
-    if (/^[-+]?\d+(\.\d+)?$/.test(plain)) return Number(plain);
-    if (/^(null|~)$/.test(plain)) return null;
-    return plain;
-}
-
-function collection(name, lines) {
-    const indent = lines[0].match(/^ */)[0].length;
-    const own = lines.filter((l) => l.match(/^ */)[0].length === indent);
-    if (own.every((l) => /^\s*- /.test(l))) {
-        return own.map((l) => scalar(name, l.replace(/^\s*- /, "").trim()));
-    }
-    const map = {};
-    for (const l of own) {
-        const m = l.trim().match(/^([^:#]+?):(?:[ \t]+(.*))?$/);
-        if (!m) {
-            throw new Error(`cannot read ${name}'s entry: ${l.trim()}`);
-        }
-        map[m[1].trim()] =
-            m[2] === undefined ? null : scalar(name, m[2].trim());
-    }
-    return map;
-}
-
-function blockScalar(name, body, style, chomp) {
-    const filled = body.filter((l) => l.trim() !== "");
-    if (!filled.length) return "";
-    const indent = filled[0].match(/^ */)[0].length;
-    if (filled.some((l) => l.match(/^ */)[0].length < indent)) {
-        throw new Error(
-            `${name}'s block scalar is less indented after its first line`,
-        );
-    }
-    const lines = body.map((l) => (l.trim() === "" ? "" : l.slice(indent)));
-    while (lines.length && lines.at(-1) === "") lines.pop();
-    let value = "";
-    if (style === "|") value = lines.join("\n");
-    else {
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i];
-            if (line === "") value += "\n";
-            else if (i > 0 && lines[i - 1] !== "" && !/^\s/.test(line)) {
-                value += ` ${line}`;
-            } else value += line;
-        }
-    }
-    return chomp === "-" ? value : `${value}\n`;
-}
-
-function quoted(name, text) {
-    if (text.startsWith("'")) {
-        const m = text.match(/^'((?:[^']|'')*)'\s*(#.*)?$/);
-        if (!m) throw new Error(`cannot read ${name}'s single-quoted value`);
-        return m[1].replace(/''/g, "'");
-    }
-    const m = text.match(/^("(?:[^"\\]|\\.)*")\s*(#.*)?$/);
-    if (!m) throw new Error(`cannot read ${name}'s double-quoted value`);
-    return JSON.parse(m[1]);
+    return { front, notes, body: text.slice(match[0].length), bodyStart };
 }
 
 main();

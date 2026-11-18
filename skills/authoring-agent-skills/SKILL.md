@@ -135,13 +135,17 @@ next command saves the agent recalling it.
 ## 4. Check it
 
 ```sh
-node scripts/check-skill.mjs <skill-dir>
+node scripts/check-skill.mjs --target portable <skill-dir>
 ```
 
-It checks everything above that a machine can: the specification's
-fields and limits, keys a client rejects, the description's person and
-trigger, body size, links that break or leave the skill, nested or
-unlinked references, and scripts an agent cannot run. Fix every error;
+It checks everything above that a machine can, reading the frontmatter
+as YAML: the specification's fields, types and limits, the description's
+person and trigger, body size, links that break or leave the skill,
+nested or unlinked references, and scripts an agent cannot run. The
+target sets what is an error: `portable` refuses whatever claude.ai or
+the Claude API would, for a skill meant for every client;
+`claude-code` allows that client's own keys, for a skill meant for it
+alone; `any`, the default, suits a mixed collection. Fix every error;
 weigh each warning, as a skill may break a practice on purpose.
 `--run-help` also runs each script's `--help`, `--json` suits other
 tools, and the repository's own linters and tests still apply.

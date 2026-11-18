@@ -139,12 +139,6 @@ describe("errors", () => {
             "name-directory",
         ],
         [
-            "a name with a reserved word",
-            { front: ["name: claude-processing", ...GOOD_FRONT.slice(1)] },
-            "name-reserved",
-            "claude-processing",
-        ],
-        [
             "a name of other characters",
             { front: ["name: Processing--Things", ...GOOD_FRONT.slice(1)] },
             "name-characters",
@@ -172,16 +166,6 @@ describe("errors", () => {
             "description-length",
         ],
         [
-            "an XML tag in the description",
-            {
-                front: [
-                    "name: processing-things",
-                    "description: Processes <b>things</b>. Use when needed.",
-                ],
-            },
-            "description-xml",
-        ],
-        [
             "a compatibility past 500 characters",
             { front: [...GOOD_FRONT, `compatibility: ${"x".repeat(501)}`] },
             "compatibility",
@@ -189,6 +173,37 @@ describe("errors", () => {
         [
             "metadata holding a number",
             { front: [...GOOD_FRONT, "metadata:", "  version: 1.0"] },
+            "metadata",
+        ],
+        [
+            "a numeric description",
+            { front: ["name: processing-things", "description: 123"] },
+            "description-type",
+        ],
+        [
+            "a boolean name",
+            { front: ["name: true", ...GOOD_FRONT.slice(1)] },
+            "name-type",
+            "true",
+        ],
+        [
+            "a plain value holding ': '",
+            {
+                front: [
+                    "name: processing-things",
+                    "description: Does work: use when requested.",
+                ],
+            },
+            "frontmatter",
+        ],
+        [
+            "a key given twice",
+            { front: [...GOOD_FRONT, "license: MIT"] },
+            "frontmatter",
+        ],
+        [
+            "nested metadata",
+            { front: [...GOOD_FRONT, "metadata:", "  owner:", "    team: x"] },
             "metadata",
         ],
         [
@@ -347,6 +362,100 @@ describe("warnings", () => {
             run("--strict", "--ignore", "description-trigger", dir).status,
         ).toBe(0);
         rmSync(dirname(dir), { recursive: true, force: true });
+    });
+});
+
+describe("targets", () => {
+    const upload: [string, string[]][] = [
+        ["name-reserved", ["name: claude-processing", ...GOOD_FRONT.slice(1)]],
+        [
+            "description-xml",
+            [
+                "name: processing-things",
+                "description: Processes <b>things</b>. Use when needed.",
+                "license: MIT",
+            ],
+        ],
+        ["key-unknown", [...GOOD_FRONT, "version: 1.0.0"]],
+        ["key-claude-code", [...GOOD_FRONT, "disable-model-invocation: true"]],
+        ["allowed-tools", [...GOOD_FRONT, "allowed-tools: [Read, Bash]"]],
+    ];
+    for (const [code, front] of upload) {
+        const name = front[0]?.slice("name: ".length) ?? "processing-things";
+        it(`makes ${code} an error only for a portable skill`, () => {
+            expect(codes(findings(skill(name, { front })))).toContain(
+                `warning ${code}`,
+            );
+            expect(
+                codes(findings(skill(name, { front }), "--target", "portable")),
+            ).toContain(`error ${code}`);
+        });
+    }
+
+    it("lets Claude Code's own keys and forms pass for claude-code", () => {
+        const front = [
+            ...GOOD_FRONT,
+            "disable-model-invocation: true",
+            "allowed-tools: [Read, Bash]",
+        ];
+        expect(
+            findings(
+                skill("processing-things", { front }),
+                "--target",
+                "claude-code",
+            ),
+        ).toEqual([]);
+    });
+
+    it("notes claude.ai's 200-character description for a portable skill", () => {
+        const front = [
+            "name: processing-things",
+            `description: Processes things. Use when ${"x".repeat(200)}.`,
+            "license: MIT",
+        ];
+        expect(codes(findings(skill("processing-things", { front })))).toEqual(
+            [],
+        );
+        expect(
+            codes(
+                findings(
+                    skill("processing-things", { front }),
+                    "--target",
+                    "portable",
+                ),
+            ),
+        ).toEqual(["warning description-claude-ai"]);
+    });
+
+    it("refuses an unknown target", () => {
+        const dir = skill("processing-things");
+        expect(run("--target", "everywhere", dir).status).toBe(2);
+        rmSync(dirname(dir), { recursive: true, force: true });
+    });
+});
+
+describe("YAML", () => {
+    it("reads flow mappings, YAML escapes and aliases", () => {
+        const list = findings(
+            skill("processing-things", {
+                front: [
+                    "name: processing-things",
+                    'description: "Processes things.\\_Use when needed."',
+                    "license: &licence MIT",
+                    "metadata: {author: someone, licence: *licence}",
+                ],
+            }),
+        );
+        expect(list).toEqual([]);
+    });
+
+    it("notes a value YAML 1.1 reads otherwise", () => {
+        const list = findings(
+            skill("processing-things", {
+                front: [...GOOD_FRONT, "metadata:", "  enabled: on"],
+            }),
+        );
+        expect(codes(list)).toContain("warning yaml-version");
     });
 });
 
