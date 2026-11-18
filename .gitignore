@@ -18,5 +18,5 @@
 
 # Declaratively Sourced
 node_modules/
-.agents/
-.claude/
+.agents/skills/
+.claude/skills/
