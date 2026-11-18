@@ -35,6 +35,8 @@ Judge it on:
 5. **Scripts over specification.** Where does it ask the agent to
    derive, copy or validate data by rule that a script should do? Where
    does it state a rule without the reason a model needs to apply it?
+   Run each script in `scripts/`: `--help`, then a real input, and judge
+   what it does with it.
 6. **Self-containment.** It is meant for `<one project, or any>`.
    Anything it needs that does not travel with its directory, and,
    for a skill meant for any project, anything that leans on the one it
