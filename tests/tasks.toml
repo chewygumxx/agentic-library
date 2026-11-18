@@ -49,17 +49,6 @@ tags        = [
 ]
 run         = "bun test ./tests/mise-tasks.test.mts"
 
-["test:packages"]
-description = "Test that each skill's npm package repeats its frontmatter, ships it whole, is synced here and released"
-tags        = [
-    "test",
-    "covers:skills",
-    "covers:package.json",
-    "covers:.config/release-please.json",
-    "covers:.config/release-please-manifest.json",
-]
-run         = "bun test ./tests/packages.test.mts"
-
 ["test:skills"]
 description = "Test that every skill stands alone once copied out of this repository"
 tags        = [ "test", "covers:skills" ]
@@ -72,6 +61,7 @@ tags        = [
     "covers:.config/mise/config.toml",
     "covers:tests/tasks.toml",
     "covers:tests/coordinating-agents/tasks.toml",
+    "covers:tests/publishing-skills-to-npm/tasks.toml",
 ]
 run         = "bun test ./tests/test-tasks.test.mts"
 

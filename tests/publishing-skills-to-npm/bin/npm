@@ -1,0 +1,46 @@
+#!/bin/sh
+# vim:set expandtab shiftwidth=4 filetype=sh:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/tests/publishing-skills-to-npm/bin/npm
+#
+#
+
+# Stands in for npm, as the files in $STUB direct:
+#
+#   <name>.json     what `view <name> --json` prints, its / written as __;
+#                   with no such file, npm's 404 for an unpublished name
+#   <name>.error    instead, a failure that is no 404, such as offline
+#   pack.json       what `pack --dry-run --json` prints
+#
+# Anything else is refused, so no test can publish.
+
+set -eu
+
+STUB=${STUB:?}
+
+case "${1-}" in
+view)
+    base="$STUB/$(printf '%s' "$2" | sed 's#/#__#g')"
+    if [ -f "$base.error" ]; then
+        cat "$base.error" >&2
+        exit 1
+    elif [ -f "$base.json" ]; then
+        cat "$base.json"
+    else
+        echo "npm error code E404" >&2
+        echo "npm error 404 Not Found - GET https://registry.npmjs.org/$2" >&2
+        exit 1
+    fi
+    ;;
+pack)
+    cat "$STUB/pack.json"
+    ;;
+*)
+    echo "npm stand-in: only view and pack are stood in for" >&2
+    exit 2
+    ;;
+esac
