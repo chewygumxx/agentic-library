@@ -1,6 +1,6 @@
 ---
 ctime: 2026-10-12
-mtime: 2026-11-03
+mtime: 2026-11-18
 spdx: GPL-3.0-only
 title: docs/AGENTS.md
 description: >-
@@ -41,7 +41,7 @@ Filename format conforms to `YYYY-MM-DD_<abbreviated-title>.md` where
 
 - Each file opens with frontmatter (`ctime`, `mtime`, `spdx`, `title`,
   `description`, `tags`) and the breadcrumb comment; copy both from a
-  sibling, and bump `mtime` when you edit. `lint:header` checks the
+  sibling, and bump `mtime` when you edit. `lint:headers` checks the
   breadcrumb against the file's path.
 - Lines are at most 80 characters, inline code included: a long command
   goes in a fenced block. Links are Markdown links, never `[[...]]` wiki
