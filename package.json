@@ -1,14 +1,14 @@
 {
-    "name": "agent-library",
+    "name": "agentic-library",
     "private": true,
     "description": "Curated agent asset catalogue prioritising harness and model compatibility.",
     "keywords": [
         "agent-skills"
     ],
-    "homepage": "https://github.com/chewygumxx/agent-library#readme",
+    "homepage": "https://github.com/chewygumxx/agentic-library#readme",
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/chewygumxx/agent-library.git"
+        "url": "git+https://github.com/chewygumxx/agentic-library.git"
     },
     "license": "GPL-3.0-only",
     "scripts": {
