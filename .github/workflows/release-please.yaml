@@ -46,7 +46,6 @@ jobs:
 
         outputs:
             prs_created: ${{ steps.release.outputs.prs_created }}
-            pr: ${{ steps.release.outputs.pr }}
 
         steps:
             - name: Mint App Token
@@ -64,10 +63,16 @@ jobs:
                   config-file: .config/release-please.json
                   manifest-file: .config/release-please-manifest.json
 
+    # One release pull request for every skill, on release-please's fixed
+    # branch. A dispatch re-runs this against it, as when a refresh failed
+    # and release-please has nothing new to change.
     lockfiles:
         needs: release-please
-        if: needs.release-please.outputs.prs_created == 'true'
+        if: needs.release-please.outputs.prs_created == 'true' || github.event_name == 'workflow_dispatch'
         runs-on: ubuntu-latest
+
+        env:
+            BRANCH: release-please--branches--main
 
         steps:
             - name: Mint App Token
@@ -77,31 +82,46 @@ jobs:
                   client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
                   private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
 
+            - name: Find Release Branch
+              id: branch
+              env:
+                  GH_TOKEN: ${{ steps.app.outputs.token }}
+              run: |
+                  if gh api "repos/${GITHUB_REPOSITORY}/branches/${BRANCH}" --silent 2>/dev/null; then
+                      echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "No ${BRANCH}: no release pull request to refresh"
+                  fi
+
             # Kept credentials push the commit below as the App.
             - name: Checkout Release Branch
+              if: steps.branch.outputs.exists == 'true'
               uses: actions/checkout@v7
               with:
-                  ref: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+                  ref: ${{ env.BRANCH }}
                   token: ${{ steps.app.outputs.token }}
 
             - name: Setup Bun and Node
+              if: steps.branch.outputs.exists == 'true'
               uses: jdx/mise-action@v4
 
             # Scripts off: prepare's sync, in CI, refuses to change
             # skills-lock.json, which is the point here.
             - name: Bun Install
+              if: steps.branch.outputs.exists == 'true'
               run: bun install --ignore-scripts
 
             # The sync records each skill's new version and hash; in CI it
             # is frozen unless told otherwise.
             - name: Resync Skills Lock
+              if: steps.branch.outputs.exists == 'true'
               run: bun run skills --no-frozen-lockfile
 
             - name: Commit Lockfiles
+              if: steps.branch.outputs.exists == 'true'
               env:
                   GH_TOKEN: ${{ steps.app.outputs.token }}
                   SLUG: ${{ steps.app.outputs.app-slug }}
-                  BRANCH: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
               run: |
                   git add bun.lock skills-lock.json
                   if git diff --cached --quiet; then
