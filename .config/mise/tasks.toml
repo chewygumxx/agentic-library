@@ -146,8 +146,9 @@ run         = [
 ["lint:yaml"]
 description = "Lint and check formatting of YAML with Prettier and yamllint"
 usage       = 'flag "--staged"'
-sources     = [ "bun.lock", ".config/mise/config.toml", "**/*.yaml", "**/*.yml", "!node_modules/**", ".yamllint.yaml", "package.json", "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}" ]
+sources     = [ "bun.lock", ".config/mise/config.toml", "**/*.yaml", "**/*.yml", "!node_modules/**", "package.json", "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}" ]
 outputs     = { auto = true }
+env         = { YAMLLINT_CONFIG_FILE = "node_modules/@chewygumxx/yamllint-config/config.yaml" }
 run         = [
     "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --check",
     "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- yamllint --strict",
