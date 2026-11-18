@@ -41,13 +41,45 @@ A skill's `package.json` repeats its frontmatter's `description` and
 apart. A new skill needs its own `package.json`, copied from a sibling,
 and a `workspace:*` devDependency in the root `package.json`.
 
-To release one, bump its `version` and commit, then push a tag
-`skill-<skill>@<version>`. `.github/workflows/publish.yaml` stages it on
-npm, where it waits for the maintainer's 2FA approval. A package's first
-version is published by hand, before its trusted publisher can be set,
-with `npm publish --workspace skills/<skill> --provenance=false`: its
-`publishConfig` asks for provenance, which only CI can attest.
-A `private` package is never published.
+### Commit Types Release Skills
+
+[release-please](https://github.com/googleapis/release-please) reads the
+conventional commits touching each `skills/<skill>/`. Type a change to a
+skill by what it does for the skill's users, never by the file it edits:
+a `SKILL.md` is the skill's code, not its documentation.
+
+| Commit                          | Below 1.0.0 | For                                    |
+| ------------------------------- | ----------- | -------------------------------------- |
+| `feat(skill):`                  | Patch       | New guidance, scripts or behaviour     |
+| `fix(skill):`                   | Patch       | Wrong or misleading guidance corrected |
+| `feat(skill)!:`, `fix(skill)!:` | Minor       | Removes or changes what users rely on  |
+| `docs`, `refactor`, other       | No release  | Changes users of the skill never see   |
+
+A commit touching several skills releases each. Keep one skill's change
+to one commit where you can: its message becomes that skill's release
+notes. A `Release-As: <version>` footer forces a version, as for the
+first `0.1.0`.
+
+### Releasing
+
+`.github/workflows/release-please.yaml` keeps one pull request open on
+`main` that bumps each changed skill's `version`, and
+`.config/release-please-manifest.json`. Merge it with a merge commit,
+like any pull request here: release-please walks `main`'s history, and
+`bootstrap-sha` in `.config/release-please.json` must stay on it.
+Merging publishes a GitHub release per skill, tagged
+`skill-<skill>@<version>`, which starts
+`.github/workflows/publish.yaml` to stage it on npm, where it waits for
+the maintainer's 2FA approval. Both act as the
+`release-please-agentic-library` GitHub App, whose events start other
+workflows where `GITHUB_TOKEN`'s would not.
+
+A new public skill needs an entry under `packages` in
+`.config/release-please.json`, and its version in the manifest. Its
+first version is published by hand, before its trusted publisher can be
+set, with `npm publish --workspace skills/<skill> --provenance=false`:
+its `publishConfig` asks for provenance, which only CI can attest. A
+`private` package is in neither file, and never published.
 
 ## Git Hooks
 
