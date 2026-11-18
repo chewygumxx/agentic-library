@@ -27,5 +27,5 @@ run         = "<test command>"
 [check]
 description = "Run everything CI runs: lint and test"
 alias       = "c"
-usage       = 'flag "--staged" help="Lint staged files alone; test in full"'
-depends     = [ "lint {% if usage.staged %}--staged{% endif %}", "test" ]
+extends     = "staged"
+depends     = [ "lint {% if not usage.staged %}--all{% endif %}", "test" ]

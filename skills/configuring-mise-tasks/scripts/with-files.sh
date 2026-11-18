@@ -13,6 +13,7 @@
 #
 # Runs the command with the tracked files matching the pathspecs appended,
 # or with --staged, the staged files added, copied, modified or renamed.
+# A mise task's --staged flag, exported as $usage_staged=true, does the same.
 # No pathspec means every file. Runs nothing when no file matches. Each
 # path starts ./, so no tool reads a file named -x as an option.
 
@@ -24,6 +25,9 @@ usage() {
 }
 
 staged=
+if [ "${usage_staged-}" = true ]; then
+    staged=1
+fi
 if [ "${1-}" = --staged ]; then
     staged=1
     shift

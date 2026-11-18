@@ -18,9 +18,9 @@
 [lint]
 description = "Run every linter and format check"
 alias       = "l"
-usage       = 'flag "--staged" help="Lint staged files alone"'
+extends     = "staged"
 depends     = [
-    "lint:<kind> {% if usage.staged %}--staged{% endif %}",
+    "lint:<kind> {% if not usage.staged %}--all{% endif %}",
     "lint:types",
 ]
 
@@ -30,7 +30,7 @@ depends     = [
 
 ["lint:<kind>"]
 description = "Lint <kind> files with <linter>"
-usage       = 'flag "--staged"'
+extends     = "staged:cached"
 sources     = [
     "**/*.<ext>",
     "!node_modules/**",
@@ -39,8 +39,7 @@ sources     = [
     ".config/mise/config.toml",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
-outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.<ext>' -- <linter, check only>"
+run         = "scripts/with-files.sh '*.<ext>' -- <linter, check only>"
 
 # ---------------------
 # Lint: whole project

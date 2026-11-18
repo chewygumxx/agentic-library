@@ -43,7 +43,7 @@ The manifest's scripts (`package.json`'s, for Bun) hold only:
 2. Runtime entry points, such as `dev` or `start`;
 3. Names something outside the repository calls, such as a shared CI
    workflow's `bun run check`. Where that caller has mise, the entry is
-   `"check": "mise run check"`.
+   `"check": "mise run check --all"`, as CI checks every file.
 
 Remove any other entry, and change its mentions from `bun run <name>` to
 `mise run <name>`.
@@ -58,7 +58,8 @@ Remove any other entry, and change its mentions from `bun run <name>` to
   ```
 
   The include path is relative to the repository root. mise 2026.11.6
-  takes a glob there.
+  takes a glob there. Task templates go in this file too, as an
+  included task file holds tasks alone.
 
 - `.config/mise/tasks/` holds every task, as TOML, one file per task
   family, so a task is found by the first part of its name:
@@ -123,26 +124,51 @@ own entry points, and `act`, which runs CI locally.
 
 To adopt the set, copy the three files in [`assets/tasks/`](assets/tasks/)
 to `.config/mise/tasks/`, point each header at its new path and fill in
-the placeholders, and copy [`scripts/with-files.sh`](scripts/with-files.sh)
-to `scripts/`. A repository with a single `.config/mise/tasks.toml` moves
-each task into its family's file and changes the include to the glob.
+the placeholders, merge [`assets/config.toml`](assets/config.toml) into
+`.config/mise/config.toml`, and copy
+[`scripts/with-files.sh`](scripts/with-files.sh) to `scripts/`. A
+repository with a single `.config/mise/tasks.toml` moves each task into
+its family's file and changes the include to the glob.
 
-## The `--staged` switch
+## Staged by default
 
-Every file-based task, and `lint`, `format` and `check`, take `--staged`.
-With it, a task acts on the staged files of its kind alone; without it,
-on every tracked file of its kind. `scripts/with-files.sh` gives a task
-its files:
-
-```sh
-scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- <command>
-```
-
-mise sets `$usage_staged` only when the flag is given. A parent forwards
-the flag through a templated `depends`:
+Every file-based task, and `lint`, `format` and `check`, act on the
+staged files of their kind alone, and with `--all`, on every tracked
+file of their kind. Two task templates in `.config/mise/config.toml`
+declare the switch once:
 
 ```toml
-depends = ['lint {% if usage.staged %}--staged{% endif %}', "test"]
+[task_templates.staged]
+usage = '''
+flag "--staged" negate="--all" default=#true {
+    help "Act on staged files alone, or every file with --all"
+}
+'''
+```
+
+`staged:cached` adds the `sources` and `outputs` that let a check
+[skip unchanged work](#skipping-unchanged-work). A file-based check
+extends it; `lint`, `format`, `check` and each formatter extend
+`staged`. Both are in [`assets/config.toml`](assets/config.toml).
+
+```toml
+["lint:md"]
+description = "Lint Markdown with <linter>"
+extends     = "staged:cached"
+run         = "scripts/with-files.sh '*.md' -- <command>"
+```
+
+mise exports the flag to the run as `$usage_staged`, which
+`scripts/with-files.sh` reads, so no `run` names the flag. A script of
+your own reads it alike, testing for `true`: under `--all` it is `false`,
+not unset. A template's `vars` and `env` cannot carry the choice instead,
+as mise renders them before it parses the flag.
+
+A parent forwards `--all` alone through a templated `depends`, its
+dependencies being staged already:
+
+```toml
+depends = ['lint {% if not usage.staged %}--all{% endif %}', "test"]
 ```
 
 A task that cannot narrow to files, such as the type check or the tests,
@@ -150,17 +176,18 @@ takes no flag, declares no `sources`, and checks everything on every run.
 
 ## Skipping unchanged work
 
-Each checking task that reads particular files declares `sources`, the
-files it reads and the
-configuration that governs them, the lockfile and the tool pins in
-`.config/mise/config.toml` among it, and `outputs = { auto = true }`. mise
-then skips it when nothing changed since it last passed.
+Each checking task that reads particular files takes `sources`, the
+files it reads and the configuration that governs them, the lockfile and
+the tool pins in `.config/mise/config.toml` among it, and
+`outputs = { auto = true }`, from `staged:cached`. mise then skips it when
+nothing changed since it last passed.
 
-- mise keeps a record per set of arguments, so a `--staged` pass never
-  lets a full run skip.
-- A `--staged` run also takes git's index as a source, by its absolute
-  path, inside the task. [Staged runs](./references/staged-runs.md) says
-  why each is so:
+- mise keeps a record per set of arguments, so a staged pass never lets
+  an `--all` run skip.
+- A staged run also takes git's index as a source, by its absolute
+  path, inside the task. A task with `sources` of its own replaces the
+  template's, so lists the index too. [Staged runs](./references/staged-runs.md)
+  says why each is so:
 
   ```toml
   sources = [

@@ -47,13 +47,6 @@ hk = "2.13.0"
 "aqua:getsops/sops"    = "3.13.3"
 "aqua:FiloSottile/age" = "1.3.2"
 
-[tools."pypi:skill-seekers"]
-version   = "3.10.0"
-extras    = [ "mcp" ]
-depends   = [ "uv" ]
-lazy      = true
-lazy_bins = [ "skill-seekers" ]
-
 # Lint and Format
 [tools."aqua:editorconfig-checker/editorconfig-checker"]
 version   = "4.0.2"
@@ -81,6 +74,14 @@ depends   = [ "uv" ]
 lazy      = true
 lazy_bins = [ "yamllint" ]
 
+# Agentic
+[tools."pypi:skill-seekers"]
+version   = "3.10.0"
+extras    = [ "mcp" ]
+depends   = [ "uv" ]
+lazy      = true
+lazy_bins = [ "skill-seekers" ]
+
 [wrappers]
 python = { command = "uv", args = [ "run", "python" ] }
 
@@ -102,3 +103,27 @@ includes = [
     "tests/tasks.toml",
     "tests/*/tasks.toml"
 ]
+
+# Templates live here, as an included task file holds tasks alone. A task
+# extending either acts on staged files, or every file with --all;
+# with-files.sh reads the choice from $usage_staged. staged:cached also
+# skips unchanged work, a staged run watching git's index too.
+[task_templates.staged]
+usage = '''
+flag "--staged" negate="--all" default=#true {
+    help "Act on staged files alone, or every file with --all"
+}
+'''
+
+[task_templates."staged:cached"]
+usage   = '''
+flag "--staged" negate="--all" default=#true {
+    help "Act on staged files alone, or every file with --all"
+}
+'''
+sources = [
+    "**/*",
+    "!node_modules/**",
+    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
+]
+outputs = { auto = true }

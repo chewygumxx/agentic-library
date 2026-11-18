@@ -24,9 +24,12 @@ const print = ["sh", "-c", 'printf "%s\\0" "$@"', "sh"];
 let repo: string;
 
 // Without git's own variables, which a hook running these tests inherits
-// and which would point git at the real repository.
+// and which would point git at the real repository, nor a mise task's
+// $usage_staged, which the script reads.
 const env = Object.fromEntries(
-    Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")),
+    Object.entries(process.env).filter(
+        ([name]) => !name.startsWith("GIT_") && name !== "usage_staged",
+    ),
 );
 
 const git = (...args: string[]) => {
@@ -40,8 +43,13 @@ const files = async (contents: Record<string, string>) => {
     }
 };
 
-const withFiles = (...args: string[]) => {
-    const run = Bun.spawnSync(["sh", script, ...args], { cwd: repo, env });
+const withFiles = (...args: string[]) => withFilesIn(env, ...args);
+
+const withFilesIn = (environment: typeof env, ...args: string[]) => {
+    const run = Bun.spawnSync(["sh", script, ...args], {
+        cwd: repo,
+        env: environment,
+    });
     return {
         code: run.exitCode,
         files: run.stdout.toString().split("\0").slice(0, -1).sort(),
@@ -84,6 +92,23 @@ describe("with-files.sh", () => {
         expect(withFiles("--staged", "*.md", "--", ...print).files).toEqual([
             "./a.md",
             "./c.md",
+        ]);
+    });
+
+    it("under a mise task's --staged, as $usage_staged, passes staged files only", async () => {
+        await files({ "a.md": "a", "b.md": "b" });
+        git("add", ".");
+        git("commit", "-qm", "init");
+        await files({ "a.md": "a2", "b.md": "b2" });
+        git("add", "a.md");
+        const staged = { ...env, usage_staged: "true" };
+        expect(withFilesIn(staged, "*.md", "--", ...print).files).toEqual([
+            "./a.md",
+        ]);
+        const all = { ...env, usage_staged: "false" };
+        expect(withFilesIn(all, "*.md", "--", ...print).files).toEqual([
+            "./a.md",
+            "./b.md",
         ]);
     });
 

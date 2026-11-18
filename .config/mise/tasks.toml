@@ -12,8 +12,10 @@
 #
 # https://mise.jdx.dev/tasks/task-configuration.html
 #
-# File-based tasks take --staged, which parents pass on. Under it, git's
-# index is a source, so a later staged run never skips a newly staged file.
+# File-based tasks, and lint, format and check, act on staged files alone
+# unless given --all, which parents pass on. Each extends a template in
+# .config/mise/config.toml, which declares the flag; a task setting its own
+# sources keeps git's index among them, as the template's do.
 #
 
 # ---------
@@ -28,18 +30,18 @@ run         = "bun ci"
 [lint]
 description = "Run every linter and format check"
 alias       = "l"
-usage       = 'flag "--staged" help="Lint staged files alone"'
+extends     = "staged"
 depends     = [
-    "lint:actions      {% if usage.staged %}--staged{% endif %}",
-    "lint:biome        {% if usage.staged %}--staged{% endif %}",
-    "lint:editorconfig {% if usage.staged %}--staged{% endif %}",
-    "lint:emdash       {% if usage.staged %}--staged{% endif %}",
-    "lint:md           {% if usage.staged %}--staged{% endif %}",
-    "lint:secrets      {% if usage.staged %}--staged{% endif %}",
-    "lint:sh           {% if usage.staged %}--staged{% endif %}",
-    "lint:spell        {% if usage.staged %}--staged{% endif %}",
-    "lint:toml         {% if usage.staged %}--staged{% endif %}",
-    "lint:yaml         {% if usage.staged %}--staged{% endif %}",
+    "lint:actions      {% if not usage.staged %}--all{% endif %}",
+    "lint:biome        {% if not usage.staged %}--all{% endif %}",
+    "lint:editorconfig {% if not usage.staged %}--all{% endif %}",
+    "lint:emdash       {% if not usage.staged %}--all{% endif %}",
+    "lint:md           {% if not usage.staged %}--all{% endif %}",
+    "lint:secrets      {% if not usage.staged %}--all{% endif %}",
+    "lint:sh           {% if not usage.staged %}--all{% endif %}",
+    "lint:spell        {% if not usage.staged %}--all{% endif %}",
+    "lint:toml         {% if not usage.staged %}--all{% endif %}",
+    "lint:yaml         {% if not usage.staged %}--all{% endif %}",
     "lint:deps",
     "lint:package",
     "lint:types",
@@ -48,12 +50,12 @@ depends     = [
 [format]
 description = "Apply every formatter"
 alias       = "f"
-usage       = 'flag "--staged" help="Format staged files alone"'
+extends     = "staged"
 depends     = [
-    "format:biome {% if usage.staged %}--staged{% endif %}",
-    "format:sh    {% if usage.staged %}--staged{% endif %}",
-    "format:toml  {% if usage.staged %}--staged{% endif %}",
-    "format:yaml  {% if usage.staged %}--staged{% endif %}",
+    "format:biome {% if not usage.staged %}--all{% endif %}",
+    "format:sh    {% if not usage.staged %}--all{% endif %}",
+    "format:toml  {% if not usage.staged %}--all{% endif %}",
+    "format:yaml  {% if not usage.staged %}--all{% endif %}",
 ]
 
 [test]
@@ -64,8 +66,8 @@ run         = "bun test"
 [check]
 description = "Run everything CI runs: lint and test"
 alias       = "c"
-usage       = 'flag "--staged" help="Lint staged files alone; test in full"'
-depends     = [ "lint {% if usage.staged %}--staged{% endif %}", "test" ]
+extends     = "staged"
+depends     = [ "lint {% if not usage.staged %}--all{% endif %}", "test" ]
 
 # --------------------
 # Lint: file by file
@@ -73,54 +75,35 @@ depends     = [ "lint {% if usage.staged %}--staged{% endif %}", "test" ]
 
 ["lint:actions"]
 description = "Lint GitHub workflows with actionlint"
-usage       = 'flag "--staged"'
+extends     = "staged:cached"
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
     ".github/workflows/*",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
-outputs     = { auto = true }
 run         = """
-scripts/with-files.sh ${usage_staged:+--staged} '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml
+scripts/with-files.sh '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml
 """
 
 ["lint:biome"]
 description = "Lint and check formatting with Biome"
-usage       = 'flag "--staged"'
-sources     = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --no-install biome ci --no-errors-on-unmatched --files-ignore-unknown=true"
+extends     = "staged:cached"
+run         = "scripts/with-files.sh -- bunx --bun --no-install biome ci --no-errors-on-unmatched --files-ignore-unknown=true"
 
 ["lint:editorconfig"]
 description = "Check files against .editorconfig"
-usage       = 'flag "--staged"'
-sources     = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} -- editorconfig-checker -config node_modules/@chewygumxx/editorconfig-checker-config/config.json"
+extends     = "staged:cached"
+run         = "scripts/with-files.sh -- editorconfig-checker -config node_modules/@chewygumxx/editorconfig-checker-config/config.json"
 
 ["lint:emdash"]
 description = "Refuse em dashes"
-usage       = 'flag "--staged"'
-sources     = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs     = { auto = true }
-run         = "scripts/lint-emdash.sh ${usage_staged:+--staged}"
+extends     = "staged:cached"
+run         = "scripts/lint-emdash.sh"
 
 ["lint:md"]
 description = "Lint Markdown with remark and markdownlint"
-usage       = 'flag "--staged"'
+extends     = "staged:cached"
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -130,51 +113,32 @@ sources     = [
     ".markdownlint-cli2.jsonc",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
-outputs     = { auto = true }
 run         = [
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- bunx --bun --no-install remark --rc-path .config/remarkrc.json --frail --quiet --no-stdout",
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- bunx --bun --no-install markdownlint-cli2",
+    "scripts/with-files.sh '*.md' -- bunx --bun --no-install remark --rc-path .config/remarkrc.json --frail --quiet --no-stdout",
+    "scripts/with-files.sh '*.md' -- bunx --bun --no-install markdownlint-cli2",
 ]
 
 ["lint:secrets"]
 description = "Scan for secrets with secretlint"
-usage       = 'flag "--staged"'
-sources     = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --no-install secretlint"
+extends     = "staged:cached"
+run         = "scripts/with-files.sh -- bunx --bun --no-install secretlint"
 
 ["lint:sh"]
 description = "Lint shell scripts with shfmt and ShellCheck"
-usage       = 'flag "--staged"'
-sources     = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs     = { auto = true }
+extends     = "staged:cached"
 run         = [
-    "scripts/with-files.sh ${usage_staged:+--staged} -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shfmt -d",
-    "scripts/with-files.sh ${usage_staged:+--staged} -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shellcheck --rcfile node_modules/@chewygumxx/shellcheck-config/config.shellcheckrc",
+    "scripts/with-files.sh -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shfmt -d",
+    "scripts/with-files.sh -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shellcheck --rcfile node_modules/@chewygumxx/shellcheck-config/config.shellcheckrc",
 ]
 
 ["lint:spell"]
 description = "Check spelling with cspell"
-usage       = 'flag "--staged"'
-sources     = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --no-install cspell --no-progress --no-summary --no-must-find-files"
+extends     = "staged:cached"
+run         = "scripts/with-files.sh -- bunx --bun --no-install cspell --no-progress --no-summary --no-must-find-files"
 
 ["lint:toml"]
 description = "Lint and check formatting of TOML with Tombi"
-usage       = 'flag "--staged"'
+extends     = "staged:cached"
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -182,15 +146,14 @@ sources     = [
     "!node_modules/**",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
-outputs     = { auto = true }
 run         = [
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.toml' -- tombi format --check",
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.toml' -- tombi lint --error-on-warnings",
+    "scripts/with-files.sh '*.toml' -- tombi format --check",
+    "scripts/with-files.sh '*.toml' -- tombi lint --error-on-warnings",
 ]
 
 ["lint:yaml"]
 description = "Lint and check formatting of YAML with Prettier and yamllint"
-usage       = 'flag "--staged"'
+extends     = "staged:cached"
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -200,13 +163,12 @@ sources     = [
     ".config/prettierrc.json",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
-outputs     = { auto = true }
 env         = {
     YAMLLINT_CONFIG_FILE = "node_modules/@chewygumxx/yamllint-config/config.yaml"
 }
 run         = [
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --check",
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- yamllint --strict",
+    "scripts/with-files.sh '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --check",
+    "scripts/with-files.sh '*.yaml' '*.yml' -- yamllint --strict",
 ]
 
 # ---------------------
@@ -242,23 +204,23 @@ run         = "bunx --bun --no-install sync-header-metadata"
 
 ["format:biome"]
 description = "Format with Biome"
-usage       = 'flag "--staged"'
-run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --no-install biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"
+extends     = "staged"
+run         = "scripts/with-files.sh -- bunx --bun --no-install biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"
 
 ["format:sh"]
 description = "Format shell scripts with shfmt"
-usage       = 'flag "--staged"'
-run         = "scripts/with-files.sh ${usage_staged:+--staged} -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shfmt -w"
+extends     = "staged"
+run         = "scripts/with-files.sh -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shfmt -w"
 
 ["format:toml"]
 description = "Format TOML with Tombi"
-usage       = 'flag "--staged"'
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.toml' -- tombi format"
+extends     = "staged"
+run         = "scripts/with-files.sh '*.toml' -- tombi format"
 
 ["format:yaml"]
 description = "Format YAML with Prettier"
-usage       = 'flag "--staged"'
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --write --log-level warn"
+extends     = "staged"
+run         = "scripts/with-files.sh '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --write --log-level warn"
 
 # ------
 # Other

@@ -1,0 +1,38 @@
+# vim:set expandtab shiftwidth=4 filetype=toml:
+# SPDX-License-Identifier: GPL-3.0-only
+#:schema https://mise.jdx.dev/schema/mise.json
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/skills/configuring-mise-tasks/assets/config.toml
+#
+#
+
+#
+# Merged into .config/mise/config.toml: the task files' include, and the
+# templates their file-based tasks extend, as a task file holds tasks alone.
+#
+
+[task_config]
+includes = [ ".config/mise/tasks/*.task.toml" ]
+
+[task_templates.staged]
+usage = '''
+flag "--staged" negate="--all" default=#true {
+    help "Act on staged files alone, or every file with --all"
+}
+'''
+
+[task_templates."staged:cached"]
+usage   = '''
+flag "--staged" negate="--all" default=#true {
+    help "Act on staged files alone, or every file with --all"
+}
+'''
+sources = [
+    "**/*",
+    "!node_modules/**",
+    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
+]
+outputs = { auto = true }
