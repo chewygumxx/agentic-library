@@ -1,5 +1,5 @@
 ---
-name: usage-spec
+name: writing-usage-specs
 description: >-
   Use when writing, reviewing or debugging a usage spec, whether a
   .usage.kdl file, the #USAGE comments of a script run by a usage
@@ -12,11 +12,11 @@ license: GPL-3.0-only
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/usage-spec/SKILL.md
+   - ::: :/skills/writing-usage-specs/SKILL.md
    -
    -->
 
-# Usage specs
+# Writing usage specs
 
 A usage spec describes a CLI's commands, arguments, flags, help,
 completion and settings once, in [KDL](https://kdl.dev). The `usage` CLI

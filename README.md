@@ -31,7 +31,7 @@ harnesses.
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
 | `mapping-tests`                  | Splitting long tests, mapped by mise tasks           |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
-| `usage-spec`                     | Writing CLI specs in KDL and generating from them    |
+| `writing-usage-specs`            | Writing CLI specs in KDL and generating from them    |
 | `worktrees`                      | Making git worktrees that come out whole             |
 
 Install all of them, or one, into a project, or with `--global` for every

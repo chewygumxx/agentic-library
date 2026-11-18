@@ -1,7 +1,7 @@
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/usage-spec/references/arguments-and-flags.md
+   - ::: :/skills/writing-usage-specs/references/arguments-and-flags.md
    -
    -->
 

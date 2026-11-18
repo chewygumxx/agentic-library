@@ -1,7 +1,7 @@
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/usage-spec/references/commands.md
+   - ::: :/skills/writing-usage-specs/references/commands.md
    -
    -->
 
