@@ -46,6 +46,17 @@ that client, and Skill Seekers' rubric last.
 [Sources](references/sources.md) lists each, what it settles, and how
 the conflicts resolve. Read it before citing any of them.
 
+Most tasks need only part of this:
+
+| Task | Start at |
+| --- | --- |
+| Write a new skill | [1. Scope it](#1-scope-it), then onward |
+| Draw one from past sessions | [2. Gather evidence](#2-gather-evidence), [mining](references/mining-transcripts.md) |
+| Fix or review an existing skill | [4. Check it](#4-check-it), [6. Review it](#6-review-it) |
+| A client refuses or ignores a skill | [4. Check it](#4-check-it) for that target, then [clients](references/clients.md) |
+| Make it trigger, or stop over-triggering | [Evaluating](references/evaluating.md), trigger evaluations |
+| Release, publish or upload it | [7. Release it](#7-release-it), [releasing](references/releasing.md) |
+
 ## 1. Scope it
 
 - **One coherent unit of work,** as a function is: too narrow and a task
