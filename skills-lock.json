@@ -20,15 +20,15 @@
       "source": "@chewygumxx/skill-configuring-mise-tasks",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "3a223dfedaac7e3c7730fb720d8f89f6a5b22611314ce3ec6d5ecc7bd35f1f68"
+      "version": "0.0.2",
+      "computedHash": "2a86e0f99f29265f480d5536c3fb75cc62def7d4d1981379410e6d7976644deb"
     },
     "coordinating-agents": {
       "source": "@chewygumxx/skill-coordinating-agents",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "17a81d39b129dde838652c0177eeaafef236ad59824d3c18432c3afee7b47e56"
+      "version": "0.0.2",
+      "computedHash": "605c0913f44e7597182c1aa05f730e79e8cc76cee761b80493978b599743e056"
     },
     "find-skills": {
       "source": "vercel-labs/skills",
@@ -42,22 +42,22 @@
       "source": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "828c79dbc0b2f21b876ca51bf7cb93e4404fedabffa4c76e5ab7a2a045200605"
+      "version": "0.0.2",
+      "computedHash": "3e13b89da6dd3cf0fc5d11e2e61800f295bfa59a74671276610f89ea5718f292"
     },
     "managing-git-worktrees": {
       "source": "@chewygumxx/skill-managing-git-worktrees",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "2862db58b637c43bc8c8ab82806c0dc434ca28a591f6d5b7ff87a98cd4cd4416"
+      "version": "0.0.2",
+      "computedHash": "7a32a1ea3c7d3eaea2a7c4e3ba5b3d7af441871ce7bb54d8bcd55f6b2ad64644"
     },
     "mapping-tests": {
       "source": "@chewygumxx/skill-mapping-tests",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "22c3a7c387ede6f31a72ecaae0b7cfc5a40c9c30def8d3d627c92514edcae4ae"
+      "version": "0.0.2",
+      "computedHash": "c81ac2417e97c29a6d173c327c35222b185704eb030c7257a33b80950c13f5e3"
     },
     "skill-builder": {
       "source": "yusufkaraaslan/Skill_Seekers",
@@ -79,8 +79,8 @@
       "source": "@chewygumxx/skill-writing-usage-specs",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "65cce0a56249366340a556331551e868662edf79fdbd5765bf8895e87b45defa"
+      "version": "0.0.2",
+      "computedHash": "6cd2287d56cc72c9b6e37100bfe0f107bc13e727251c1f13e9310d19c231b5c4"
     }
   }
 }

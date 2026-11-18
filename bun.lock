@@ -48,27 +48,27 @@
     },
     "skills/configuring-mise-tasks": {
       "name": "@chewygumxx/skill-configuring-mise-tasks",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/coordinating-agents": {
       "name": "@chewygumxx/skill-coordinating-agents",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/managing-dotfiles-with-chezmoi": {
       "name": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/managing-git-worktrees": {
       "name": "@chewygumxx/skill-managing-git-worktrees",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/mapping-tests": {
       "name": "@chewygumxx/skill-mapping-tests",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/writing-usage-specs": {
       "name": "@chewygumxx/skill-writing-usage-specs",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
   },
   "packages": {
