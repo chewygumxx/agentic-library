@@ -42,8 +42,9 @@ run         = "bun test ./tests/lint-emdash.test.mts"
 description = "Test that the mise tasks, here and in the skill's template, skip honestly"
 tags        = [
     "test",
+    "covers:.config/mise/config.toml",
     "covers:.config/mise/tasks.toml",
-    "covers:skills/configuring-mise-tasks/assets/tasks",
+    "covers:skills/configuring-mise-tasks/assets",
     "covers:skills/configuring-mise-tasks/SKILL.md",
 ]
 run         = "bun test ./tests/mise-tasks.test.mts"

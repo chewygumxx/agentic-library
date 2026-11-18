@@ -15,10 +15,11 @@
 // turns a run to every file, and no run templates the flag itself.
 
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
+const skill = join(root, "skills", "configuring-mise-tasks");
 
 type Task = {
     extends?: string;
@@ -36,6 +37,12 @@ const sets: Record<string, { config: string; tasks: string[] }> = {
     "this repository": {
         config: join(root, ".config", "mise", "config.toml"),
         tasks: [join(root, ".config", "mise", "tasks.toml")],
+    },
+    "the skill's template": {
+        config: join(skill, "assets", "config.toml"),
+        tasks: readdirSync(join(skill, "assets", "tasks")).map((file) =>
+            join(skill, "assets", "tasks", file),
+        ),
     },
 };
 
@@ -168,16 +175,16 @@ describe.each(Object.entries(sets))("%s's staged runs", (_, set) => {
 });
 
 it("the skill recommends no config-wide index variable", () => {
-    const skill = join(root, "skills", "configuring-mise-tasks", "SKILL.md");
-    const text = readFileSync(skill, "utf8");
+    const text = readFileSync(join(skill, "SKILL.md"), "utf8");
     expect(text).not.toContain("vars.index");
     expect(text).toContain("--path-format=absolute --git-path index");
 });
 
 it("the skill teaches staged runs by default, and --all", () => {
-    const skill = join(root, "skills", "configuring-mise-tasks", "SKILL.md");
-    const text = readFileSync(skill, "utf8");
+    const text = readFileSync(join(skill, "SKILL.md"), "utf8");
     expect(text).toContain('flag "--staged" negate="--all" default=#true');
+    expect(text).toContain("[task_templates.staged]");
+    expect(text).toContain("$usage_staged");
     expect(text).not.toMatch(/usage_staged:[+-]/);
     expect(text).toContain('"check": "mise run check --all"');
 });
