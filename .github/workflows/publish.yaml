@@ -9,7 +9,7 @@
 #
 
 # Stages one skill's package per `skill-<skill>@<version>` tag, e.g.
-# `skill-mapping-tests@1.1.0` stages `skills/mapping-tests` if its version
+# `skill-mapping-tests@0.0.2` stages `skills/mapping-tests` if its version
 # matches. A staged version is not installable until it is approved on
 # npmjs.com with the maintainer's 2FA, so this workflow alone can never
 # release a package. A private package is refused.

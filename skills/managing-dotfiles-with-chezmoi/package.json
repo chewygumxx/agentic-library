@@ -1,6 +1,6 @@
 {
     "name": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "Changes, templates and applies a home directory's dotfiles through chezmoi's source directory, checking each change before it lands. Use when adding, changing, templating, applying or debugging dotfiles managed by chezmoi: its source directory and attribute-named files (dot_, private_, run_onchange_, .tmpl), .chezmoiignore, externals, scripts, secrets and encryption, the chezmoi config file, or setting up a machine from a dotfiles repo with chezmoi init.",
     "keywords": [
         "agent-skills"

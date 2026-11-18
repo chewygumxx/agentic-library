@@ -51,7 +51,7 @@ it on every install, kept to the version your lockfile pins:
     "prepare": "skills experimental_sync --agent claude-code codex --yes"
   },
   "devDependencies": {
-    "@chewygumxx/skill-mapping-tests": "^1.0.0",
+    "@chewygumxx/skill-mapping-tests": "^0.0.1",
     "skills": "^1.7.6"
   }
 }

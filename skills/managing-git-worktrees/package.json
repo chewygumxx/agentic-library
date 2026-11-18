@@ -1,6 +1,6 @@
 {
     "name": "@chewygumxx/skill-managing-git-worktrees",
-    "version": "1.0.0",
+    "version": "0.0.1",
     "description": "Makes git worktrees that come out whole, with the dependencies, git hooks, skills and ignored files the main checkout has, then checks, repairs and removes them. Use when creating, entering, checking, repairing or removing a git worktree, or when a worktree lacks dependencies, git hooks, skills or ignored files such as .env that the main checkout has.",
     "keywords": [
         "agent-skills"

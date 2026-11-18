@@ -44,31 +44,31 @@
     },
     "skills/compacting-context": {
       "name": "@chewygumxx/skill-compacting-context",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
     "skills/configuring-mise-tasks": {
       "name": "@chewygumxx/skill-configuring-mise-tasks",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
     "skills/coordinating-agents": {
       "name": "@chewygumxx/skill-coordinating-agents",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
     "skills/managing-dotfiles-with-chezmoi": {
       "name": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
     "skills/managing-git-worktrees": {
       "name": "@chewygumxx/skill-managing-git-worktrees",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
     "skills/mapping-tests": {
       "name": "@chewygumxx/skill-mapping-tests",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
     "skills/writing-usage-specs": {
       "name": "@chewygumxx/skill-writing-usage-specs",
-      "version": "1.0.0",
+      "version": "0.0.1",
     },
   },
   "packages": {
