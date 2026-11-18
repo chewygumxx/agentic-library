@@ -272,6 +272,18 @@ run         = "bunx --bun --no-install cz"
 description = "Sync third-party skills pinned in skills-lock.json"
 run         = "bun run skills"
 
+# skill-builder calls these tools. The package has no script for its
+# server, so run the module with the Python of the venv mise installed it in.
+# The tool is lazy, so install it first; stdout carries the protocol alone.
+["mcp:skill-seekers"]
+description = "Serve the Skill Seekers MCP tools over stdio"
+raw         = true
+quiet       = true
+run         = [
+    "mise install --quiet pypi:skill-seekers >&2",
+    'exec "$(mise where pypi:skill-seekers)/skill-seekers/bin/python" -m skill_seekers.mcp.server_fastmcp',
+]
+
 # Wrapper to refresh remote task data upon every execution.
 # https://github.com/chewygumxx/.github#readme
 [act]
