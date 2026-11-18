@@ -11,6 +11,9 @@
         "url": "git+https://github.com/chewygumxx/agentic-library.git"
     },
     "license": "GPL-3.0-only",
+    "workspaces": [
+        "skills/*"
+    ],
     "scripts": {
         "check": "mise run check --all",
         "prepare": "test ! -d node_modules/skills || bun run skills",

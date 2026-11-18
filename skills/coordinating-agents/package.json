@@ -1,0 +1,28 @@
+{
+    "name": "@chewygumxx/skill-coordinating-agents",
+    "version": "1.0.0",
+    "description": "Hands work to Codex, Claude subagents and a reserve account by usage budget, runs long jobs as systemd units, messages agents in herdr, and recovers when context or usage runs out. Use when dispatching work to Codex or a Claude subagent, routing a job by usage budget, running a job that may outlast a usage window, arming a wake-up, messaging another agent in herdr, or when your context passes 85% and you would compact yourself.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/coordinating-agents/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/coordinating-agents"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md",
+        "references",
+        "scripts"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}

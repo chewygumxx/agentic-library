@@ -1,0 +1,27 @@
+{
+    "name": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
+    "version": "1.0.0",
+    "description": "Changes, templates and applies a home directory's dotfiles through chezmoi's source directory, checking each change before it lands. Use when adding, changing, templating, applying or debugging dotfiles managed by chezmoi: its source directory and attribute-named files (dot_, private_, run_onchange_, .tmpl), .chezmoiignore, externals, scripts, secrets and encryption, the chezmoi config file, or setting up a machine from a dotfiles repo with chezmoi init.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/managing-dotfiles-with-chezmoi/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/managing-dotfiles-with-chezmoi"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md",
+        "references"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}
