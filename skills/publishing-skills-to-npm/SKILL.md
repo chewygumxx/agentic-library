@@ -1,17 +1,16 @@
 ---
 name: publishing-skills-to-npm
 description: >-
-  Publishes a repository's agent skills to an npm scope, one package per
-  skill, released by release-please and published from CI by npm trusted
-  publishing with provenance, and lists the mistakes that cost a failed
-  run on the way. Use when packaging skills for npm or for `skills
-  experimental_sync`, setting up, validating or debugging an npm trusted
-  publisher or provenance, configuring release-please or its GitHub App
-  for per-skill releases, or cutting, bootstrapping or verifying a
-  skill's release.
+  Packages a repository's agent skills as one npm package each and
+  releases them per skill, with release-please and npm trusted
+  publishing from GitHub Actions. Use when adding or renaming a skill
+  package, wiring skills up for `skills experimental_sync`, setting up
+  or debugging npm trusted publishing or provenance for skills, or
+  cutting, bootstrapping or verifying a skill's release.
 compatibility: >-
-  GitHub Actions and the npm registry. Publishing needs the npm CLI,
-  11.5.1 or later; release-please needs a GitHub App.
+  GitHub Actions on GitHub-hosted runners and the npm registry. Node
+  22.14 and npm 11.5.1 or later publish; release-please acts as a
+  GitHub App. The script needs Node alone.
 license: GPL-3.0-only
 ---
 
@@ -24,98 +23,116 @@ license: GPL-3.0-only
 
 # Publishing skills to npm
 
-Each skill becomes its own npm package, `@<scope>/skill-<skill>`, which a
-project lists as a dependency and links with `skills experimental_sync`
-on `prepare`. A `feat` or `fix` touching a skill makes release-please
-propose its next version; merging that pull request publishes a GitHub
-release, and the release publishes the package from CI, with provenance.
-Here is the order to set it up in, and what went wrong the first time.
+A project depends on `@<scope>/skill-<skill>` and links it with `skills
+experimental_sync` on `prepare`, so a skill updates like any dependency.
+Publishing one is a chain where each link guards the next: a `feat` or
+`fix` touching the skill makes release-please propose a version; merging
+that pull request publishes a GitHub release; the release starts a
+workflow that publishes to npm by OIDC, so no token exists to leak, and
+the version carries provenance tying it to the run that built it.
 
 ```text
 feat/fix on main -> release-please.yaml, as a GitHub App
-  -> release pull request: package.json and manifest bumped,
-     lockfiles resynced by a second job
-merge -> GitHub release skill-<skill>@<version>, immutable
-  -> publish.yaml, on the release -> npm publish by OIDC, with provenance
+  -> release pull request: versions bumped, lockfiles resynced
+merge -> GitHub release skill-<skill>@<version>
+  -> publish.yaml -> npm publish by OIDC, with provenance
 ```
 
-## Setting it up
+## Let the script carry the data
 
-In this order: each step needs the one before.
+Most of a skill's package is derived: its name from the directory, its
+description and licence from the frontmatter, its file list from what
+sits beside `SKILL.md`, and its release-please entries from all of
+those. Copied by hand, these drift, and the name, once published, cannot
+be taken back. [`scripts/skill-packages.mjs`](scripts/skill-packages.mjs)
+derives them instead, needing Node alone:
 
-1. **Name the skills.** A published name is permanent: npm restricts
-   unpublishing, so a rename is a new package and a deprecated old one.
-   Settle every name, and each frontmatter `name` equal to its
-   directory, before the first publish. See
-   [packaging](references/packaging.md).
-2. **Make each skill a package**: a workspace per `skills/<skill>/`,
-   with `SKILL.md` at its root, from
-   [`assets/skill-package.json`](assets/skill-package.json). A skill
-   held back is `private`. See [packaging](references/packaging.md).
-3. **Guard the manifests** with publint, and a test that each repeats
-   its frontmatter and ships every file beside it.
-4. **Publish each package's first version by hand**, give it a trusted
-   publisher, and validate that publisher by publishing once from its
-   workflow before the deadline its settings page shows, about 48 hours.
-   See [trusted publishing](references/trusted-publishing.md).
-5. **Release with release-please**, from
-   [`assets/release-please.json`](assets/release-please.json) and the
-   workflows [`release-please.yaml`](assets/workflows/release-please.yaml)
-   and [`publish.yaml`](assets/workflows/publish.yaml). See
-   [release-please](references/release-please.md).
-6. **Turn on immutable releases** in the repository's settings. A
-   published release and its tag can then never move, and as
-   `publish.yaml` starts on a release, never a bare tag, every version
-   on npm has one.
+- `write` builds each package, release-please entry and root
+  devDependency from the frontmatter, keeping versions; `--dry-run`
+  previews it.
+- `check` fails on whatever disagrees, and on names npm or Anthropic
+  would refuse; `--online` asks npm whether a name is free or already
+  the repository's, `--pack` compares what npm would ship with what git
+  tracks.
+- `next <skill>` reads the skill's state, the registry's included, and
+  prints the exact commands for its next step.
 
-## Mistakes to avoid
+Wire `check` into the repository's checks from
+[`assets/tasks/skill-packages.task.toml`](assets/tasks/skill-packages.task.toml),
+[`assets/hk.pkl`](assets/hk.pkl) and
+[`assets/workflows/skill-packages.yaml`](assets/workflows/skill-packages.yaml):
+offline in the commit hook, so it never waits on npm, online in CI, so a
+name someone else holds fails the pull request before anyone publishes.
+[Packaging](references/packaging.md) explains what it derives and why.
 
-Each of these cost a failed run or a detour:
+## Setting up a repository
 
-- **Provenance on a hand publish.** `publishConfig.provenance` makes a
-  local `npm publish` fail, `EUSAGE`, "Automatic provenance generation
-  not supported for provider: null": only CI can attest. Pass
-  `--provenance=false`, which outranks `publishConfig`.
-- **An unvalidated publisher.** A new trusted publisher stays "Pending
-  validation" until its workflow publishes once, and has a deadline.
-  Plan that publish when you configure it.
-- **The wrong permission.** A trusted publisher allows `npm publish`,
-  `npm stage publish`, or both; a workflow running the other one fails
-  at the OIDC exchange. npm allows one publisher, so one workflow file,
-  per package: every publish goes through it.
-- **`npm trust list` with no package** reads the current directory's,
-  the private root, and answers 404. Name the package.
-- **`GITHUB_TOKEN`.** What it creates starts no other workflow:
-  release-please's releases would never start `publish.yaml`, nor CI its
-  pull request. Give release-please a GitHub App's token.
-- **Lockfiles that record versions.** release-please bumps `package.json`
-  alone; `bun.lock` and `skills-lock.json` then fail CI's frozen install
-  on the release pull request unless a job resyncs them there.
-- **Expecting a release without a feat or fix.** `release-as`, in config
-  or a footer, chooses the version but never forces a release, and a
-  `docs` commit to a `SKILL.md` releases nothing.
-- **A `bootstrap-sha` off `main`.** With no release yet, release-please
-  walks `main` back to it, or 500 commits. Use `main`'s tip before the
-  change: a branch's own commit is lost to a squash merge.
-- **Reading a slow registry as failure.** npm processes a new version for
-  a few minutes before `npm view` shows it; the run's log says
-  `+ @<scope>/skill-<skill>@<version>` once it is sent.
-- **Caret ranges below 0.1.0.** `^0.0.1` accepts `0.0.1` alone; a
-  consumer moves by hand until a minor of 0.1 or more.
-- **Splitting a list in zsh.** An unquoted `$list` stays one word in
-  zsh; loop over a literal list or an array.
+The order matters because npm starts a clock. A new trusted publisher
+must publish once within 2 days or it expires, so everything that first
+publish runs through should exist before the publisher does.
 
-## Verifying a release
+1. **Settle the names.** A published name and version are permanent:
+   npm restricts unpublishing, and a rename means a new package and a
+   deprecated old one. `check` refuses what the Agent Skills
+   specification and Anthropic refuse, and warns of a name that is no
+   gerund; the choice is yours, but only until the first publish.
+2. **Build the release path.** Copy
+   [`release-please.yaml`](assets/workflows/release-please.yaml) and
+   [`publish.yaml`](assets/workflows/publish.yaml), and the config
+   [`release-please.json`](assets/release-please.json); install a GitHub
+   App on the repository and set its client ID and key; turn on
+   immutable releases, so a published release's tag cannot move. Merge
+   it all to `main`. [Release-please](references/release-please.md)
+   explains each choice, the App above all.
+3. **Write the packages** with `write`, reinstall so the lockfiles record
+   them, and commit each skill as a `feat`. Mark a skill to hold back
+   `private` first: it then stays out of release-please entirely.
+4. **Publish each first version by hand**, give it a trusted publisher,
+   then merge the release pull request release-please has opened, which
+   publishes from CI and validates the publisher. `next` prints these
+   commands filled in; [trusted publishing](references/trusted-publishing.md)
+   explains the hand publish's one flag, and what a publisher allows.
+
+## Releasing a skill
+
+Once set up, a release is a commit and a merge. Type a change to a skill
+by what it does for the skill's users: a `SKILL.md` is the skill's code,
+so a corrected instruction is a `fix`, and new guidance a `feat`. A
+`docs` or `refactor` commit releases nothing, which is right for what
+users never see and wrong for anything they would. Below `1.0.0`, as
+configured, a breaking change bumps the minor and anything else the
+patch; `Release-As: <version>` in a commit's body, the commit touching
+the skill's directory, sets the version outright.
+
+Merging the release pull request publishes. Then verify the exact
+version, not just that the run passed:
 
 ```sh
-npm view @<scope>/skill-<skill>@<version> --json |
-    jq '{version, latest: .["dist-tags"].latest,
-        provenance: .dist.attestations.provenance.predicateType}'
-gh api 'repos/<owner>/<repo>/releases/tags/skill-<skill>@<version>' \
-    --jq .immutable
+pkg='@<scope>/skill-<skill>' version='<version>'
+npm view "$pkg@$version" --json |
+    jq '{version, provenance: .dist.attestations.provenance.predicateType}'
 ```
 
-A good release shows its version as `latest`, a provenance predicate of
-`https://slsa.dev/provenance/v1`, and an immutable GitHub release.
+npm takes a few minutes to show a new version, so an empty answer just
+after a green run is the registry catching up; the run's log already
+says `+ <package>@<version>` once npm took it. A provenance predicate of
+`https://slsa.dev/provenance/v1` means the statement exists;
+`npm audit signatures`, in a project that installs the version, verifies
+it. If the publish itself failed, nothing reached npm and the release
+still points at the right commit: re-run the job.
+
+## Decisions worth making on purpose
+
+- **Publish or stage.** `npm publish` makes a version live as the
+  release pull request merges; `npm stage publish` holds it for a second
+  approval on npmjs.com with 2FA. A publisher always allows staging, and
+  allows direct publishing only if asked.
+- **Insist on provenance, or take the default.** npm attests every OIDC
+  publish of a public package from a public repository anyway.
+  `publishConfig.provenance: true` makes its absence an error instead,
+  which is also why a hand publish needs `--provenance=false`.
+- **The first version.** `0.0.1` promises nothing, but a caret range
+  below `0.1.0` pins one version: consumers then move by hand until the
+  skill reaches `0.1.0`, which a `Release-As` can set when it is ready.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

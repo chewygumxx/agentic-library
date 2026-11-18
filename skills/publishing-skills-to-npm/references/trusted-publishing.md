@@ -7,20 +7,27 @@
 
 # Trusted publishing
 
-npm exchanges a GitHub Actions job's OIDC token for a short-lived
-credential bound to one repository and workflow file, so no `NPM_TOKEN`
-secret exists, and signs a provenance statement linking the version to
-the run that built it.
+npm exchanges a CI job's OIDC token for a credential that lasts the job
+and is good only for that repository and workflow file. Nothing long
+lived exists to leak, and npm can sign a provenance statement naming the
+run that built each version. Facts below are npm's documentation as of
+late 2026, or the npm 11 CLI, as marked; the registry has moved faster
+than the CLI's help, so where they disagree, believe the registry's
+settings page.
 
-## Requirements
+## What it needs
 
-- The npm CLI, 11.5.1 or later, does the exchange and the signing; the
-  first Node 24 releases ship an older one, so check `npm --version`. A
-  repository on Bun still publishes with npm.
-- The publishing job has `permissions: id-token: write`.
-- The package already exists on npm: a trusted publisher is configured
-  on a package's settings, so a package's first version is published by
-  hand.
+- npm 11.5.1 or later and Node 22.14 or later, which do the exchange and
+  the signing. The first Node 24 releases ship an older npm: check
+  `npm --version` in the job. A repository on Bun still publishes with
+  npm.
+- A cloud-hosted runner: GitHub's own, not a self-hosted one.
+- `permissions: id-token: write` on the publishing job, and nothing it
+  does not need, as it holds the credential.
+- The package's `repository.url` matching the repository the publisher
+  names.
+- The package already on npm, as a publisher is set on its settings:
+  its first version is published by hand.
 
 ## The first version, by hand
 
@@ -29,75 +36,80 @@ npm login
 npm publish --workspace skills/<skill> --provenance=false
 ```
 
-`--provenance=false` is needed while `publishConfig` asks for
-provenance: without a CI provider npm fails `EUSAGE`, "Automatic
-provenance generation not supported for provider: null", and publishes
-nothing. A flag on the command line outranks `publishConfig`. npm asks
-for the account's 2FA on each package. These first versions have no
-provenance; every later one does.
+The flag is needed only while `publishConfig.provenance` is `true`:
+outside CI there is no provider to attest the build, and npm fails with
+`EUSAGE`, "Automatic provenance generation not supported for provider:
+null", publishing nothing. A command-line flag outranks
+`publishConfig`. npm asks for your 2FA for each package. These first
+versions carry no provenance; every one after does.
 
-## Configuring the publisher
+## The publisher
 
-On npmjs.com, the package's Settings, Trusted Publisher: the owner and
-repository, the workflow's file name, `publish.yaml`, and its
-permissions. Or, with 2FA:
+Set it on the package's npmjs.com settings, Trusted Publisher, or with
+npm 11's CLI, which also needs your 2FA:
 
 ```sh
-npm trust github @<scope>/skill-<skill> --repo <owner>/<repo> \
+npm trust github '@<scope>/skill-<skill>' --repo '<owner>/<repo>' \
     --file publish.yaml --allow-publish --yes
-npm trust list @<scope>/skill-<skill>
+npm trust list '@<scope>/skill-<skill>'
 ```
 
-- A permission is `npm publish`, `npm stage publish`, or both. The
-  workflow's command must be one it allows, or the exchange fails.
-  `npm stage publish` holds each version until it is approved on
-  npmjs.com with 2FA; `npm publish` makes it live, and merging the
-  release pull request is then the approval.
-- npm keeps one publisher per package. Replacing one is `npm trust
-  revoke --id <id>` with the id `npm trust list` shows, then a new one.
-  Every publish of the package goes through that one workflow file.
-- `npm trust list` with no package reads the current directory's: in a
-  repository whose root is private, a 404.
+- **What it allows.** Every publisher allows `npm stage publish`, which
+  holds a version until it is approved on npmjs.com with 2FA, or by
+  `npm stage approve`. `npm publish`, live at once, is allowed only when
+  asked for, as `--allow-publish` does. The workflow's command must be
+  one it allows, or the exchange fails.
+- **How many.** npm's documentation allows up to ten per package; the
+  npm 11 CLI's help still says one. One workflow file publishing every
+  version is simpler to reason about either way.
+- **Naming the package.** `npm trust list` with no package reads the
+  current directory's: at a private root, a 404, not a missing
+  publisher.
 
-## Validating it
+## The 2-day window
 
-A new publisher shows "Pending validation" until its workflow publishes
-once, with a deadline on its settings page, observed at 48 hours. Plan
-that publish when configuring it:
+A new publisher must publish once within 2 days, or it expires and can
+be neither used nor edited: delete it, make it again, and publish within
+the new window. That is why the release path should exist first. Ways
+to make that publish:
 
-- A new skill's own release does it: its adding `feat` commit gets a
-  release pull request for its next version. Publish the first version
-  by hand and configure the publisher before merging that pull request.
-- For several packages at once, with nothing to release, bump their
-  versions by hand in a commit release-please does not count, a
-  `build:`, along with its manifest, then publish a GitHub release per
-  package once it is on `main`:
+- A new skill's own release does it: the `feat` commit that adds it
+  gets a release pull request for its next version. Publish the first
+  version and make the publisher before merging that pull request.
+- For packages with nothing to release, bump their versions in a commit
+  release-please does not count, a `build:`, run `write`, and once it is
+  on `main` publish a GitHub release per package, which starts the
+  workflow:
 
   ```sh
-  gh release create 'skill-<skill>@<version>' --target <main sha> \
+  gh release create 'skill-<skill>@<version>' --target '<main sha>' \
       --title 'skill-<skill>: <version>' --notes '<why>'
   ```
 
-  Each starts `publish.yaml`. release-please then counts from those
-  releases, as from its own.
+  `--target` only places a tag that does not exist yet: check that no
+  `skill-<skill>@<version>` tag points elsewhere first. release-please
+  then counts from these releases as from its own.
 
-A published version can never be published again, so validation always
-takes a new version, even with unchanged contents.
+A version can never be published twice, so validating always takes a
+new one, even with unchanged contents.
 
 ## Settings worth having
 
-- Each package's Publishing access: require two-factor authentication
-  and disallow tokens that bypass it. Trusted publishers keep working,
-  and npm is restricting bypass tokens anyway.
-- The repository's immutable releases, so a release and its tag, once
-  published, cannot be changed or deleted.
+- Each package's Publishing access: require 2FA and disallow tokens that
+  bypass it. Trusted publishers are unaffected, and npm is restricting
+  bypass tokens anyway.
+- The repository's immutable releases. While a release exists, its tag
+  and assets cannot change; its notes can still be edited, and the
+  release deleted, so a deleted release is a reason to look closer.
 
 ## After a publish
 
 The run's log shows `Signed provenance statement`, a Sigstore
-transparency log entry, then `+ @<scope>/skill-<skill>@<version>`. npm
-then processes the version for a few minutes, during which `npm view`
-shows nothing for it: wait, then check it as the skill sets out, rather
-than re-run.
+transparency log entry, then `+ <package>@<version>` once npm took it.
+npm then processes the version for a few minutes, so poll with a bound
+rather than conclude from the first empty answer. A release whose
+publish failed has published nothing: re-run the job for it, on the same
+commit. A release that exists does not prove a publish happened; the
+registry does.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

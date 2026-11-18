@@ -15,13 +15,14 @@
 #
 # Publishes one skill's package per published GitHub release tagged
 # skill-<skill>@<version>, if that is its manifest's name and version. A
-# bare tag publishes nothing, so every version on npm has a release. A
-# private package is refused; a release of anything else is skipped.
+# bare tag publishes nothing, so every version on npm has a release.
 #
-# Authentication is npm trusted publishing: npm exchanges this job's OIDC
-# token for a short-lived credential, so no NPM_TOKEN secret exists. Its
-# command must be one the trusted publisher allows: npm publish here, or
-# npm stage publish to hold each version for approval on npmjs.com.
+# Two jobs, so the one holding the OIDC token runs as little as it can:
+# resolve installs, checks the package with skill-packages.mjs and reads
+# the tag back, with no write permission at all; publish checks out the
+# same commit, installs nothing, as npm publish needs no node_modules, and
+# publishes. Its command must be one the trusted publisher allows: npm
+# stage publish always is; npm publish, if the publisher allows it.
 #
 
 name: Publish
@@ -39,13 +40,12 @@ concurrency:
     cancel-in-progress: false
 
 jobs:
-    publish:
+    resolve:
         if: startsWith(github.event.release.tag_name, 'skill-')
         runs-on: ubuntu-latest
 
-        permissions:
-            contents: read
-            id-token: write
+        outputs:
+            dir: ${{ steps.package.outputs.dir }}
 
         steps:
             - name: Checkout
@@ -53,7 +53,6 @@ jobs:
               with:
                   persist-credentials: false
 
-            # npm 11.5.1 or later must be on PATH; early Node 24 ships older.
             - name: Setup Toolchain
               uses: <setup action, such as actions/setup-node@v7 or jdx/mise-action@v4>
 
@@ -67,17 +66,39 @@ jobs:
               run: |
                   name="${TAG%@*}"
                   version="${TAG##*@}"
-                  dir="skills/${name#skill-}"
-                  test -f "$dir/package.json" || { echo "::error::No package at $dir"; exit 1; }
+                  skill="${name#skill-}"
+                  dir="skills/$skill"
+                  node <script> check --pack "$skill"
                   read -r actual_name actual_version private < <(jq -r '[.name, .version, (.private // false)] | @tsv' "$dir/package.json")
                   test "$actual_name" = "@<scope>/$name" || { echo "::error::$dir is $actual_name, tag says @<scope>/$name"; exit 1; }
                   test "$actual_version" = "$version" || { echo "::error::$dir is $actual_version, tag says $version"; exit 1; }
                   test "$private" = false || { echo "::error::$dir is private"; exit 1; }
                   echo "dir=$dir" >> "$GITHUB_OUTPUT"
 
-            # npm itself: it alone does the OIDC exchange and signs the
-            # provenance. The package's prepack copies in the licence.
+    publish:
+        needs: resolve
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            id-token: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            # Node 22.14 or later with npm 11.5.1 or later, which do the
+            # OIDC exchange and sign the provenance.
+            - name: Setup Node
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            # The package's prepack copies in the licence, if it shares the
+            # repository's.
             - name: Publish
               env:
-                  DIR: ${{ steps.package.outputs.dir }}
+                  DIR: ${{ needs.resolve.outputs.dir }}
               run: npm publish --workspace "$DIR"

@@ -86,10 +86,14 @@ jobs:
             - name: Setup Toolchain
               uses: <setup action, such as actions/setup-node@v7 or jdx/mise-action@v4>
 
-            # An install that may rewrite the lockfiles; a prepare running
-            # skills experimental_sync rewrites skills-lock.json.
+            # An install that may rewrite the lockfile, scripts off: a
+            # prepare running skills experimental_sync is frozen in CI, and
+            # would refuse the very versions this job records.
             - name: Install
-              run: <install, such as bun install or npm install>
+              run: <install with scripts off, such as bun install --ignore-scripts>
+
+            - name: Resync Skills Lock
+              run: <the sync, unfrozen, such as npx skills experimental_sync --yes --no-frozen-lockfile>
 
             - name: Commit Lockfiles
               env:
