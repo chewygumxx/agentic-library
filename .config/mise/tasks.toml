@@ -82,14 +82,8 @@ sources     = [
     ".github/workflows/*",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
-# with-files.sh starts each path ./, which the shared configuration's
-# paths glob does not match, so its ignores for create-github-app-token's
-# client-id are repeated here. Drop both once its glob is
-# **/.github/workflows/**/*.{yml,yaml}, which matches either.
 run         = """
-scripts/with-files.sh '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml \
-    -ignore 'missing input "app-id" which is required by action "actions/create-github-app-token@' \
-    -ignore 'input "client-id" is not defined in action "actions/create-github-app-token@'
+scripts/with-files.sh '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml
 """
 
 ["lint:biome"]

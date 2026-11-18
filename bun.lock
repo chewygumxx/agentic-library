@@ -6,7 +6,7 @@
       "name": "agentic-library",
       "devDependencies": {
         "@biomejs/biome": "2.5.14",
-        "@chewygumxx/actionlint-config": "^1.0.1",
+        "@chewygumxx/actionlint-config": "^1.0.2",
         "@chewygumxx/biome-config": "^1.0.0",
         "@chewygumxx/commitlint-config": "^1.0.0",
         "@chewygumxx/cspell-config": "^1.0.1",
@@ -98,7 +98,7 @@
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@2.5.14", "", { "os": "win32", "cpu": "x64" }, "sha512-oJWmBhoHsnhUKIke+0gXDX0mltJrWHA1UyHsrTlXwX0TL64ilVZAo+TYZm97baecV0esBdpzy3k96q+09JaZUQ=="],
 
-    "@chewygumxx/actionlint-config": ["@chewygumxx/actionlint-config@1.0.1", "", {}, "sha512-FdnQjMmbkGpi9D+9LblIUydjaaPF94hCuYVp6tfiEQYh0zzieEsiziiWASnFcmqraTyFmM7FdMJF9gDvZUtUDg=="],
+    "@chewygumxx/actionlint-config": ["@chewygumxx/actionlint-config@1.0.2", "", {}, "sha512-jOtgkGu4bZUXlsg0FHHQF5KVYjlX86/m//nHNIr8xf/absGI2FtfmQh5/Ony+R7gzW5sWKx3UliKbzNF+wq35g=="],
 
     "@chewygumxx/biome-config": ["@chewygumxx/biome-config@1.0.0", "", { "peerDependencies": { "@biomejs/biome": "^2.5.14" } }, "sha512-YUj9nVuAVdTAyzm/Bb3u4eeSIn5hNgfImH1CSE0kL0vkuNX2Iuzx4/YOGs0ZVvOhUzkX863psydyInwnZqDVwQ=="],
 
