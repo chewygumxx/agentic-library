@@ -43,7 +43,7 @@ The manifest's scripts (`package.json`'s, for Bun) hold only:
 2. Runtime entry points, such as `dev` or `start`;
 3. Names something outside the repository calls, such as a shared CI
    workflow's `bun run check`. Where that caller has mise, the entry is
-   `"check": "mise run check"`.
+   `"check": "mise run check --all"`, as CI checks every file.
 
 Remove any other entry, and change its mentions from `bun run <name>` to
 `mise run <name>`.
@@ -127,22 +127,35 @@ the placeholders, and copy [`scripts/with-files.sh`](scripts/with-files.sh)
 to `scripts/`. A repository with a single `.config/mise/tasks.toml` moves
 each task into its family's file and changes the include to the glob.
 
-## The `--staged` switch
+## Staged by default
 
-Every file-based task, and `lint`, `format` and `check`, take `--staged`.
-With it, a task acts on the staged files of its kind alone; without it,
-on every tracked file of its kind. `scripts/with-files.sh` gives a task
-its files:
-
-```sh
-scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- <command>
-```
-
-mise sets `$usage_staged` only when the flag is given. A parent forwards
-the flag through a templated `depends`:
+Every file-based task, and `lint`, `format` and `check`, act on the
+staged files of their kind alone, and with `--all`, on every tracked
+file of their kind. Each declares the switch alike, its `usage` a
+multi-line string with `help` as a child node:
 
 ```toml
-depends = ['lint {% if usage.staged %}--staged{% endif %}', "test"]
+usage = '''
+flag "--staged" negate="--all" default=#true {
+    help "Lint staged files alone, or every file with --all"
+}
+'''
+```
+
+`scripts/with-files.sh` gives a task its files:
+
+```toml
+run = "scripts/with-files.sh {% if usage.staged %}--staged{% endif %} '*.md' -- <command>"
+```
+
+Test the flag in the template, never in the shell: under `--all` mise
+sets `$usage_staged` to `false` rather than leaving it unset, so a shell
+test of whether it is set takes `--all` for staged.
+A parent forwards `--all` alone through a templated `depends`, its
+dependencies being staged already:
+
+```toml
+depends = ['lint {% if not usage.staged %}--all{% endif %}', "test"]
 ```
 
 A task that cannot narrow to files, such as the type check or the tests,
@@ -156,9 +169,9 @@ configuration that governs them, the lockfile and the tool pins in
 `.config/mise/config.toml` among it, and `outputs = { auto = true }`. mise
 then skips it when nothing changed since it last passed.
 
-- mise keeps a record per set of arguments, so a `--staged` pass never
-  lets a full run skip.
-- A `--staged` run also takes git's index as a source, by its absolute
+- mise keeps a record per set of arguments, so a staged pass never lets
+  an `--all` run skip.
+- A staged run also takes git's index as a source, by its absolute
   path, inside the task. [Staged runs](./references/staged-runs.md) says
   why each is so:
 
