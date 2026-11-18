@@ -106,8 +106,8 @@ From `tests/agent-stewardship/`, which a new directory may follow:
 ## Checking
 
 Run `mise run test` for the tests, or `mise run test:<subject>` for one
-subject's. Before committing, `git add` any new file: `mise run check`
-lints only the files git tracks or has staged, so a file it has not seen
-passes without a lint.
+subject's. Before committing, `git add` what you changed: `mise run check`
+lints only the staged files, and `mise run check --all` every file git
+tracks, so a file git has not seen passes without a lint.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
