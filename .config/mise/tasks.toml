@@ -230,6 +230,10 @@ description = "Lint a commit message file with commitlint"
 usage       = 'arg "<file>" help="The commit message file"'
 run         = 'bunx --bun --no-install commitlint --edit "$usage_file"'
 
+["lint:headers"]
+description = "Verify files' repository and path header lines"
+run         = "bunx --bun --no-install sync-header-metadata"
+
 # -------
 # Format
 # -------

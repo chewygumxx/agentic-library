@@ -54,6 +54,7 @@
         "secretlint": "^13.0.7",
         "skills": "^1.7.6",
         "sort-package-json": "^4.0.0",
+        "sync-header-metadata": "^2.4.3",
         "typescript": "^7.0.2"
     },
     "engines": {

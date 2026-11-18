@@ -29,7 +29,8 @@
         "@biomejs/biome",
         "cspell",
         "secretlint",
-        "sort-package-json"
+        "sort-package-json",
+        "sync-header-metadata"
     ],
     // The tool manager, which `package.json` runs for its `check`.
     "ignoreBinaries": ["mise"]
