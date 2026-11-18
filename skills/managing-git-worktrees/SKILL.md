@@ -1,9 +1,12 @@
 ---
 name: managing-git-worktrees
 description: >-
-  Use when creating, entering, checking, repairing or removing a git
-  worktree, or when a worktree lacks dependencies, git hooks, skills or
-  ignored files such as .env that the main checkout has.
+  Makes git worktrees that come out whole, with the dependencies, git
+  hooks, skills and ignored files the main checkout has, then checks,
+  repairs and removes them. Use when creating, entering, checking,
+  repairing or removing a git worktree, or when a worktree lacks
+  dependencies, git hooks, skills or ignored files such as .env that the
+  main checkout has.
 license: GPL-3.0-only
 ---
 

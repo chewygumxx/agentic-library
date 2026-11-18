@@ -1,7 +1,9 @@
 ---
 name: writing-usage-specs
 description: >-
-  Use when writing, reviewing or debugging a usage spec, whether a
+  Writes and checks usage specs, the KDL describing a CLI's commands,
+  arguments and flags, and generates completions, docs and clients from
+  them. Use when writing, reviewing or debugging a usage spec, whether a
   .usage.kdl file, the #USAGE comments of a script run by a usage
   shebang, or a mise task's usage field; or when generating shell
   completions, Markdown, man pages, SDKs or a breaking-change check from

@@ -1,10 +1,13 @@
 ---
 name: mapping-tests
 description: >-
-  Use when adding, moving, renaming or deleting a test file, or changing
-  what one runs, in a repository whose tests are mapped by mise tasks;
-  when a test file passes 20 KiB or holds several subjects' tests; or when
-  mapping a repository's tests for `mise tasks` and `mise mcp`.
+  Keeps each test file under 20 KiB and maps it to a mise task naming
+  the paths it covers, so the tests of any path can be found and run
+  alone. Use when adding, moving, renaming or deleting a test file, or
+  changing what one runs, in a repository whose tests are mapped by mise
+  tasks; when a test file passes 20 KiB or holds several subjects'
+  tests; or when mapping a repository's tests for `mise tasks` and `mise
+  mcp`.
 license: GPL-3.0-only
 ---
 

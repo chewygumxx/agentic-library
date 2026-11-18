@@ -1,10 +1,13 @@
 ---
 name: coordinating-agents
 description: >-
-  Use when dispatching work to Codex or a Claude subagent, routing a job
-  by usage budget, running a job that may outlast a usage window, arming
-  a wake-up, messaging another agent in herdr, or when your context
-  passes 85% and you would compact yourself.
+  Hands work to Codex, Claude subagents and a reserve account by usage
+  budget, runs long jobs as systemd units, messages agents in herdr, and
+  recovers when context or usage runs out. Use when dispatching work to
+  Codex or a Claude subagent, routing a job by usage budget, running a
+  job that may outlast a usage window, arming a wake-up, messaging
+  another agent in herdr, or when your context passes 85% and you would
+  compact yourself.
 compatibility: >-
   Linux. Messaging needs herdr, jq and flock; long jobs and timed sends
   need a systemd user session; budget readings need Claude Code's status

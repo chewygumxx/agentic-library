@@ -44,9 +44,11 @@ describe.each(skills)("%s", (skill) => {
         expect(frontmatter(skill).name).toBe(skill);
     });
 
-    it("says when to use it within the specification's limit", () => {
+    // Anthropic's authoring guidance: what the skill does, in the third
+    // person, then when to use it.
+    it("says what it does, then when to use it, within the limit", () => {
         const description = frontmatter(skill).description ?? "";
-        expect(description).toStartWith("Use when");
+        expect(description).toMatch(/^(?!Use when)[A-Z].*?\. Use when /s);
         expect(description.length).toBeLessThanOrEqual(1024);
     });
 

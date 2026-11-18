@@ -1,9 +1,12 @@
 ---
 name: configuring-mise-tasks
 description: >-
-  Use when adding, changing, reviewing or adopting a repository's mise
-  tasks, deciding what belongs in package.json scripts or the runtime's
-  equivalent, or running git hooks or worktree hooks through mise.
+  Sets out a repository's standard mise tasks: where each action is
+  defined, how tasks are written and named, how they narrow to staged
+  files, and how hooks run them. Use when adding, changing, reviewing or
+  adopting a repository's mise tasks, deciding what belongs in
+  package.json scripts or the runtime's equivalent, or running git hooks
+  or worktree hooks through mise.
 license: GPL-3.0-only
 ---
 

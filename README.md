@@ -31,7 +31,7 @@ harnesses.
 | `coordinating-agents`            | Running agents within their context and usage limits |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
 | `managing-git-worktrees`         | Making git worktrees that come out whole             |
-| `mapping-tests`                  | Splitting long tests, mapped by mise tasks           |
+| `mapping-tests`                  | Mapping each test file to a mise task                |
 | `writing-usage-specs`            | Writing CLI specs in KDL and generating from them    |
 
 Install all of them, or one, into a project, or with `--global` for every
