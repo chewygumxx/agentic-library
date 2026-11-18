@@ -61,6 +61,13 @@
     },
     "skills": [
         {
+            "ref": "78f981132d2ada87ec03798447ec9831910030f8",
+            "skills": [
+                "skill-builder"
+            ],
+            "source": "yusufkaraaslan/Skill_Seekers"
+        },
+        {
             "ref": "2c5958ecac7cee2b583967a2c4981d0f4a75c579",
             "skills": [
                 "skill-creator"
