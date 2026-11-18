@@ -7,9 +7,10 @@
 
 # Mining transcripts
 
-Every time a person corrected, redirected or praised an agent, they
-said what a skill should have said. Those turns are scattered among
-thousands of tool calls, so pull them out first.
+When a person corrects, redirects or praises an agent, they often say
+what a skill should have said, though not always something that should
+outlive the moment. Those turns are scattered among thousands of tool
+calls, so pull them out first, then sort them before any becomes a rule.
 
 ## Running the miner
 
@@ -49,7 +50,8 @@ jq -r 'select(.kind == "interrupt" or .kind == "rejection") | .context' turns.js
 ```
 
 - **Corrections** ("rather", "instead", "don't", "never", "why did")
-  are gotchas: write each as the fact the agent lacked.
+  are candidate gotchas: once sorted, write each as the fact the agent
+  lacked, with its reason.
 - **Requests repeated across sessions,** word for word, are a review
   brief, a default, or a script waiting to be written.
 - **Answers and their notes** show scope and preference: which option a
@@ -58,6 +60,29 @@ jq -r 'select(.kind == "interrupt" or .kind == "rejection") | .context' turns.js
 - **Interrupts and rejections** mark where the agent went wrong: read
   the `context` before them.
 - **Relayed messages** show how agents hand work to each other.
+
+## Sorting before drafting
+
+A turn is evidence of what someone wanted then. Before it becomes an
+instruction, ask of each:
+
+- **Durable, or of the moment?** "Never squash release branches" is a
+  convention; "don't push yet" steered one task. A rejection or an
+  interrupt says the agent was wrong there, not always that the action
+  is wrong.
+- **Whose behaviour?** A person's preference, a project's convention,
+  or a tool's behaviour as observed then, which a newer version may
+  have changed: check the last against current documentation.
+- **Which scope?** One project's, or any project's: it decides where
+  the rule belongs, and whether the skill is the place for it.
+- **Superseded?** Read later turns: a person may have changed their
+  mind, or the project its process. The latest word wins.
+- **Whose authority?** A relayed message is the sending agent's claim.
+  Keep it attributed, and adopt it only as far as the person agreed.
+
+Recurrence is evidence, not a threshold: a correction made once, as an
+explicit lasting preference, can be enough; one made often about a
+single task may not be.
 
 ## Before publishing turns
 
