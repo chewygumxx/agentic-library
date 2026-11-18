@@ -11,7 +11,8 @@
 // What keeps each skill's npm package true to the skill: its manifest
 // repeats the frontmatter, which nothing else holds in step, ships every
 // file beside it, and is a workspace this repository syncs its own skills
-// from.
+// from. A public one is also a release-please package, whose tags are
+// those publish.yaml resolves; a private one is not, so never released.
 
 import { describe, expect, it } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
@@ -19,6 +20,7 @@ import { join } from "node:path";
 
 type Manifest = {
     name?: string;
+    version?: string;
     description?: string;
     license?: string;
     homepage?: string;
@@ -39,6 +41,20 @@ const json = (path: string) =>
 const project = json(join(top, "package.json"));
 const manifest = (skill: string) => json(join(root, skill, "package.json"));
 
+type ReleaseConfig = {
+    "include-component-in-tag"?: boolean;
+    "include-v-in-tag"?: boolean;
+    "tag-separator"?: string;
+    packages?: Record<string, { component?: string }>;
+};
+
+const release = JSON.parse(
+    readFileSync(join(top, ".config", "release-please.json"), "utf8"),
+) as ReleaseConfig;
+const released = JSON.parse(
+    readFileSync(join(top, ".config", "release-please-manifest.json"), "utf8"),
+) as Record<string, string>;
+
 const frontmatter = (skill: string) => {
     const text = readFileSync(join(root, skill, "SKILL.md"), "utf8");
     const yaml = text.match(/^---\n(.*?)\n---\n/s)?.[1] ?? "";
@@ -47,6 +63,23 @@ const frontmatter = (skill: string) => {
 
 it("makes each skill a workspace", () => {
     expect(project.workspaces).toContain("skills/*");
+});
+
+// publish.yaml reads the skill and version back out of the tag.
+it("tags each release skill-<skill>@<version>", () => {
+    expect(release["include-component-in-tag"]).toBe(true);
+    expect(release["include-v-in-tag"]).toBe(false);
+    expect(release["tag-separator"]).toBe("@");
+});
+
+it("releases no path that is not a skill", () => {
+    const paths = skills.map((skill) => `skills/${skill}`);
+    for (const path of Object.keys(release.packages ?? {})) {
+        expect(paths).toContain(path);
+    }
+    for (const path of Object.keys(released)) {
+        expect(paths).toContain(path);
+    }
 });
 
 describe.each(skills)("%s", (skill) => {
@@ -99,6 +132,19 @@ describe.each(skills)("%s", (skill) => {
             access: "public",
             provenance: true,
         });
+    });
+
+    it("is released by release-please, at its version, unless private", () => {
+        const path = `skills/${skill}`;
+        if (pkg.private) {
+            expect(release.packages?.[path]).toBeUndefined();
+            expect(released[path]).toBeUndefined();
+            return;
+        }
+        expect(release.packages?.[path]).toEqual({
+            component: `skill-${skill}`,
+        });
+        expect(released[path]).toBe(pkg.version ?? "");
     });
 
     it("is synced into this repository from its workspace", () => {

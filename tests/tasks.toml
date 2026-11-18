@@ -50,8 +50,14 @@ tags        = [
 run         = "bun test ./tests/mise-tasks.test.mts"
 
 ["test:packages"]
-description = "Test that each skill's npm package repeats its frontmatter, ships it whole and is synced here"
-tags        = [ "test", "covers:skills", "covers:package.json" ]
+description = "Test that each skill's npm package repeats its frontmatter, ships it whole, is synced here and released"
+tags        = [
+    "test",
+    "covers:skills",
+    "covers:package.json",
+    "covers:.config/release-please.json",
+    "covers:.config/release-please-manifest.json",
+]
 run         = "bun test ./tests/packages.test.mts"
 
 ["test:skills"]
