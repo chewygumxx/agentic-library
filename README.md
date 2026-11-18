@@ -42,6 +42,24 @@ bunx skills add chewygumxx/agentic-library
 bunx skills add chewygumxx/agentic-library --skill mapping-tests --global
 ```
 
+Or depend on a skill's npm package, `@chewygumxx/skill-<skill>`, and link
+it on every install, kept to the version your lockfile pins:
+
+```json
+{
+  "scripts": {
+    "prepare": "skills experimental_sync --agent claude-code codex --yes"
+  },
+  "devDependencies": {
+    "@chewygumxx/skill-mapping-tests": "^1.0.0",
+    "skills": "^1.7.6"
+  }
+}
+```
+
+The skill is linked by its own name, as `.agents/skills/mapping-tests`.
+`compacting-context` is not published yet.
+
 `coordinating-agents` is configured by a roster in your agent instructions
 and states what each of its parts needs. See its
 [`SKILL.md`](./skills/coordinating-agents/SKILL.md).
