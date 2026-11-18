@@ -18,10 +18,18 @@
 [format]
 description = "Apply every formatter"
 alias       = "f"
-usage       = 'flag "--staged" help="Format staged files alone"'
-depends     = [ "format:<kind> {% if usage.staged %}--staged{% endif %}" ]
+usage       = '''
+flag "--staged" negate="--all" default=#true {
+    help "Format staged files alone, or every file with --all"
+}
+'''
+depends     = [ "format:<kind> {% if not usage.staged %}--all{% endif %}" ]
 
 ["format:<kind>"]
 description = "Format <kind> files with <formatter>"
-usage       = 'flag "--staged"'
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.<ext>' -- <formatter, writing>"
+usage       = '''
+flag "--staged" negate="--all" default=#true {
+    help "Format staged files alone, or every file with --all"
+}
+'''
+run         = "scripts/with-files.sh {% if usage.staged %}--staged{% endif %} '*.<ext>' -- <formatter, writing>"

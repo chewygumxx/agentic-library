@@ -105,12 +105,12 @@ describe("configuring-mise-tasks", () => {
         expect(aliased.sort()).toEqual(Object.keys(standard).sort());
     });
 
-    it("its template forwards --staged from check to lint", () => {
+    it("its template forwards --all from check to lint", () => {
         const tasks = template();
         expect(tasks.check?.usage).toContain('flag "--staged"');
         expect(tasks.lint?.usage).toContain('flag "--staged"');
         expect(tasks.check?.depends).toContain(
-            "lint {% if usage.staged %}--staged{% endif %}",
+            "lint {% if not usage.staged %}--all{% endif %}",
         );
     });
 

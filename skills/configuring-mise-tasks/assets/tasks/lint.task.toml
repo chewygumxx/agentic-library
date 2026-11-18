@@ -18,9 +18,13 @@
 [lint]
 description = "Run every linter and format check"
 alias       = "l"
-usage       = 'flag "--staged" help="Lint staged files alone"'
+usage       = '''
+flag "--staged" negate="--all" default=#true {
+    help "Lint staged files alone, or every file with --all"
+}
+'''
 depends     = [
-    "lint:<kind> {% if usage.staged %}--staged{% endif %}",
+    "lint:<kind> {% if not usage.staged %}--all{% endif %}",
     "lint:types",
 ]
 
@@ -30,7 +34,11 @@ depends     = [
 
 ["lint:<kind>"]
 description = "Lint <kind> files with <linter>"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" negate="--all" default=#true {
+    help "Lint staged files alone, or every file with --all"
+}
+'''
 sources     = [
     "**/*.<ext>",
     "!node_modules/**",
@@ -40,7 +48,7 @@ sources     = [
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
 outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.<ext>' -- <linter, check only>"
+run         = "scripts/with-files.sh {% if usage.staged %}--staged{% endif %} '*.<ext>' -- <linter, check only>"
 
 # ---------------------
 # Lint: whole project
