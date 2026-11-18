@@ -1,0 +1,109 @@
+# vim:set expandtab shiftwidth=4 filetype=yaml foldlevel=3:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/.github/workflows/release-please.yaml
+#
+#
+
+# On every push to main, release-please reads the conventional commits
+# touching each skill since its last release, and keeps one pull request
+# open that bumps their versions; see .config/release-please.json.
+# Merging that pull request makes the next run publish a GitHub release
+# per bumped skill, tagged skill-<skill>@<version>, which starts
+# publish.yaml.
+#
+# Both jobs act as the release-please-agentic-library GitHub App: what
+# GITHUB_TOKEN creates starts no other workflow, so neither publish.yaml
+# nor CI on the release pull request would run.
+#
+# release-please bumps each package.json alone. bun.lock and
+# skills-lock.json record the versions too, so the lockfiles job installs
+# on the release branch and pushes what changed; CI's frozen install would
+# fail on the release pull request without it.
+
+name: Release Please
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch: {}
+
+permissions:
+    contents: read
+
+# One run at a time, so two never rewrite the release branch at once.
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: false
+
+jobs:
+    release-please:
+        runs-on: ubuntu-latest
+
+        outputs:
+            prs_created: ${{ steps.release.outputs.prs_created }}
+            pr: ${{ steps.release.outputs.pr }}
+
+        steps:
+            - name: Mint App Token
+              id: app
+              uses: actions/create-github-app-token@v3
+              with:
+                  client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+            - name: Release Please
+              id: release
+              uses: googleapis/release-please-action@v5
+              with:
+                  token: ${{ steps.app.outputs.token }}
+                  config-file: .config/release-please.json
+                  manifest-file: .config/release-please-manifest.json
+
+    lockfiles:
+        needs: release-please
+        if: needs.release-please.outputs.prs_created == 'true'
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Mint App Token
+              id: app
+              uses: actions/create-github-app-token@v3
+              with:
+                  client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+            # Kept credentials push the commit below as the App.
+            - name: Checkout Release Branch
+              uses: actions/checkout@v7
+              with:
+                  ref: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+                  token: ${{ steps.app.outputs.token }}
+
+            - name: Setup Bun and Node
+              uses: jdx/mise-action@v4
+
+            # prepare syncs the skills, rewriting skills-lock.json.
+            - name: Bun Install
+              run: bun install
+
+            - name: Commit Lockfiles
+              env:
+                  GH_TOKEN: ${{ steps.app.outputs.token }}
+                  SLUG: ${{ steps.app.outputs.app-slug }}
+                  BRANCH: ${{ fromJSON(needs.release-please.outputs.pr).headBranchName }}
+              run: |
+                  git add bun.lock skills-lock.json
+                  if git diff --cached --quiet; then
+                      echo "Lockfiles already match the release"
+                      exit 0
+                  fi
+                  id=$(gh api "/users/${SLUG}[bot]" --jq .id)
+                  git config user.name "${SLUG}[bot]"
+                  git config user.email "${id}+${SLUG}[bot]@users.noreply.github.com"
+                  git commit -m "build: Resync lockfiles to the release"
+                  git push origin "HEAD:${BRANCH}"
