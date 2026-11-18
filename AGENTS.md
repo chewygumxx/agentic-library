@@ -30,6 +30,16 @@ context, include such within the commit message body.
   pinned by `skills-lock.json`. Declare a skill there, then `bun run skills`;
   never `skills add`, which sync skips.
 
+## Git Hooks
+
+[hk](https://hk.jdx.dev) runs the git hooks declared in `.config/hk.pkl`:
+`check --staged` before a commit, `lint:commit` on its message, and
+`lint:headers` before a push. Each step only runs its mise task, so change
+what a hook checks in the task, never in `hk.pkl`. `mise install` installs
+the hooks, by the `postinstall` hook in `.config/mise/config.toml`, into the
+git config every worktree shares. Never pass `--no-verify`, nor set `HK=0`,
+to get past a failing hook: fix what it reports.
+
 ## Repository Metadata
 
 `.repo-metadata.jsonc` holds the GitHub repository's own description, topics
