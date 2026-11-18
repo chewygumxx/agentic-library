@@ -8,11 +8,13 @@
 #
 #
 
-# Stages one skill's package per `skill-<skill>@<version>` tag, e.g.
-# `skill-mapping-tests@0.0.2` stages `skills/mapping-tests` if its version
-# matches. A staged version is not installable until it is approved on
-# npmjs.com with the maintainer's 2FA, so this workflow alone can never
-# release a package. A private package is refused.
+# Stages one skill's package per published GitHub release, whose tag is
+# `skill-<skill>@<version>`: `skill-mapping-tests@0.0.2` stages
+# `skills/mapping-tests` if its version matches. release-please.yaml
+# publishes those releases; a bare tag stages nothing, so every version on
+# npm has an immutable release. A staged version is not installable until
+# it is approved on npmjs.com with the maintainer's 2FA, so this workflow
+# alone can never release a package. A private package is refused.
 #
 # Authentication is npm trusted publishing: npm exchanges this job's OIDC
 # token for a short-lived credential, so no NPM_TOKEN secret exists. Each
@@ -23,9 +25,9 @@
 name: Publish
 
 on:
-    push:
-        tags:
-            - "skill-*@*"
+    release:
+        types:
+            - published
 
 permissions:
     contents: read
@@ -61,7 +63,7 @@ jobs:
             - name: Resolve Package
               id: package
               env:
-                  TAG: ${{ github.ref_name }}
+                  TAG: ${{ github.event.release.tag_name }}
               run: |
                   name="${TAG%@*}"
                   version="${TAG##*@}"
