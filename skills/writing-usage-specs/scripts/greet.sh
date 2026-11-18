@@ -14,7 +14,7 @@
 #USAGE flag "--greeting <word>" default="hello" help="Greeting to print" {
 #USAGE   choices "hello" "welcome"
 #USAGE }
-#USAGE flag "--excited" negate="--no-excited" help="Add an exclamation mark"
+#USAGE flag "--excited" negate="--no-excited" default=#false help="Add an exclamation mark"
 #USAGE arg "<name>" help="Name to greet"
 
 set -eu

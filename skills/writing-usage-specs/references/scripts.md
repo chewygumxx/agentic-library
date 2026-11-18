@@ -49,15 +49,17 @@ underscores. `flag "-o --out <path>"` yields `usage_out`, and
   with `set -u`. An omitted switch without a default leaves an
   inherited value in place with a Usage shebang. Set `default=#false`
   when an omitted switch must stay false even with an inherited value.
-  Clear inherited `usage_*` names when testing a clean invocation.
+  Check the clean invocation, an explicit negation, and the invocation
+  with the inherited variable set.
 - `count=#true` exports a count. Probe short bundles before
   subcommands if they include parent-local flags.
 - A variadic is exported as one shell-quoted string. In a POSIX shell,
   `eval "set -- ${usage_files-}"` recovers its elements and preserves
   spaces and empty values. Apply it only to the value supplied by the
-  runner, with any inherited value for that name cleared at launch.
-  Verify with a value containing spaces, an empty value, and a leading
-  hyphen passed after `--`.
+  runner. Clear the inherited value at launch, for example with
+  `env -u usage_files ./my-script ...`, and test an empty list. When
+  forwarding a tail, verify spaces, empty arguments, and a literal
+  second `--` by checking what the child receives.
 - `usage_cmd` is the canonical subcommand path, such as `db migrate`,
   even when the user typed an alias. It is unset for a root invocation.
   A flag or argument named `cmd` reserves that variable for its own

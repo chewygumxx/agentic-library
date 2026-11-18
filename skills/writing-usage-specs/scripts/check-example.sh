@@ -35,11 +35,18 @@ report=$(usage explain -f "$example" --format json -- greet --greeting goodbye A
 jq -e '.refused | contains("Invalid choice")' <<<"$report" >/dev/null ||
     fail "expected choice rejection in the report: $report"
 
+report=$(usage explain -f "$example" --format json -- greet)
+jq -e '.refused == null and any(.errors[]; contains("Missing required arg"))' <<<"$report" >/dev/null ||
+    fail "expected missing argument in the report: $report"
+
 candidates=$(usage complete-word -f "$example" -- greet --greeting '')
 [[ $candidates == $'hello\nwelcome' ]] || fail "unexpected candidates: $candidates"
 
 normal=$("$example" Ada)
 [[ $normal == 'hello, Ada' ]] || fail "unexpected greeting: $normal"
+
+inherited=$(usage_excited=true "$example" Ada)
+[[ $inherited == 'hello, Ada' ]] || fail "omitted switch inherited true: $inherited"
 
 excited=$("$example" --greeting welcome --excited Ada)
 [[ $excited == 'welcome, Ada!' ]] || fail "unexpected excited greeting: $excited"
