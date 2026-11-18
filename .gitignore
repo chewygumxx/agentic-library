@@ -9,5 +9,14 @@
 #
 
 .env*
+*.local
 *.local.*
+
+*.local/
+*.cache/
+*.tmp/
+
+# Declaratively Sourced
 node_modules/
+.agents/
+.claude/
