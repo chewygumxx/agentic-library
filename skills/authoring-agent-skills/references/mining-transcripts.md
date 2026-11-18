@@ -70,11 +70,11 @@ other people's words. Read the output before it leaves the machine, and
 [`assets/sample-turns.jsonl`](../assets/sample-turns.jsonl) is one
 person's turns across a few weeks of writing, reviewing and releasing a
 collection of skills with Claude Code and Codex, published with their
-consent, with home directories and an upstream project's name
-redacted. Query it, as above, for an example of the output and of what
-is worth mining: a review brief reused word for word across skills, a
-preference for scripts over rules to memorise, and agents agreeing on
-reasons before changing anything.
+consent. Only home directories, a private account and em dashes are
+redacted; typos and all, the rest is verbatim. Query it, as above, for
+an example of the output and of what is worth mining: a review brief
+reused word for word across skills, a preference for scripts over rules
+to memorise, and agents agreeing on reasons before changing anything.
 
 ## When it misreads
 
