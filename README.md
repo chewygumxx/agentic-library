@@ -1,6 +1,6 @@
 ---
 ctime: 2026-11-02
-mtime: 2026-11-09
+mtime: 2026-11-18
 spdx: GPL-3.0-only
 title: agentic-library
 description: >-
@@ -50,6 +50,9 @@ names the project it was imported from.
 
 ## Development
 
+- `mise install` installs the pinned tools, then the git hooks, which
+  [hk](https://hk.jdx.dev) runs from `.config/hk.pkl`. Run it once after
+  cloning, before your first commit.
 - `mise run skills` fetches the third-party skills listed under `skills`
   in `package.json`, at the commits pinned there, into `.agents/skills/`
   and `.claude/skills/`. Run it once after cloning: both directories are
