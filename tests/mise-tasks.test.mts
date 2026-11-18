@@ -90,3 +90,39 @@ it("the skill recommends no config-wide index variable", () => {
     expect(text).not.toContain("vars.index");
     expect(text).toContain("--path-format=absolute --git-path index");
 });
+
+describe("this repository's staged runs", () => {
+    const path = files["this repository"];
+    const staged = tasks(path).filter(([, task]) =>
+        task.usage?.includes("--staged"),
+    );
+
+    it("runs on the staged files by default, and on every file by --all", () => {
+        expect(staged.length).toBeGreaterThan(0);
+        for (const [name, task] of staged) {
+            expect([name, task.usage]).toEqual([
+                name,
+                expect.stringContaining(
+                    'flag "--staged" negate="--all" default=#true',
+                ),
+            ]);
+        }
+    });
+
+    // Under default=#true, mise sets $usage_staged to "false" for --all,
+    // which ${usage_staged:+...} would read as set.
+    it("never tests the flag by whether $usage_staged is set", () => {
+        expect(readFileSync(path, "utf8")).not.toMatch(/usage_staged:[+-]/);
+    });
+
+    it("passes --all, never --staged, on to what it depends on", () => {
+        for (const [name, task] of tasks(path)) {
+            for (const dep of (task as { depends?: string[] }).depends ?? []) {
+                expect([name, dep]).not.toEqual([
+                    name,
+                    expect.stringContaining("--staged"),
+                ]);
+            }
+        }
+    });
+});
