@@ -21,12 +21,6 @@
             "path": "@chewygumxx/cz-commitlint"
         }
     },
-    "prettier": "@chewygumxx/prettier-config",
-    "remarkConfig": {
-        "plugins": [
-            "@chewygumxx/remark-preset"
-        ]
-    },
     "devDependencies": {
         "@biomejs/biome": "2.5.14",
         "@chewygumxx/actionlint-config": "^1.0.1",

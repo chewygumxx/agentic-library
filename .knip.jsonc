@@ -33,5 +33,13 @@
         "sync-header-metadata"
     ],
     // The tool manager, which `package.json` runs for its `check`.
-    "ignoreBinaries": ["mise"]
+    "ignoreBinaries": ["mise"],
+    // Configured under `.config/`, where neither tool looks unless the mise
+    // tasks pass the path.
+    "prettier": {
+        "config": [".config/prettierrc.json"]
+    },
+    "remark": {
+        "config": [".config/remarkrc.json"]
+    }
 }

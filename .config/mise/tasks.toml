@@ -126,13 +126,13 @@ sources     = [
     ".config/mise/config.toml",
     "**/*.md",
     "!node_modules/**",
+    ".config/remarkrc.json",
     ".markdownlint-cli2.jsonc",
-    "package.json",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
 outputs     = { auto = true }
 run         = [
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- bunx --bun --no-install remark --frail --quiet --no-stdout",
+    "scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- bunx --bun --no-install remark --rc-path .config/remarkrc.json --frail --quiet --no-stdout",
     "scripts/with-files.sh ${usage_staged:+--staged} '*.md' -- bunx --bun --no-install markdownlint-cli2",
 ]
 
@@ -197,7 +197,7 @@ sources     = [
     "**/*.yaml",
     "**/*.yml",
     "!node_modules/**",
-    "package.json",
+    ".config/prettierrc.json",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
 outputs     = { auto = true }
@@ -205,7 +205,7 @@ env         = {
     YAMLLINT_CONFIG_FILE = "node_modules/@chewygumxx/yamllint-config/config.yaml"
 }
 run         = [
-    "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --check",
+    "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --check",
     "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- yamllint --strict",
 ]
 
@@ -258,7 +258,7 @@ run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.toml' -- tombi
 ["format:yaml"]
 description = "Format YAML with Prettier"
 usage       = 'flag "--staged"'
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --write --log-level warn"
+run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --write --log-level warn"
 
 # ------
 # Other
