@@ -5,6 +5,9 @@
     "keywords": [
         "agent-skills"
     ],
+    "engines": {
+        "bun": ">=1.4"
+    },
     "homepage": "https://github.com/chewygumxx/agentic-library#readme",
     "repository": {
         "type": "git",
@@ -15,17 +18,6 @@
         "check": "mise run check",
         "prepare": "test ! -d node_modules/skills || bun run skills",
         "skills": "DO_NOT_TRACK=1 skills experimental_sync --yes --agent claude-code codex"
-    },
-    "config": {
-        "commitizen": {
-            "path": "@chewygumxx/cz-commitlint"
-        }
-    },
-    "prettier": "@chewygumxx/prettier-config",
-    "remarkConfig": {
-        "plugins": [
-            "@chewygumxx/remark-preset"
-        ]
     },
     "devDependencies": {
         "@biomejs/biome": "2.5.14",
@@ -56,33 +48,6 @@
         "sync-header-metadata": "^2.4.3",
         "typescript": "^7.0.2"
     },
-    "engines": {
-        "bun": ">=1.4"
-    },
-    "cspell": {
-        "import": [
-            "@chewygumxx/cspell-config"
-        ],
-        "words": [
-            "anthropics",
-            "CDPATH",
-            "cgumxx",
-            "fromdateiso",
-            "gpgsign",
-            "Markor",
-            "pathspec",
-            "pathspecs",
-            "setenvs",
-            "TEMPFAIL",
-            "virgiliojr",
-            "vtracey",
-            "wikilink",
-            "wikilinks",
-            "worktrunk",
-            "xhigh",
-            "Zettelkasten"
-        ]
-    },
     "skills": [
         {
             "ref": "2c5958ecac7cee2b583967a2c4981d0f4a75c579",
@@ -105,5 +70,16 @@
             ],
             "source": "virgiliojr94/book-to-skill"
         }
-    ]
+    ],
+    "remarkConfig": {
+        "plugins": [
+            "@chewygumxx/remark-preset"
+        ]
+    },
+    "prettier": "@chewygumxx/prettier-config",
+    "config": {
+        "commitizen": {
+            "path": "@chewygumxx/cz-commitlint"
+        }
+    }
 }

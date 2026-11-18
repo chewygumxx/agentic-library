@@ -1,0 +1,22 @@
+{
+    "import": ["@chewygumxx/cspell-config"],
+    "words": [
+        "anthropics",
+        "CDPATH",
+        "cgumxx",
+        "fromdateiso",
+        "gpgsign",
+        "Markor",
+        "pathspec",
+        "pathspecs",
+        "setenvs",
+        "TEMPFAIL",
+        "virgiliojr",
+        "vtracey",
+        "wikilink",
+        "wikilinks",
+        "worktrunk",
+        "xhigh",
+        "Zettelkasten"
+    ]
+}
