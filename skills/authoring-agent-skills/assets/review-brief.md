@@ -35,8 +35,10 @@ Judge it on:
 5. **Scripts over specification.** Where does it ask the agent to
    derive, copy or validate data by rule that a script should do? Where
    does it state a rule without the reason a model needs to apply it?
-6. **Self-containment.** Anything that leans on the repository it was
-   written in.
+6. **Self-containment.** It is meant for `<one project, or any>`.
+   Anything it needs that does not travel with its directory, and,
+   for a skill meant for any project, anything that leans on the one it
+   was written in.
 7. **Conformity.** Run `node <path to check-skill.mjs> <path to the
    skill>`, and compare against the Agent Skills specification and
    Anthropic's skill authoring best practices.

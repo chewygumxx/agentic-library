@@ -62,10 +62,13 @@ the conflicts resolve. Read it before citing any of them.
   `claude`. Prefer the words a person would say over grand ones. A name
   is installed under, linked by and, once published, permanent: settle
   it first.
-- **Keep it self-contained.** Installers copy the directory alone into
-  other projects, so nothing in it may lean on the repository it was
-  written in: no links out, no project names, paths or accounts. Where
-  a project's specifics belong, write a `<placeholder>` template.
+- **Decide its scope: one project, or any.** A skill for one project's
+  deploy runbook is made of that project's hosts, scripts and
+  conventions: keep them, as they are what the agent lacks. A skill for
+  any project parameterises them instead, with `<placeholders>` and the
+  question to ask. Either way, everything it bundles travels with its
+  directory, as installers copy that alone: no links out of it, and no
+  secrets in it.
 
 ## 2. Gather evidence
 

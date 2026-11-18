@@ -29,8 +29,10 @@ its placeholders, and hand it over. It asks, in this order:
 5. **Does it defer to scripts?** Derived, copied or validated data is a
    script's job, not normative specification for the agent to apply.
    Guidance that remains explains its reasons.
-6. **Does it stand alone?** No links, names or paths from the project it
-   was written in.
+6. **Does it stand alone, at its scope?** Everything it bundles travels
+   with its directory. A skill for one project may name that project's
+   paths and tools; a skill for any project leans on none, and asks for
+   what it needs. Nothing secret either way.
 7. **Does it conform?** `scripts/check-skill.mjs` passes, and the
    [sources](sources.md) agree.
 
