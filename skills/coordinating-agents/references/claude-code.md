@@ -60,7 +60,7 @@ No API compacts a running session, but input typed into its pane does.
 Past 85%, at a turn boundary, with `Self-compaction: allowed` on the
 roster:
 
-1. Write the instructions with the `compact-summary` skill: the open
+1. Write the instructions with the `compacting-context` skill: the open
    tasks, decisions and state, pointing at the resume note
    ([recovery](./recovery.md)) for the rest. Save the text after
    `/compact` to a file outside the repository, such as

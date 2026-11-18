@@ -51,7 +51,7 @@ name, no other agent is yours to use, and neither permission is given.
 1. **Compact past 85%.** With `Self-compaction: allowed`, once your
    context passes 85%, compact yourself at a turn boundary, never
    mid-task with work in flight, and tell the user each time. Write the
-   instructions with `compact-summary`, then run `compact-self.sh`
+   instructions with `compacting-context`, then run `compact-self.sh`
    detached. Without it, tell the user at 85% and leave compacting to
    them. Typed input reads as the user's own: type into your own pane
    only to compact; to another agent, write through `send-prompt.sh`.

@@ -1,5 +1,5 @@
 ---
-name: compact-summary
+name: compacting-context
 description: >-
   Use when deciding whether to compact the conversation, when context is
   running out, or when writing the instructions for a /compact.
@@ -10,11 +10,11 @@ license: GPL-3.0-only
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/compact-summary/SKILL.md
+   - ::: :/skills/compacting-context/SKILL.md
    -
    -->
 
-# Compact Summary
+# Compacting Context
 
 Assess compacting the conversation now, for the work you foresee being asked
 to do next. Work stated on the next line overrides your own expectation;

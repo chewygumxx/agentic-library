@@ -27,7 +27,7 @@ harnesses.
 | Skill                            | For                                                  |
 | -------------------------------- | ---------------------------------------------------- |
 | `coordinating-agents`            | Running agents within their context and usage limits |
-| `compact-summary`                | Writing and rating a compaction's instructions       |
+| `compacting-context`             | Writing and rating a compaction's instructions       |
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
 | `fragmenting-tests`              | Splitting long tests, mapped by mise tasks           |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
