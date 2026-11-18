@@ -179,16 +179,28 @@ then skips it when nothing changed since it last passed.
 
 ## Hooks
 
-A git hook is one line, calling a task:
+A git hook is one step, calling a task, whichever manager runs it:
 
 - `pre-commit`: `mise run check --staged`
-- `commit-msg`: `mise run lint:commit "$1"`
+- `commit-msg`: `mise run lint:commit <file>`, the message file being
+  `{{ commit_msg_file }}` in hk's `hk.pkl`, or `"$1"` in a shell hook
+
+In `hk.pkl`, such a step is a `check` command alone, with no `glob`: the
+task picks its own files. Pin hk among mise's tools, and install its
+hooks from mise's config, so `mise install` sets them up:
+
+```toml
+[hooks]
+postinstall = "hk install --mise"
+```
 
 Worktree tools' hooks, such as worktrunk's in `.config/wt.toml`, call
 `mise run <task>` likewise. A hook needs only the `mise` binary on `PATH`,
-as `mise run` puts the pinned tools there itself. Where even that is
-missing, as in a git GUI, the hook manager's per-user startup file adds
-it, such as husky's `~/.config/husky/init.sh`.
+as `mise run` puts the pinned tools there itself; hk's, installed with
+`--mise`, run `mise x -- hk`. Where even that is missing, as in a git
+GUI, the hook manager's per-user startup file adds it, such as husky's
+`~/.config/husky/init.sh`, or the GUI is started from a shell with mise
+on `PATH`.
 
 As `check` runs the tests, the pre-commit hook runs them with git's own
 variables set, such as `GIT_INDEX_FILE`. A test that runs git in a
