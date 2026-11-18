@@ -49,6 +49,11 @@ tags        = [
 ]
 run         = "bun test ./tests/mise-tasks.test.mts"
 
+["test:packages"]
+description = "Test that each skill's npm package repeats its frontmatter, ships it whole and is synced here"
+tags        = [ "test", "covers:skills", "covers:package.json" ]
+run         = "bun test ./tests/packages.test.mts"
+
 ["test:skills"]
 description = "Test that every skill stands alone once copied out of this repository"
 tags        = [ "test", "covers:skills" ]
