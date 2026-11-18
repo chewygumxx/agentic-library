@@ -26,20 +26,20 @@ harnesses.
 
 | Skill                            | For                                                  |
 | -------------------------------- | ---------------------------------------------------- |
-| `coordinating-agents`            | Running agents within their context and usage limits |
 | `compacting-context`             | Writing and rating a compaction's instructions       |
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
-| `mapping-tests`                  | Splitting long tests, mapped by mise tasks           |
+| `coordinating-agents`            | Running agents within their context and usage limits |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
+| `managing-git-worktrees`         | Making git worktrees that come out whole             |
+| `mapping-tests`                  | Splitting long tests, mapped by mise tasks           |
 | `writing-usage-specs`            | Writing CLI specs in KDL and generating from them    |
-| `worktrees`                      | Making git worktrees that come out whole             |
 
 Install all of them, or one, into a project, or with `--global` for every
 project:
 
 ```sh
 bunx skills add chewygumxx/agentic-library
-bunx skills add chewygumxx/agentic-library --skill worktrees --global
+bunx skills add chewygumxx/agentic-library --skill mapping-tests --global
 ```
 
 `coordinating-agents` is configured by a roster in your agent instructions

@@ -1,5 +1,5 @@
 ---
-name: worktrees
+name: managing-git-worktrees
 description: >-
   Use when creating, entering, checking, repairing or removing a git
   worktree, or when a worktree lacks dependencies, git hooks, skills or
@@ -10,11 +10,11 @@ license: GPL-3.0-only
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/worktrees/SKILL.md
+   - ::: :/skills/managing-git-worktrees/SKILL.md
    -
    -->
 
-# Worktrees
+# Managing git worktrees
 
 A new worktree holds only what git tracks. Everything else the main
 checkout has, the dependencies, git hooks, linked skills and ignored
