@@ -17,6 +17,7 @@
     "description": "Curated agent asset catalogue prioritising harness and model compatibility.",
     "category": "repository",
     "topics": ["agent", "skills", "agent-skills", "vibes", "vibe-coding"],
+    "immutable_releases": true,
     "license": {
         "filepath": "./LICENSE",
         "spdx_id": "GPL-3.0-only",
