@@ -28,7 +28,11 @@ run         = "bun ci"
 [lint]
 description = "Run every linter and format check"
 alias       = "l"
-usage       = 'flag "--staged" help="Lint staged files alone"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 depends     = [
     "lint:actions      {% if usage.staged %}--staged{% endif %}",
     "lint:biome        {% if usage.staged %}--staged{% endif %}",
@@ -48,7 +52,11 @@ depends     = [
 [format]
 description = "Apply every formatter"
 alias       = "f"
-usage       = 'flag "--staged" help="Format staged files alone"'
+usage       = '''
+flag "--staged" {
+    help "Format staged files alone"
+}
+'''
 depends     = [
     "format:biome {% if usage.staged %}--staged{% endif %}",
     "format:sh    {% if usage.staged %}--staged{% endif %}",
@@ -64,7 +72,11 @@ run         = "bun test"
 [check]
 description = "Run everything CI runs: lint and test"
 alias       = "c"
-usage       = 'flag "--staged" help="Lint staged files alone; test in full"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone; test in full"
+}
+'''
 depends     = [ "lint {% if usage.staged %}--staged{% endif %}", "test" ]
 
 # --------------------
@@ -73,7 +85,11 @@ depends     = [ "lint {% if usage.staged %}--staged{% endif %}", "test" ]
 
 ["lint:actions"]
 description = "Lint GitHub workflows with actionlint"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -87,7 +103,11 @@ scripts/with-files.sh ${usage_staged:+--staged} '.github/workflows/*.yaml' '.git
 
 ["lint:biome"]
 description = "Lint and check formatting with Biome"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "**/*",
     "!node_modules/**",
@@ -98,7 +118,11 @@ run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --n
 
 ["lint:editorconfig"]
 description = "Check files against .editorconfig"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "**/*",
     "!node_modules/**",
@@ -109,7 +133,11 @@ run         = "scripts/with-files.sh ${usage_staged:+--staged} -- editorconfig-c
 
 ["lint:emdash"]
 description = "Refuse em dashes"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "**/*",
     "!node_modules/**",
@@ -120,7 +148,11 @@ run         = "scripts/lint-emdash.sh ${usage_staged:+--staged}"
 
 ["lint:md"]
 description = "Lint Markdown with remark and markdownlint"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -138,7 +170,11 @@ run         = [
 
 ["lint:secrets"]
 description = "Scan for secrets with secretlint"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "**/*",
     "!node_modules/**",
@@ -149,7 +185,11 @@ run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --n
 
 ["lint:sh"]
 description = "Lint shell scripts with shfmt and ShellCheck"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "**/*",
     "!node_modules/**",
@@ -163,7 +203,11 @@ run         = [
 
 ["lint:spell"]
 description = "Check spelling with cspell"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "**/*",
     "!node_modules/**",
@@ -174,7 +218,11 @@ run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --n
 
 ["lint:toml"]
 description = "Lint and check formatting of TOML with Tombi"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -190,7 +238,11 @@ run         = [
 
 ["lint:yaml"]
 description = "Lint and check formatting of YAML with Prettier and yamllint"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Lint staged files alone"
+}
+'''
 sources     = [
     "bun.lock",
     ".config/mise/config.toml",
@@ -242,22 +294,38 @@ run         = "bunx --bun --no-install sync-header-metadata"
 
 ["format:biome"]
 description = "Format with Biome"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Format staged files alone"
+}
+'''
 run         = "scripts/with-files.sh ${usage_staged:+--staged} -- bunx --bun --no-install biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"
 
 ["format:sh"]
 description = "Format shell scripts with shfmt"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Format staged files alone"
+}
+'''
 run         = "scripts/with-files.sh ${usage_staged:+--staged} -- shfmt -f | tr '\\n' '\\0' | xargs -0 -r shfmt -w"
 
 ["format:toml"]
 description = "Format TOML with Tombi"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Format staged files alone"
+}
+'''
 run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.toml' -- tombi format"
 
 ["format:yaml"]
 description = "Format YAML with Prettier"
-usage       = 'flag "--staged"'
+usage       = '''
+flag "--staged" {
+    help "Format staged files alone"
+}
+'''
 run         = "scripts/with-files.sh ${usage_staged:+--staged} '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --write --log-level warn"
 
 # ------
