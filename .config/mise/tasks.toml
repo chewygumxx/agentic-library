@@ -30,16 +30,16 @@ description = "Run every linter and format check"
 alias       = "l"
 usage       = 'flag "--staged" help="Lint staged files alone"'
 depends     = [
-    "lint:actions {% if usage.staged %}--staged{% endif %}",
-    "lint:biome {% if usage.staged %}--staged{% endif %}",
+    "lint:actions      {% if usage.staged %}--staged{% endif %}",
+    "lint:biome        {% if usage.staged %}--staged{% endif %}",
     "lint:editorconfig {% if usage.staged %}--staged{% endif %}",
-    "lint:emdash {% if usage.staged %}--staged{% endif %}",
-    "lint:md {% if usage.staged %}--staged{% endif %}",
-    "lint:secrets {% if usage.staged %}--staged{% endif %}",
-    "lint:sh {% if usage.staged %}--staged{% endif %}",
-    "lint:spell {% if usage.staged %}--staged{% endif %}",
-    "lint:toml {% if usage.staged %}--staged{% endif %}",
-    "lint:yaml {% if usage.staged %}--staged{% endif %}",
+    "lint:emdash       {% if usage.staged %}--staged{% endif %}",
+    "lint:md           {% if usage.staged %}--staged{% endif %}",
+    "lint:secrets      {% if usage.staged %}--staged{% endif %}",
+    "lint:sh           {% if usage.staged %}--staged{% endif %}",
+    "lint:spell        {% if usage.staged %}--staged{% endif %}",
+    "lint:toml         {% if usage.staged %}--staged{% endif %}",
+    "lint:yaml         {% if usage.staged %}--staged{% endif %}",
     "lint:deps",
     "lint:package",
     "lint:types",
@@ -51,9 +51,9 @@ alias       = "f"
 usage       = 'flag "--staged" help="Format staged files alone"'
 depends     = [
     "format:biome {% if usage.staged %}--staged{% endif %}",
-    "format:sh {% if usage.staged %}--staged{% endif %}",
-    "format:toml {% if usage.staged %}--staged{% endif %}",
-    "format:yaml {% if usage.staged %}--staged{% endif %}",
+    "format:sh    {% if usage.staged %}--staged{% endif %}",
+    "format:toml  {% if usage.staged %}--staged{% endif %}",
+    "format:yaml  {% if usage.staged %}--staged{% endif %}",
 ]
 
 [test]
@@ -81,7 +81,9 @@ sources     = [
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
 outputs     = { auto = true }
-run         = "scripts/with-files.sh ${usage_staged:+--staged} '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml"
+run         = """
+scripts/with-files.sh ${usage_staged:+--staged} '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml
+"""
 
 ["lint:biome"]
 description = "Lint and check formatting with Biome"
