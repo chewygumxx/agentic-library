@@ -19,7 +19,10 @@
             // `bun test` finds these by name, which knip does not follow.
             "entry": ["tests/**/*.test.mts"]
         },
-        // Run by mise tasks and agents, by its path.
+        // Run by mise tasks and agents, by their paths.
+        "skills/authoring-agent-skills": {
+            "entry": ["scripts/*.mjs"]
+        },
         "skills/publishing-skills-to-npm": {
             "entry": ["scripts/skill-packages.mjs"]
         }

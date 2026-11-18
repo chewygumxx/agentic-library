@@ -17,6 +17,7 @@
         "@chewygumxx/remark-preset": "^1.1.0",
         "@chewygumxx/secretlint-rule-preset": "^1.0.1",
         "@chewygumxx/shellcheck-config": "^1.0.1",
+        "@chewygumxx/skill-authoring-agent-skills": "workspace:*",
         "@chewygumxx/skill-compacting-context": "workspace:*",
         "@chewygumxx/skill-configuring-mise-tasks": "workspace:*",
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
@@ -42,6 +43,10 @@
         "sync-header-metadata": "^2.4.3",
         "typescript": "^7.0.2",
       },
+    },
+    "skills/authoring-agent-skills": {
+      "name": "@chewygumxx/skill-authoring-agent-skills",
+      "version": "0.0.1",
     },
     "skills/compacting-context": {
       "name": "@chewygumxx/skill-compacting-context",
@@ -124,6 +129,8 @@
     "@chewygumxx/secretlint-rule-preset": ["@chewygumxx/secretlint-rule-preset@1.0.1", "", { "dependencies": { "@secretlint/secretlint-rule-no-dotenv": "^13.0.7", "@secretlint/secretlint-rule-no-homedir": "^13.0.7", "@secretlint/secretlint-rule-preset-recommend": "^13.0.7" }, "peerDependencies": { "secretlint": "^13.0.7" } }, "sha512-oKRK5Cd+07NaXSJfWGSJV7DzO1ZVEbUGyh0o+u3f/yvtPLWS7QgWmxivOYa6cTwfiXd2tZQAK3Q7/DJcfS4lHw=="],
 
     "@chewygumxx/shellcheck-config": ["@chewygumxx/shellcheck-config@1.0.1", "", {}, "sha512-9DBtIedm5UTcv8vmgKv2wz9fcN3Fmk9Aw7w8FZc6SGwulld+/c7bGKX60n2XOAoGjIXEj6yQI5D0hPezzVn54w=="],
+
+    "@chewygumxx/skill-authoring-agent-skills": ["@chewygumxx/skill-authoring-agent-skills@workspace:skills/authoring-agent-skills"],
 
     "@chewygumxx/skill-compacting-context": ["@chewygumxx/skill-compacting-context@workspace:skills/compacting-context"],
 
