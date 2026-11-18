@@ -12,17 +12,17 @@
 # https://worktrunk.dev/hook/
 #
 # Provisions each new worktree before anyone enters it, so an agent or shell
-# can commit straight away: husky's pre-commit hook calls the mise tools and
+# can commit straight away: hk's pre-commit hook calls the mise tools and
 # node_modules. Blocking pre-start steps run after the user's own, so a
 # node_modules copied in by `wt step copy-ignored` is reused, not fetched again.
 #
 
-# The toolchain in .config/mise/config.toml: bun, and the linters.
+# The toolchain in .config/mise/config.toml: bun, hk, and the linters. Its
+# postinstall hook installs hk's git hooks, which every worktree shares.
 [[pre-start]]
 tools = "mise install"
 
-# The locked dependency tree. Its prepare script installs husky's hooks,
-# which core.hooksPath expects at .husky/_ in every worktree.
+# The locked dependency tree.
 [[pre-start]]
 install = "mise run install"
 

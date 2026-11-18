@@ -13,7 +13,7 @@
     "license": "GPL-3.0-only",
     "scripts": {
         "check": "mise run check",
-        "prepare": "test ! -d node_modules/husky || { husky && bun run skills; }",
+        "prepare": "test ! -d node_modules/skills || bun run skills",
         "skills": "DO_NOT_TRACK=1 skills experimental_sync --yes --agent claude-code codex"
     },
     "config": {
@@ -46,7 +46,6 @@
         "@types/bun": "^1.4.2",
         "commitizen": "^4.3.2",
         "cspell": "^10.3.6",
-        "husky": "^9.1.7",
         "knip": "^6.39.0",
         "markdownlint-cli2": "^0.23.3",
         "prettier": "^3.9.9",
