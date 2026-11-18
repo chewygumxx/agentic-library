@@ -1,0 +1,25 @@
+# vim:set expandtab shiftwidth=4 filetype=toml:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/.codex/config.toml
+#
+#
+
+#
+# Read by Codex once the project is trusted
+# https://developers.openai.com/codex/config-reference
+#
+
+# ------------
+# MCP Servers
+# ------------
+
+# skill-builder calls these tools. The first start installs the lazy tool,
+# which outlasts Codex's default ten seconds.
+[mcp_servers.skill-seekers]
+command             = "mise"
+args                = [ "run", "mcp:skill-seekers" ]
+startup_timeout_sec = 120
