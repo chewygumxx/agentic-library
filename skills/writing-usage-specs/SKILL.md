@@ -35,8 +35,10 @@ license: GPL-3.0-only
    executable is missing.
 3. Make the smallest interface change. Declare constraints such as
    choices and required values in KDL when the runtime enforces them.
-   Use `#true` and `#false` for booleans, `<name>` for required values,
-   `[name]` for optional values, and a trailing `...` for variadics.
+   Quote every string and use `#true` and `#false` for booleans.
+   Use `<name>` for required values, `[name]` for optional values, and a
+   trailing `...` for variadics. See [KDL syntax](./references/kdl.md)
+   for raw strings, child nodes, and comments.
    Put one-line descriptions in `help` and details in `long_help`.
 4. Lint the actual spec, then verify a representative success and
    rejection. Use `usage explain --format json` to check bindings and
