@@ -14,7 +14,8 @@
     "license": "GPL-3.0-only",
     "files": [
         "SKILL.md",
-        "references"
+        "references",
+        "scripts"
     ],
     "scripts": {
         "prepack": "cp ../../LICENSE LICENSE",

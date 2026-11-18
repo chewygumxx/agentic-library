@@ -11,6 +11,15 @@ The `cmd` node and the root's own nodes. The root is a command: every
 policy below goes at the top level for the whole CLI or on a `cmd` for
 one, unless it says otherwise. The lines of a block are alternatives.
 
+## Contents
+
+- [Identity and help](#identity-and-help)
+- [Subcommands](#subcommands)
+- [Unknown words](#unknown-words)
+- [Effects and deprecation](#effects-and-deprecation)
+- [Mounts](#mounts)
+- [Multicall and views](#multicall-and-views)
+
 ## Identity and help
 
 ```kdl
