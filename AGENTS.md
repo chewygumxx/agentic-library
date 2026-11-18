@@ -64,11 +64,8 @@ first `0.1.0`.
 
 `.github/workflows/release-please.yaml` keeps one pull request open on
 `main` that bumps each changed skill's `version`, and
-`.config/release-please-manifest.json`. Merge it with a merge commit,
-like any pull request here: release-please walks `main`'s history, and
-`bootstrap-sha` in `.config/release-please.json` must stay on it.
-Merging publishes a GitHub release per skill, tagged
-`skill-<skill>@<version>`, which starts
+`.config/release-please-manifest.json`. Merging publishes a GitHub
+release per skill, tagged `skill-<skill>@<version>`, which starts
 `.github/workflows/publish.yaml` to stage it on npm, where it waits for
 the maintainer's 2FA approval. Both act as the
 `release-please-agentic-library` GitHub App, whose events start other
