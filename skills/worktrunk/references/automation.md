@@ -47,13 +47,25 @@ no-op. Exclude per-checkout settings and private files as appropriate.
 Use `pre-start` when commands need the files immediately and
 `post-start` when copying can continue in the background.
 
-For a separate local service per branch, use `{{ branch | hash_port }}`
-as a stable port in both `post-start` and the project `[dev-server]`
-URL. Treat it as a deterministic choice and check for collisions when
-a port is busy. The experimental `wt step tether -- <program>` ties a
-service's lifetime to its worktree. For databases, `sanitize_db` creates
-a branch-derived database name. Tools such as direnv or mise can apply
-directory-specific environment settings when the shell changes checkout.
+For a local service per branch, use `{{ branch | hash_port }}` in the
+`post-start` command and in `url` under `[list]` in `.config/wt.toml`.
+Adapt the command to the project's actual dev script.
+
+```toml
+[post-start]
+server = "npm run dev -- --port {{ branch | hash_port }}"
+
+[list]
+url = "http://localhost:{{ branch | hash_port }}"
+```
+
+Run `wt config show` to check the configuration and
+`wt hook post-start --dry-run` from the intended checkout to check the
+rendered command. Check for a port collision if startup fails. The
+experimental `wt step tether -- <program>` can tie a service's lifetime
+to its worktree. For databases, `sanitize_db` creates a branch-derived
+name. Tools such as direnv or mise can apply directory-specific
+environment settings when the shell changes checkout.
 
 [Recipes for dependencies, services, and parallel work](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/tips-patterns.md)
 [Copy and tether command details](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/step.md)

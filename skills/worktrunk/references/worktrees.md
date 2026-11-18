@@ -7,8 +7,19 @@
 
 # Worktree operations
 
+## Contents
+
+- [Create or switch](#create-or-switch)
+- [Switch from a script](#switch-from-a-script)
+- [Inspect](#inspect)
+- [Merge and retain history](#merge-and-retain-history)
+- [Remove and recover](#remove-and-recover)
+
 ## Create or switch
 
+- `-C <path>` sets the working directory and Git repository. Relative
+  worktree selectors resolve from that directory. Use a checkout path
+  to identify a detached worktree or a second checkout of one branch.
 - `wt switch feature/auth` enters its worktree or creates a worktree
   for the existing branch. A matching remote-only branch can become a
   local tracking branch.
@@ -23,21 +34,36 @@
   and is experimental. `-x <program> -- <args>` runs a program inside
   the selected worktree. For pipelines or redirection, invoke a shell
   explicitly and pass template values as separate arguments if needed.
-- `--no-cd` leaves the invoking shell in place. Worktrunk still runs
-  its hooks and starts any `-x` command in the selected worktree.
-  `--format=json` writes a structured result to stdout when available.
-  Diagnostics and `-x` output go to stderr. Read the result even on
-  failure to discover whether the worktree was created before the
-  failure. Background hooks can still be running after the result.
-
 [Full switch reference](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/switch.md)
+
+## Switch from a script
+
+Run the [switch helper](../scripts/switch-path.py) from the skill
+directory to print the selected path for a subsequent tool call.
+
+```sh
+python3 scripts/switch-path.py /src/service docs/review --create --base develop
+```
+
+The helper runs `wt switch` with hooks enabled. It emits only the
+checkout path on success. On failure it retains the exit status and
+reports any surviving checkout to stderr. Pass `--wt git-wt` on
+Windows if needed. Check the exit status before starting the next task.
+
+For native JSON or `-x`, run `wt switch --no-cd --format=json`
+directly. The `path` field can be present on failure. `-x` runs in the
+selected checkout with output on stderr. Only blocking hooks gate
+completion, so check background setup before using its outputs.
 
 ## Inspect
 
 - `wt list` shows worktree status and divergence from the default and
   tracking branches. Use `--branches` or `--remotes` to widen the
-  listing, or `--format=json` for automation. `--full` can query forge
-  CI status and generate branch summaries through the configured LLM.
+  listing. In v0.82.0, `wt list --format=json` defaults to schema 2.
+  Read `items[].worktree.path` on rows with a worktree. Use
+  `--config-set list.json-schema=2` to override a configured legacy
+  bare array. Depending on configuration, `--full` or chosen columns
+  can query forge CI and use an LLM to summarize diffs.
 - `wt step diff --branch feature/auth` reports the net diff since the
   branch diverged, including committed, staged, unstaged, and untracked
   changes. Use `git -C <path> status --short` for individual index and

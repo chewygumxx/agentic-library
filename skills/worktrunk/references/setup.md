@@ -7,11 +7,12 @@
 
 <!-- cspell:words winget -->
 
-# Setup and troubleshooting
+# Setup
 
 ## Install and enable shell navigation
 
-Worktrunk is distributed through Homebrew (`brew install worktrunk`),
+Worktrunk v0.82.0 requires Git 2.43 or newer. It is distributed through
+Homebrew (`brew install worktrunk`),
 Cargo (`cargo install worktrunk`), Windows Package Manager (`winget
 install max-sixty.worktrunk`), and other channels listed upstream. On
 Windows use `git-wt` if `wt` resolves to Windows Terminal.
@@ -50,24 +51,11 @@ installing, updating, or removing integrations.
 
 [Plugin matrix and host-specific setup](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/claude-code.md)
 
-## Diagnose common failures
-
-- Wrong worktree or base. Check `wt list` and `git worktree list`, then
-  check the command's selector and `--base`. `wt switch --create` starts
-  at the default branch unless a different base was selected. For a
-  moved default branch, inspect `wt config state default-branch --help`.
-- Missing dependencies or config. Inspect the checkout's `.config/wt.toml`,
-  use `wt config approvals list`, and find the hook log. When using a
-  background copy, allow for work continuing after `wt switch` returns.
-- Unexpected permission error. Preview expansions with `--dry-run`
-  where the command supports it, and read the diagnostic or hook logs
-  before retrying. A failing setup hook can leave the new worktree
-  registered. Confirm its status before trying creation again.
-- Bare repository or stacked branches. Review Worktrunk's default-branch
-  and worktree layout in the FAQ. Explicit `--base <branch>` and an
-  explicit merge target can express a parent branch in a stack.
-- Windows release integrity. See the upstream code-signing policy for
-  what is signed, how releases are approved, and where to report issues.
+For bare repositories or stacked branches, check how Worktrunk detects
+the default branch and lays out worktrees. For a stack, `--base <branch>`
+and an explicit merge target can identify the parent. For Windows
+release integrity, consult the signing policy for the signed artifacts
+and release approvals.
 
 [FAQ and operational effects](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/faq.md)
 [Windows code-signing policy](https://github.com/max-sixty/worktrunk/blob/v0.82.0/skills/worktrunk/reference/code-signing.md)
