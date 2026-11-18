@@ -22,7 +22,13 @@
 // guess.
 
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import {
+    existsSync,
+    lstatSync,
+    readdirSync,
+    readFileSync,
+    statSync,
+} from "node:fs";
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 import { parseArgs } from "node:util";
 
@@ -163,14 +169,32 @@ function main() {
     process.exit(failing ? 1 : 0);
 }
 
+// A skill directory, or each skill one level inside a directory. An
+// installer often links skills in rather than copying them, so a link to
+// a directory counts, checked under its own name; a link to nothing is
+// reported, never skipped in silence.
 function skillDirs(path) {
     if (!existsSync(path) || !statSync(path).isDirectory()) return [];
     if (existsSync(join(path, "SKILL.md"))) return [path];
-    return readdirSync(path, { withFileTypes: true })
-        .filter((e) => e.isDirectory())
-        .map((e) => join(path, e.name))
-        .filter((dir) => existsSync(join(dir, "SKILL.md")))
-        .sort();
+    const dirs = [];
+    for (const name of readdirSync(path).sort()) {
+        const entry = join(path, name);
+        let stat;
+        try {
+            stat = statSync(entry);
+        } catch {
+            if (lstatSync(entry).isSymbolicLink()) {
+                process.stderr.write(
+                    `check-skill: ${entry} links to nothing; not checked\n`,
+                );
+            }
+            continue;
+        }
+        if (stat.isDirectory() && existsSync(join(entry, "SKILL.md"))) {
+            dirs.push(entry);
+        }
+    }
+    return dirs;
 }
 
 // ------------------------------------------------------------- the checks

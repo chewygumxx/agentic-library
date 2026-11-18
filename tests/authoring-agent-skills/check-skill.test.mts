@@ -18,6 +18,7 @@ import {
     mkdirSync,
     mkdtempSync,
     rmSync,
+    symlinkSync,
     writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -413,6 +414,22 @@ describe("arguments", () => {
         rmSync(dirname(one), { recursive: true, force: true });
         expect(result.status).toBe(0);
         expect(result.stderr).toContain("2 skill(s)");
+    });
+
+    it("follows links to skills, checking each under its own name", () => {
+        const real = skill("processing-things");
+        const links = mkdtempSync(join(tmpdir(), "check-skill-links-"));
+        symlinkSync(real, join(links, "processing-things"));
+        symlinkSync(real, join(links, "other-name"));
+        symlinkSync(join(links, "missing"), join(links, "dangling"));
+        const result = run("--json", links);
+        const list = JSON.parse(result.stdout) as Finding[];
+        rmSync(dirname(real), { recursive: true, force: true });
+        rmSync(links, { recursive: true, force: true });
+        expect(result.stderr).toContain("dangling links to nothing");
+        expect(list.map((f) => `${f.skill} ${f.code}`)).toEqual([
+            "other-name name-directory",
+        ]);
     });
 
     it("exits 2 on a path holding no skill, or no path", () => {
