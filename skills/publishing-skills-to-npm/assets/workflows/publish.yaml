@@ -91,14 +91,17 @@ jobs:
 
             # Node 22.14 or later with npm 11.5.1 or later, which do the
             # OIDC exchange and sign the provenance.
+            # No cache: nothing restored from another run reaches this job.
             - name: Setup Node
               uses: actions/setup-node@v7
               with:
                   node-version: 24
+                  package-manager-cache: false
 
             # The package's prepack copies in the licence, if it shares the
             # repository's.
             - name: Publish
               env:
                   DIR: ${{ needs.resolve.outputs.dir }}
-              run: npm publish --workspace "$DIR"
+              # The registry named, so no .npmrc in the checkout redirects it.
+              run: npm publish --workspace "$DIR" --registry https://registry.npmjs.org/

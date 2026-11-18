@@ -9,7 +9,5 @@
     "bump-minor-pre-major": true,
     "bump-patch-for-minor-pre-major": true,
     "skip-changelog": true,
-    "packages": {
-        "skills/<skill>": { "component": "skill-<skill>" }
-    }
+    "packages": {}
 }

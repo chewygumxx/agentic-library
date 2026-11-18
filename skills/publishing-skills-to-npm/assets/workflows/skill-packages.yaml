@@ -16,7 +16,8 @@
 #
 # Online, the check also asks npm whether each public name is free or
 # already this repository's, so a name another repository holds fails
-# the pull request, before anyone tries to publish it.
+# the pull request, before anyone tries to publish it; --pack compares
+# what npm would ship with what git tracks.
 #
 
 name: Skill Packages
@@ -47,4 +48,4 @@ jobs:
               run: <locked install, such as bun install --frozen-lockfile or npm ci>
 
             - name: Check Skill Packages
-              run: node <script> check --online
+              run: node <script> check --online --pack

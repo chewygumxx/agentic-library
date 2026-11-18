@@ -18,17 +18,20 @@
 description = "Check each skill's name, description and npm package against its frontmatter"
 usage       = '''
 flag "--online" help="Also ask npm whether each name is free or already this repository's"
+flag "--pack" help="Also compare what npm would pack with the files git tracks"
 arg "[skill]..." help="The skills to check, by default every one"
 '''
-run         = 'eval "set -- ${usage_skill-}"; exec node skills/publishing-skills-to-npm/scripts/skill-packages.mjs check ${usage_online:+--online} "$@"'
+run         = 'eval "set -- ${usage_skill-}"; exec node skills/publishing-skills-to-npm/scripts/skill-packages.mjs check ${usage_online:+--online} ${usage_pack:+--pack} "$@"'
 
 ["skill-packages:write"]
 description = "Write each skill's npm package and release entries from its frontmatter"
 usage       = '''
 flag "--scope <scope>" help="The npm scope, such as @name: needed until a skill package names one"
+flag "--package-manager <name>" help="npm, bun, pnpm or yarn, where neither packageManager nor one lockfile says"
+flag "--dry-run" help="Say what it would write, and write nothing"
 arg "[skill]..." help="The skills to write, by default every one"
 '''
-run         = 'eval "set -- ${usage_skill-}"; exec node skills/publishing-skills-to-npm/scripts/skill-packages.mjs write ${usage_scope:+--scope "$usage_scope"} "$@"'
+run         = 'eval "set -- ${usage_skill-}"; exec node skills/publishing-skills-to-npm/scripts/skill-packages.mjs write ${usage_scope:+--scope "$usage_scope"} ${usage_package_manager:+--package-manager "$usage_package_manager"} ${usage_dry_run:+--dry-run} "$@"'
 
 ["skill-packages:next"]
 description = "Print the commands for a skill package's next step, the registry's state included"
