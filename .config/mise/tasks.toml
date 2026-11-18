@@ -241,7 +241,7 @@ description = "Compose a commit with commitizen"
 run         = "bunx --bun --no-install cz"
 
 [skills]
-description = "Sync third-party skills pinned in skills-lock.json"
+description = "Sync the skills package.json declares, this repository's own included"
 run         = "bun run skills"
 
 # skill-builder calls these tools. The package has no script for its

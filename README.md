@@ -59,6 +59,8 @@ names the project it was imported from.
   in `package.json`, at the commits pinned there, into `.agents/skills/`
   and `.claude/skills/`. Run it once after cloning: both directories are
   gitignored, and `bun install` only relinks skills already fetched.
+  This repository's own skills are linked there too, from their
+  workspace packages, so an agent working here uses them as written.
 - `mise run test` runs the tests; `mise run check` runs them and every
   other check CI runs, linting the staged files alone, or every file
   with `--all`; `mise run commit` composes a commit. `mise tasks` lists

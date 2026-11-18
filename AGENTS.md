@@ -21,6 +21,7 @@ context, include such within the commit message body.
 ## Repository Layout
 
 - `skills/` contain the skills this repository provides, one directory each.
+  Each is also a workspace package, `@chewygumxx/skill-<skill>`.
 - `tests/` holds the tests, each file with a mise task that maps it to
   what it covers. Read [`tests/AGENTS.md`](tests/AGENTS.md) before adding
   or changing one.
@@ -28,7 +29,9 @@ context, include such within the commit message body.
   sources by symlink. Synced by [`skills`](https://github.com/vercel-labs/skills)
   on `bun install`, as declared by the `skills` field of `package.json` and
   pinned by `skills-lock.json`. Declare a skill there, then `bun run skills`;
-  never `skills add`, which sync skips.
+  never `skills add`, which sync skips. This repository's own skills are
+  sourced the same way, as `workspace:*` devDependencies: a new skill's
+  package goes there too.
 
 ## Git Hooks
 
