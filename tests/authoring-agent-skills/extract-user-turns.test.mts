@@ -94,7 +94,7 @@ const question = {
 const c = claude("s1");
 jsonl(join(claudeDir, "-work-my-repo", "s1.jsonl"), [
     c.said("Shall I start?"),
-    c.user("yes please", human),
+    { ...c.user("yes please", human), uuid: "u-yes" },
     c.user("<task-notification>done</task-notification>", {
         origin: { kind: "task-notification" },
     }),
@@ -151,15 +151,16 @@ jsonl(join(claudeDir, "-work-my-repo", "s1.jsonl"), [
         human,
     ),
     { ...c.user("from a sidechain", human), isSidechain: true },
+    c.said("Shall I delete the cache?"),
+    c.user("no, leave it", human),
+    c.said("Shall I push the branch?"),
+    c.user("no, leave it", human),
 ]);
 
-// A resumed session copies its history, timestamps included.
+// A forked session copies a record, its uuid included.
 const resumed = claude("s1-resumed");
 jsonl(join(claudeDir, "-work-my-repo", "s1-resumed.jsonl"), [
-    {
-        ...resumed.user("yes please", human),
-        timestamp: "2026-01-01T00:00:01.000Z",
-    },
+    { ...resumed.user("yes please", human), uuid: "u-yes" },
 ]);
 
 const elsewhere = claude("s2", "/work/other");
@@ -324,8 +325,17 @@ describe("Claude Code", () => {
         expect(find("look at this")?.images).toBe(1);
     });
 
-    it("keeps one copy of a turn a resumed session repeats", () => {
+    it("keeps one copy of a record two files share", () => {
         expect(turns.filter((t) => t.text === "yes please")).toHaveLength(1);
+        expect(find("yes please")?.context).toBe("Shall I start?");
+    });
+
+    it("keeps a correction repeated in the same words", () => {
+        expect(
+            turns
+                .filter((t) => t.text === "no, leave it")
+                .map((t) => t.context),
+        ).toEqual(["Shall I delete the cache?", "Shall I push the branch?"]);
     });
 
     it("leaves other directories and subagents out", () => {
@@ -337,12 +347,18 @@ describe("Claude Code", () => {
 describe("Codex", () => {
     it("drops injected instructions and skills, keeping typed text", () => {
         const codex = turns.filter((t) => t.tool === "codex");
-        expect(codex.map((t) => t.kind)).toEqual(["typed", "relayed"]);
+        expect(codex.map((t) => t.kind)).toEqual(["typed", "relayed", "typed"]);
         expect(find("review the skill")).toMatchObject({
             session: "x1",
             cwd: `${REPO}.wt/feature`,
             context: null,
         });
+    });
+
+    it("keeps a prompt sent twice", () => {
+        expect(turns.filter((t) => t.text === "review the skill")).toHaveLength(
+            2,
+        );
     });
 
     it("reads a relayed message's sender and route", () => {

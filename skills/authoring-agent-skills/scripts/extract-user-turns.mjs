@@ -174,25 +174,30 @@ function main() {
         }
     }
 
-    // A resumed or forked Claude session copies its history, with its
-    // timestamps, into a new file; Codex replays a turn, with a new
-    // timestamp, within its session. Of the copies, keep the one that
-    // knows what came before it.
+    // One event can sit in two Claude files, as when a session is
+    // forked; its record keeps its uuid, the one identity a transcript
+    // proves. Of such copies, keep the one that knows what came before
+    // it. Nothing else is merged: a person repeating themselves, in the
+    // same words, is evidence too.
     const seen = new Map();
+    const kept = [];
     for (const turn of turns) {
         if (!kinds.includes(turn.kind)) continue;
-        const where = turn.tool === "claude" ? turn.timestamp : turn.session;
-        const key = [turn.tool, where, turn.kind, turn.text, turn.from]
-            .concat(JSON.stringify(turn.answers ?? null))
-            .join("\0");
-        const kept = seen.get(key);
-        if (!kept || (kept.context === null && turn.context !== null)) {
-            seen.set(key, turn);
+        const { record, ...rest } = turn;
+        if (!record) {
+            kept.push(rest);
+            continue;
+        }
+        const key = [turn.tool, record, turn.kind, turn.text].join("\0");
+        const index = seen.get(key);
+        if (index === undefined) {
+            seen.set(key, kept.length);
+            kept.push(rest);
+        } else if (kept[index].context === null && rest.context !== null) {
+            kept[index] = rest;
         }
     }
-    const kept = [...seen.values()].sort((a, b) =>
-        (a.timestamp ?? "").localeCompare(b.timestamp ?? ""),
-    );
+    kept.sort((a, b) => (a.timestamp ?? "").localeCompare(b.timestamp ?? ""));
     const lines = [];
     const counts = {};
     for (const turn of kept) {
@@ -345,6 +350,7 @@ function readClaude(file, settings) {
             timestamp: record.timestamp ?? null,
             ...turn,
             context,
+            record: record.uuid ?? null,
         });
         context = null;
     };
