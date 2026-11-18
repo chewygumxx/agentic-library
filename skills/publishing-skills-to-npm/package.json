@@ -1,6 +1,6 @@
 {
     "name": "@chewygumxx/skill-publishing-skills-to-npm",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "description": "Packages a repository's agent skills as one npm package each and releases them per skill, with release-please and npm trusted publishing from GitHub Actions. Use when adding or renaming a skill package, wiring skills up for `skills experimental_sync`, setting up or debugging npm trusted publishing or provenance for skills, or cutting, bootstrapping or verifying a skill's release.",
     "keywords": [
         "agent-skills"
