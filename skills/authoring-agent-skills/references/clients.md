@@ -38,6 +38,10 @@ matters, as these move.
   `${CLAUDE_PROJECT_DIR}`. A line `` !`command` `` runs before the model
   sees the skill and is replaced by its output; a failing command aborts
   the skill.
+- **Edits:** files under a skills directory are picked up without a
+  restart, though a new top-level skills directory needs
+  `/reload-skills`. A skill already invoked stays in the conversation as
+  rendered, and is not re-read: invoke it again to load an edit.
 - **Limits:** the listing's budget is about 1% of the context window,
   and descriptions of the least used skills drop first when it
   overflows; `description` with `when_to_use` is cut at 1,536
@@ -98,9 +102,11 @@ unzip -l <name>.zip         # every path should start <name>/
 - **Limits:** the initial listing takes at most 2% of the context window,
   or 8,000 characters when the window is unknown; descriptions shorten
   first, then skills drop, with a warning.
+- **Edits:** it detects changed skill files on its own; restart if an
+  edit does not appear.
 - **Disabling:** `[[skills.config]]` entries in `~/.codex/config.toml`
   with `enabled = false`, by `path` or `name`. Restart after changing
-  configuration, or when an edited skill does not appear.
+  configuration.
 
 ## Installing across clients
 

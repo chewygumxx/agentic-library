@@ -201,8 +201,10 @@ lockfiles and the first publish.
   rejects; quote it.
 - `<` and `>` in a description show as `&lt;` and `&gt;` in Claude
   Code; write `[placeholder]`.
-- Clients read `SKILL.md` once per session and keep what they rendered,
-  so test an edit in a fresh session, not the one that made it.
+- An edit can be live and still not in effect: clients pick up changed
+  skill files, but a skill already invoked stays in the conversation as
+  it was rendered until invoked again. Evaluate in a fresh session
+  anyway, as the one that wrote the skill has read it.
 - A one-step task may trigger no skill however apt the description, as
   the agent can do it alone. Trigger tests need tasks that need the
   skill.
