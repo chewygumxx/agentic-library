@@ -1,15 +1,15 @@
 {
-    "name": "@chewygumxx/skill-worktrunk",
+    "name": "@chewygumxx/skill-managing-worktrunk-worktrees",
     "version": "0.0.1",
     "description": "Operates and configures Worktrunk, the `wt` CLI for Git worktrees. Use when running `wt switch`, inspecting, merging, or removing Worktrunk checkouts, or troubleshooting shell integration, `.config/wt.toml` hooks and approvals, ignored-file copying, aliases, or LLM commits.",
     "keywords": [
         "agent-skills"
     ],
-    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/worktrunk/SKILL.md",
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/managing-worktrunk-worktrees/SKILL.md",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/chewygumxx/agentic-library.git",
-        "directory": "skills/worktrunk"
+        "directory": "skills/managing-worktrunk-worktrees"
     },
     "license": "GPL-3.0-only",
     "files": [

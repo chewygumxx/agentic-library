@@ -1,7 +1,7 @@
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/worktrunk/references/configuration.md
+   - ::: :/skills/managing-worktrunk-worktrees/references/configuration.md
    -
    -->
 

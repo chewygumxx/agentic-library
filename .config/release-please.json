@@ -22,14 +22,14 @@
         "skills/managing-git-worktrees": {
             "component": "skill-managing-git-worktrees"
         },
+        "skills/managing-worktrunk-worktrees": {
+            "component": "skill-managing-worktrunk-worktrees"
+        },
         "skills/mapping-tests": {
             "component": "skill-mapping-tests"
         },
         "skills/publishing-skills-to-npm": {
             "component": "skill-publishing-skills-to-npm"
-        },
-        "skills/worktrunk": {
-            "component": "skill-worktrunk"
         },
         "skills/writing-usage-specs": {
             "component": "skill-writing-usage-specs"

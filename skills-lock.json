@@ -52,6 +52,13 @@
       "version": "0.0.2",
       "computedHash": "7a32a1ea3c7d3eaea2a7c4e3ba5b3d7af441871ce7bb54d8bcd55f6b2ad64644"
     },
+    "managing-worktrunk-worktrees": {
+      "source": "@chewygumxx/skill-managing-worktrunk-worktrees",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.1",
+      "computedHash": "a11e4a74a629b9a3e373e2de406237c6ff699aee8838b4912bb3bd56ba799db4"
+    },
     "mapping-tests": {
       "source": "@chewygumxx/skill-mapping-tests",
       "sourceType": "node_modules",
@@ -81,13 +88,6 @@
       "skillPath": "skills/skill-creator/SKILL.md",
       "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2",
       "via": "."
-    },
-    "worktrunk": {
-      "source": "@chewygumxx/skill-worktrunk",
-      "sourceType": "node_modules",
-      "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "8743655d9e806b139fbb16164d712bbd2d40b0c1cf180acc6c33a2eb714d43dc"
     },
     "writing-usage-specs": {
       "source": "@chewygumxx/skill-writing-usage-specs",

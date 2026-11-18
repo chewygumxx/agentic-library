@@ -5,7 +5,7 @@
 #
 #
 # ~chewygumxx/agentic-library.git
-# ::: :/skills/worktrunk/scripts/switch-path.py
+# ::: :/skills/managing-worktrunk-worktrees/scripts/switch-path.py
 #
 #
 

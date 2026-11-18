@@ -1,5 +1,5 @@
 ---
-name: worktrunk
+name: managing-worktrunk-worktrees
 description: >-
   Operates and configures Worktrunk, the `wt` CLI for Git worktrees.
   Use when running `wt switch`, inspecting, merging, or removing
@@ -15,11 +15,11 @@ license: GPL-3.0-only
 <!--
    -
    - ~chewygumxx/agentic-library.git
-   - ::: :/skills/worktrunk/SKILL.md
+   - ::: :/skills/managing-worktrunk-worktrees/SKILL.md
    -
    -->
 
-# Worktrunk
+# Managing Worktrunk worktrees
 
 Use `wt --version` and `wt <command> --help` when the installed CLI's
 options matter. Use `git worktree list --porcelain` for a local inventory.
