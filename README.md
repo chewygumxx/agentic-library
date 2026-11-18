@@ -24,14 +24,15 @@ harnesses.
 
 ## Skills
 
-| Skill                    | For                                                  |
-| ------------------------ | ---------------------------------------------------- |
-| `agent-stewardship`      | Running agents within their context and usage limits |
-| `compact-summary`        | Writing and rating a compaction's instructions       |
-| `configuring-mise-tasks` | Writing and naming a repository's mise tasks alike   |
-| `fragmenting-tests`      | Splitting long tests, mapped by mise tasks           |
-| `usage-spec`             | Writing CLI specs in KDL and generating from them    |
-| `worktrees`              | Making git worktrees that come out whole             |
+| Skill                            | For                                                  |
+| -------------------------------- | ---------------------------------------------------- |
+| `agent-stewardship`              | Running agents within their context and usage limits |
+| `compact-summary`                | Writing and rating a compaction's instructions       |
+| `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
+| `fragmenting-tests`              | Splitting long tests, mapped by mise tasks           |
+| `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
+| `usage-spec`                     | Writing CLI specs in KDL and generating from them    |
+| `worktrees`                      | Making git worktrees that come out whole             |
 
 Install all of them, or one, into a project, or with `--global` for every
 project:
