@@ -34,6 +34,10 @@ node = "24"
 # Git Hooks
 "aqua:jdx/hk" = "2.13.0"
 
+# Secrets
+"aqua:getsops/sops"    = "3.13.3"
+"aqua:FiloSottile/age" = "1.3.2"
+
 # -----------------------
 # Tools: Lint and Format
 # -----------------------
