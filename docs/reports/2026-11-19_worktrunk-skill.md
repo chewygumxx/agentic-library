@@ -102,7 +102,7 @@ Worktrunk-specific triggers and describes the skill in third person.
 The identifier `worktrunk` matches its directory and satisfies the
 format requirements. A gerund such as `using-worktrunk` would better
 match the collection's style and distinguish it from the upstream
-skill. This revision retains the existing skill and npm identifiers.
+skill. The initial review retained the existing identifiers.
 [Claude authoring guide](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#naming-conventions)
 [Agent Skills specification](https://agentskills.io/specification)
 
@@ -141,5 +141,44 @@ over a legacy configuration and matching the rendered dev-server
 port against the URL in `wt list` output. The prompt evaluation above
 used guided skill access in Codex. This review measured CLI behavior
 and checked the package structure against the Claude authoring guide.
+
+## Naming and executable examples
+
+The skill is now `managing-worktrunk-worktrees`, with the same name in
+the directory, frontmatter, and npm package suffix. The gerund names
+the activity and the Worktrunk qualifier makes the tool scope explicit.
+The description names concrete Worktrunk commands and config tasks for
+discovery alongside the collection's general Git worktree skill. The
+workspace, Bun lockfile, skill lockfile, release mapping, and both
+agent links use the new name. The former package name was absent from
+the public npm registry at the time of the rename.
+[Skill Seekers naming and metadata guidance](https://skillseekersweb.com/docs/reference/ai-skill-standards#1-naming-conventions)
+
+The entry point now starts with the most common commands and routes
+to individual task references. The frontmatter declares the Git minimum,
+the tested Worktrunk version, and the optional helper's Python
+dependency. The package uses standard frontmatter and relative links
+to bundled resources. The npm manifest and release tooling carry the
+skill's own version.
+[Agent Skills specification](https://agentskills.io/specification)
+
+Three shell examples check observable outcomes using native commands.
+The headless switch example verifies the branch from inside the
+returned path. The merge checks ancestry, asks for a fast-forward
+even if the user configured merge commits, and prints the final branch
+tips. The removal reports the surviving branch tip and can be followed
+by a registry check for the removed checkout.
+[Claude guidance on verifiable outcomes](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#create-verifiable-intermediate-outputs)
+
+The six fenced shell and TOML examples were exercised on Worktrunk
+v0.82.0 in disposable repositories. The cases included a path with
+spaces, preservation of exact commit IDs under a merge-commit default,
+removal with either a merged or an unmerged branch, sanitizing a slash
+in a branch name, ordering real npm installation before generation and
+`-x`, and matching the generated service port. The previous nine CLI
+probes also passed.
+Both `skills-ref validate` and the skill-creator validator accepted
+the skill. The package check verified the bundled references and helper.
+Local sync verified the new links for Codex and Claude Code.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
