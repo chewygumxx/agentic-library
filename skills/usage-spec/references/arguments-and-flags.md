@@ -19,6 +19,7 @@ arg "[dir]"                   // optional; named dir, completes directories
 arg "<file>..."               // variadic, one or more; [file]... is zero or more
 arg "<file>" var=#true var_min=2 var_max=5
 arg "<start> <end>"           // exactly two values, each with its own label
+arg "<range>" { value_names "START" "END" }  // the same, labels written out
 
 flag "-u --user <user>"       // takes a value
 flag "--user" { alias "-u"; arg "<user>" }  // the same, written out
@@ -77,7 +78,9 @@ completion, never in generated output. `validate` is an
 for each value after defaults and environment apply.
 
 `delimiter=","` splits one word into several values before choices apply;
-it needs a variadic.
+it needs a variadic. `dont_delimit_trailing_values #true` on the command
+keeps words whole after `--`, or once a `double_dash="automatic"`
+argument binds: `ex a,b -- c,d` binds `a`, `b` and `c,d`.
 
 ## Hyphens and `--`
 
@@ -145,3 +148,9 @@ or argument only raises its command's effect when it is supplied.
 A `global=#true` flag works on its command and every descendant, before or
 after the subcommand word. A non-global flag may still precede one of its
 command's subcommands, `mycli run --force task`, but is not inherited.
+
+Short flags bundle, `-vf` for `-v -f`, but usage 7.4 binds only the
+first letter of a non-global flag's bundle before a subcommand word:
+`mycli -vf run task` sets `--verbose` and passes `f` to `run` as a
+positional, and `-vv` counts one. Spell such flags apart, or make them
+global, and check the line with `usage explain`.

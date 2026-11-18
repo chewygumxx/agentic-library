@@ -20,3 +20,8 @@
 node_modules/
 .agents/skills/
 .claude/skills/
+
+# Skill Seekers' MCP Scratch, Written Where It Runs
+/configs/
+/output/
+/.skillseeker-cache/

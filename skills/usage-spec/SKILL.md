@@ -51,7 +51,9 @@ scope; see `https://usage.jdx.dev/rust/` and `https://usage.jdx.dev/go/`.
 
 - **Printed by the CLI itself**, by a framework integration such as
   `mycli --usage-spec`, or `mycli __usage_spec__` from the Rust framework.
-  Every `usage` command that takes `-f` takes `-` for stdin, so pipe it.
+  Pipe it: every `usage` command that reads a spec takes `-` for stdin,
+  as `-f -` or, to `lint` and `diff`, as the file itself. `usage mcp`
+  alone cannot, as stdin is its transport.
 
 ## KDL in brief
 
@@ -136,7 +138,10 @@ argument name, lower-cased with dashes turned to underscores.
   where a value has spaces: `eval "set -- $usage_files"` or
   `eval "files=($usage_files)"` recovers the list.
 - `usage_cmd` holds the chosen subcommand path, `db migrate`, by its
-  canonical name even when an alias was typed; unset at the root.
+  canonical name even when an alias was typed; unset at the root, and in
+  a usage script that another one runs. A flag or argument named `cmd`
+  takes the variable for its own value, given or not, and the path is
+  then never exported: name it otherwise in a script that dispatches.
 - `usage` exits `1` when the command line breaks the spec and `181` when
   the spec or a `mount` cannot be read; otherwise it exits with the
   script's own code.
@@ -159,13 +164,17 @@ usage complete-word -f mycli.usage.kdl -- mycli deploy api --env ''
 
 - `lint` reports what parses but is wrong: a duplicate flag, a required
   argument after an optional one, a variadic that is not last, missing
-  help, an example its own spec rejects. Add `-W` to fail on warnings,
-  `--sorted` to hold declaration order.
+  help, an example its own spec rejects. It fails on an error; add `-W`
+  to fail on warnings, `--sorted` to hold declaration order, `-q` for
+  the findings alone and `--format json` for them as data.
 - `explain` prints which token bound to what, every value that came from
   `env`, a `default` or `default_if`, and which declaration lost to it.
   `-e KEY=VALUE` replaces the whole environment, for a reproducible report.
-- `complete-word` prints what Tab offers at the last word; `''` asks for
-  every candidate.
+  It exits `0` even when the line does not parse, and lists the errors:
+  read the report, not the exit code.
+- `complete-word` prints what Tab offers at the last word, or at the
+  word `--cword N` names; `''` asks for every candidate. `--shell` gives
+  them as that shell's script would receive them.
 
 A KDL error, or a node or property the running usage does not know, fails
 the parse with the offending span. A spec newer than the installed usage

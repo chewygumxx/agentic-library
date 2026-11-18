@@ -7,10 +7,13 @@
 
 # Generators
 
-What the `usage` CLI makes from a spec. Every command reads `-f FILE`, a
-usage-shebang script, `-` for stdin, or `--spec` for the spec as a
-string; `generate` is also `g`. Regenerate the outputs whenever the spec
-changes, and keep hand-written additions out of generated files.
+What the `usage` CLI makes from a spec. Each generator reads `-f FILE`,
+a spec or a usage-shebang script, or `-f -` for stdin; `json`,
+`json-schema`, `sdk` and `go` also take `--spec` for the spec as a
+string, but `markdown`, `manpage` and `completion` do not. `diff` takes
+its two specs as arguments, and there `-f` is `--format`. `generate` is
+also `g`. Regenerate the outputs whenever the spec changes, and keep
+hand-written additions out of generated files.
 
 ## Reference pages
 

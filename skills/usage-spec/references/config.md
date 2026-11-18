@@ -20,7 +20,8 @@ config {
   file "~/.config/mycli/config.toml" scope="global"
   file "mycli.toml" findup=#true
   file "mycli.local.toml" findup=#true
-  source "git" name="git config" doc_hint="git config `{key}`"
+  source "git" name="git config" doc_hint="git config `{key}`" \
+      set_hint="git config {key} {value}"
   prop "jobs" type="uint" default=4 help="Number of parallel jobs" {
     cli "--jobs" "-j"
     env "MYCLI_JOBS"
