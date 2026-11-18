@@ -35,7 +35,7 @@ cmd "deploy" {
 | type                       | offers                                            |
 | -------------------------- | ------------------------------------------------- |
 | `file`, `path`             | files and directories                             |
-| `path:toml,yaml`           | directories, and files with those extensions      |
+| `path:toml,yaml`, `file:…` | directories, and files with those extensions      |
 | `dir`                      | directories                                       |
 | `executable`               | executable paths                                  |
 | `command`                  | commands the shell knows, `PATH` included         |
