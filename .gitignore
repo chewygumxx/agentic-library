@@ -25,3 +25,6 @@ node_modules/
 /configs/
 /output/
 /.skillseeker-cache/
+
+# Copied in by each skill package's prepack, for npm alone.
+skills/*/LICENSE

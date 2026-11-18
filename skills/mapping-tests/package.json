@@ -1,0 +1,28 @@
+{
+    "name": "@chewygumxx/skill-mapping-tests",
+    "version": "0.0.2",
+    "description": "Keeps each test file under 20 KiB and maps it to a mise task naming the paths it covers, so the tests of any path can be found and run alone. Use when adding, moving, renaming or deleting a test file, or changing what one runs, in a repository whose tests are mapped by mise tasks; when a test file passes 20 KiB or holds several subjects' tests; or when mapping a repository's tests for `mise tasks` and `mise mcp`.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/mapping-tests/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/mapping-tests"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md",
+        "assets",
+        "references"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}

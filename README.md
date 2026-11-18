@@ -26,25 +26,43 @@ harnesses.
 
 | Skill                            | For                                                  |
 | -------------------------------- | ---------------------------------------------------- |
-| `agent-stewardship`              | Running agents within their context and usage limits |
-| `compact-summary`                | Writing and rating a compaction's instructions       |
+| `compacting-context`             | Writing and rating a compaction's instructions       |
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
-| `fragmenting-tests`              | Splitting long tests, mapped by mise tasks           |
+| `coordinating-agents`            | Running agents within their context and usage limits |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
-| `usage-spec`                     | Writing CLI specs in KDL and generating from them    |
-| `worktrees`                      | Making git worktrees that come out whole             |
+| `managing-git-worktrees`         | Making git worktrees that come out whole             |
+| `mapping-tests`                  | Mapping each test file to a mise task                |
+| `writing-usage-specs`            | Writing CLI specs in KDL and generating from them    |
 
 Install all of them, or one, into a project, or with `--global` for every
 project:
 
 ```sh
 bunx skills add chewygumxx/agentic-library
-bunx skills add chewygumxx/agentic-library --skill worktrees --global
+bunx skills add chewygumxx/agentic-library --skill mapping-tests --global
 ```
 
-`agent-stewardship` is configured by a roster in your agent instructions
+Or depend on a skill's npm package, `@chewygumxx/skill-<skill>`, and link
+it on every install, kept to the version your lockfile pins:
+
+```json
+{
+  "scripts": {
+    "prepare": "skills experimental_sync --agent claude-code codex --yes"
+  },
+  "devDependencies": {
+    "@chewygumxx/skill-mapping-tests": "^0.0.2",
+    "skills": "^1.7.6"
+  }
+}
+```
+
+The skill is linked by its own name, as `.agents/skills/mapping-tests`.
+`compacting-context` is not published yet.
+
+`coordinating-agents` is configured by a roster in your agent instructions
 and states what each of its parts needs. See its
-[`SKILL.md`](./skills/agent-stewardship/SKILL.md).
+[`SKILL.md`](./skills/coordinating-agents/SKILL.md).
 
 A skill here must stand alone once copied out of this repository:
 `tests/skills.test.mts` fails one that links outside itself, or that still
@@ -59,6 +77,8 @@ names the project it was imported from.
   in `package.json`, at the commits pinned there, into `.agents/skills/`
   and `.claude/skills/`. Run it once after cloning: both directories are
   gitignored, and `bun install` only relinks skills already fetched.
+  This repository's own skills are linked there too, from their
+  workspace packages, so an agent working here uses them as written.
 - `mise run test` runs the tests; `mise run check` runs them and every
   other check CI runs, linting the staged files alone, or every file
   with `--all`; `mise run commit` composes a commit. `mise tasks` lists

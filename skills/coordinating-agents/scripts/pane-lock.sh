@@ -1,0 +1,70 @@
+#!/usr/bin/env sh
+# vim:set expandtab shiftwidth=4 filetype=sh:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/skills/coordinating-agents/scripts/pane-lock.sh
+#
+#
+
+# Sourced by the other scripts: `. "$here/pane-lock.sh"`. A pane takes one
+# writer at a time, so a message cannot land among another's text and
+# Enter. Status and pane come from `herdr agent get`, which takes an
+# agent's name or its pane's id.
+
+# die <exit code> <message>
+die() {
+    code=$1
+    shift
+    printf '%s: %s\n' "${0##*/}" "$*" >&2
+    exit "$code"
+}
+
+# Prints the directory of state kept between runs, making it private.
+state_dir() {
+    dir=${XDG_STATE_HOME:-$HOME/.local/state}/coordinating-agents
+    mkdir -p "$dir" || die 1 "cannot make $dir"
+    chmod 700 "$dir"
+    printf '%s\n' "$dir"
+}
+
+# Holds the pane's lock on fd 9 until the script exits.
+lock_pane() {
+    [ -n "${XDG_RUNTIME_DIR:-}" ] || die 1 'XDG_RUNTIME_DIR is not set'
+    dir=$XDG_RUNTIME_DIR/coordinating-agents
+    mkdir -p "$dir" || die 1 "cannot make $dir"
+    chmod 700 "$dir"
+    name=$(printf '%s' "$1" | tr -c '[:alnum:]' _)
+    exec 9>"$dir/$name.lock" || die 1 "cannot open the lock of pane $1"
+    flock 9 || die 1 "cannot lock pane $1"
+}
+
+# agent_field <agent> <jq filter on the agent>: fails for an absent
+# agent, whose reply is an error without a result.
+agent_field() {
+    herdr agent get "$1" 2>/dev/null | jq -er ".result.agent | $2"
+}
+
+agent_pane() {
+    agent_field "$1" .pane_id
+}
+
+agent_status() {
+    agent_field "$1" .agent_status
+}
+
+# Prints the id of your own pane as it is now. $HERDR_PANE_ID keeps the id
+# the pane started with, which moving the pane changes: `herdr pane get`
+# follows that, and `herdr agent get` does not.
+own_pane() {
+    herdr pane get "${HERDR_PANE_ID:?}" 2>/dev/null |
+        jq -er '.result.pane.pane_id'
+}
+
+# Prints your own agent's name, else its pane's id.
+own_name() {
+    own=$(own_pane) || return 1
+    agent_field "$own" '.name // .pane_id'
+}

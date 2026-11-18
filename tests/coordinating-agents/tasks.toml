@@ -1,0 +1,89 @@
+# vim:set expandtab shiftwidth=4 filetype=toml:
+# SPDX-License-Identifier: GPL-3.0-only
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/tests/coordinating-agents/tasks.toml
+#
+#
+
+#
+# The map of the coordinating-agents tests: see tests/AGENTS.md.
+#
+
+["test:coordinating-agents"]
+description = "Test the coordinating-agents skill's scripts"
+depends     = [ "test:coordinating-agents:*" ]
+
+["test:coordinating-agents:agent-name"]
+description = "Test agent-name.sh: your own agent's name"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/agent-name.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+]
+run         = "bun test ./tests/coordinating-agents/agent-name.test.mts"
+
+["test:coordinating-agents:at-limit"]
+description = "Test at-limit.sh: running a command again while it is at its usage limit"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/at-limit.sh",
+]
+run         = "bun test ./tests/coordinating-agents/at-limit.test.mts"
+
+["test:coordinating-agents:compact-self"]
+description = "Test compact-self.sh: typing /compact and its instructions into your own pane"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/compact-self.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+    "covers:skills/coordinating-agents/scripts/send-prompt.sh",
+]
+run         = "bun test ./tests/coordinating-agents/compact-self.test.mts"
+
+["test:coordinating-agents:job"]
+description = "Test job.sh: submitting a command as a transient user unit"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/job.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+]
+run         = "bun test ./tests/coordinating-agents/job.test.mts"
+
+["test:coordinating-agents:job-stopped"]
+description = "Test job-stopped.sh: recording a stopped job and telling its agent"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/job-stopped.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+    "covers:skills/coordinating-agents/scripts/send-prompt.sh",
+]
+run         = "bun test ./tests/coordinating-agents/job-stopped.test.mts"
+
+["test:coordinating-agents:send-prompt"]
+description = "Test send-prompt.sh: sending now, on a timer, on delivery, and outside herdr"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/send-prompt.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+]
+run         = "bun test ./tests/coordinating-agents/send-prompt.test.mts"
+
+["test:coordinating-agents:statusline"]
+description = "Test statusline.sh: drawing the status line and keeping the usage"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/statusline.sh",
+]
+run         = "bun test ./tests/coordinating-agents/statusline.test.mts"
+
+["test:coordinating-agents:with-claude"]
+description = "Test with-claude.sh: choosing a Claude account by its usage"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/with-claude.sh",
+]
+run         = "bun test ./tests/coordinating-agents/with-claude.test.mts"

@@ -1,0 +1,23 @@
+{
+    "name": "@chewygumxx/skill-compacting-context",
+    "version": "0.0.1",
+    "private": true,
+    "description": "Judges whether to compact the conversation now, and writes and rates the instructions for a /compact. Use when deciding whether to compact the conversation, when context is running out, or when writing the instructions for a /compact.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/compacting-context/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/compacting-context"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    }
+}

@@ -1,7 +1,9 @@
 ---
 name: managing-dotfiles-with-chezmoi
 description: >-
-  Use when adding, changing, templating, applying or debugging dotfiles
+  Changes, templates and applies a home directory's dotfiles through
+  chezmoi's source directory, checking each change before it lands. Use
+  when adding, changing, templating, applying or debugging dotfiles
   managed by chezmoi: its source directory and attribute-named files
   (dot_, private_, run_onchange_, .tmpl), .chezmoiignore, externals,
   scripts, secrets and encryption, the chezmoi config file, or setting

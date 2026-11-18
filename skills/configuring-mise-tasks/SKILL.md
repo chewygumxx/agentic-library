@@ -1,9 +1,12 @@
 ---
 name: configuring-mise-tasks
 description: >-
-  Use when adding, changing, reviewing or adopting a repository's mise
-  tasks, deciding what belongs in package.json scripts or the runtime's
-  equivalent, or running git hooks or worktree hooks through mise.
+  Sets out a repository's standard mise tasks: where each action is
+  defined, how tasks are written and named, how they narrow to staged
+  files, and how hooks run them. Use when adding, changing, reviewing or
+  adopting a repository's mise tasks, deciding what belongs in
+  package.json scripts or the runtime's equivalent, or running git hooks
+  or worktree hooks through mise.
 license: GPL-3.0-only
 ---
 
@@ -75,7 +78,7 @@ Remove any other entry, and change its mentions from `bun run <name>` to
   Tasks that map single test files, `test:<subject>`, are the exception:
   they live beside the tests, in `tests/tasks.toml` and a test
   directory's own `tasks.toml`, which the include's glob lists too, as
-  the fragmenting-tests skill sets out.
+  the mapping-tests skill sets out.
   The runtime's file is named for it, such as `bun.task.toml`, and holds
   `dev`, `start` and `build` and any task that runs one of its scripts,
   such as `eval` or `skills`. Each file opens with the house header

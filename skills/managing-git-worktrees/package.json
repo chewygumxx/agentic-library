@@ -1,0 +1,26 @@
+{
+    "name": "@chewygumxx/skill-managing-git-worktrees",
+    "version": "0.0.2",
+    "description": "Makes git worktrees that come out whole, with the dependencies, git hooks, skills and ignored files the main checkout has, then checks, repairs and removes them. Use when creating, entering, checking, repairing or removing a git worktree, or when a worktree lacks dependencies, git hooks, skills or ignored files such as .env that the main checkout has.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/managing-git-worktrees/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/managing-git-worktrees"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}

@@ -82,8 +82,14 @@ sources     = [
     ".github/workflows/*",
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
+# with-files.sh starts each path ./, which the shared configuration's
+# paths glob does not match, so its ignores for create-github-app-token's
+# client-id are repeated here. Drop both once its glob is
+# **/.github/workflows/**/*.{yml,yaml}, which matches either.
 run         = """
-scripts/with-files.sh '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml
+scripts/with-files.sh '.github/workflows/*.yaml' '.github/workflows/*.yml' -- actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml \
+    -ignore 'missing input "app-id" which is required by action "actions/create-github-app-token@' \
+    -ignore 'input "client-id" is not defined in action "actions/create-github-app-token@'
 """
 
 ["lint:biome"]
@@ -179,11 +185,21 @@ run         = [
 description = "Find unused files and dependencies with knip"
 run         = "bunx --bun --no-install knip"
 
+# publint packs each skill as npm would, so it reads the skill's files too.
 ["lint:package"]
-description = "Check package.json is sorted"
-sources     = [ "bun.lock", ".config/mise/config.toml", "package.json" ]
+description = "Check every package.json is sorted, and lint each skill's package with publint"
+sources     = [
+    "bun.lock",
+    ".config/mise/config.toml",
+    "package.json",
+    "skills/**/*",
+    "!skills/*/LICENSE",
+]
 outputs     = { auto = true }
-run         = "bunx --bun --no-install sort-package-json --check package.json"
+run         = [
+    "bunx --bun --no-install sort-package-json --check package.json skills/*/package.json",
+    'for dir in skills/*/; do bunx --bun --no-install publint --level warning "$dir" || exit 1; done',
+]
 
 ["lint:types"]
 description = "Type-check with tsc"
@@ -231,7 +247,7 @@ description = "Compose a commit with commitizen"
 run         = "bunx --bun --no-install cz"
 
 [skills]
-description = "Sync third-party skills pinned in skills-lock.json"
+description = "Sync the skills package.json declares, this repository's own included"
 run         = "bun run skills"
 
 # skill-builder calls these tools. The package has no script for its

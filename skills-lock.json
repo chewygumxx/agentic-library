@@ -9,6 +9,27 @@
       "computedHash": "e462df817817a8b222c4b60df4bcb248dbdea173dc66d13ec714e4339eff4e2b",
       "via": "."
     },
+    "compacting-context": {
+      "source": "@chewygumxx/skill-compacting-context",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.1",
+      "computedHash": "149ea857b16d1a858e30776425ec57c9df039d0af25ddfb35b11ce3b8c8868b3"
+    },
+    "configuring-mise-tasks": {
+      "source": "@chewygumxx/skill-configuring-mise-tasks",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.2",
+      "computedHash": "2a86e0f99f29265f480d5536c3fb75cc62def7d4d1981379410e6d7976644deb"
+    },
+    "coordinating-agents": {
+      "source": "@chewygumxx/skill-coordinating-agents",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.2",
+      "computedHash": "605c0913f44e7597182c1aa05f730e79e8cc76cee761b80493978b599743e056"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "ref": "77cfce8221e6e112a70152a230abc848b8b14c19",
@@ -16,6 +37,27 @@
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "913b9d37d0d54047dd65222bb8c67b2bf04e3cb87dcad1729068d7a8b2c8c396",
       "via": "."
+    },
+    "managing-dotfiles-with-chezmoi": {
+      "source": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.2",
+      "computedHash": "3e13b89da6dd3cf0fc5d11e2e61800f295bfa59a74671276610f89ea5718f292"
+    },
+    "managing-git-worktrees": {
+      "source": "@chewygumxx/skill-managing-git-worktrees",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.2",
+      "computedHash": "7a32a1ea3c7d3eaea2a7c4e3ba5b3d7af441871ce7bb54d8bcd55f6b2ad64644"
+    },
+    "mapping-tests": {
+      "source": "@chewygumxx/skill-mapping-tests",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.2",
+      "computedHash": "c81ac2417e97c29a6d173c327c35222b185704eb030c7257a33b80950c13f5e3"
     },
     "skill-builder": {
       "source": "yusufkaraaslan/Skill_Seekers",
@@ -32,6 +74,13 @@
       "skillPath": "skills/skill-creator/SKILL.md",
       "computedHash": "5ea13a6d9f0d4bb694405d79acd00cadec0d21bb138c4dd10fcf3c500cb835c2",
       "via": "."
+    },
+    "writing-usage-specs": {
+      "source": "@chewygumxx/skill-writing-usage-specs",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.2",
+      "computedHash": "6cd2287d56cc72c9b6e37100bfe0f107bc13e727251c1f13e9310d19c231b5c4"
     }
   }
 }
