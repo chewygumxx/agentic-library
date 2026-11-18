@@ -1,0 +1,40 @@
+# vim:set expandtab shiftwidth=4 filetype=toml:
+# SPDX-License-Identifier: GPL-3.0-only
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/skills/publishing-skills-to-npm/assets/tasks/skill-packages.task.toml
+#
+#
+
+#
+# Copied to an included task file, such as
+# .config/mise/skill-packages.task.toml, its own path above changed to
+# match. Replace each <script> with where skill-packages.mjs is, such as
+# node_modules/@chewygumxx/skill-publishing-skills-to-npm/scripts/skill-packages.mjs
+# with the skill's package a devDependency. Make lint depend on
+# skill-packages:check, so the pre-commit hook and CI run it.
+#
+
+["skill-packages:check"]
+description = "Check each skill's name, description and npm package against its frontmatter"
+usage       = '''
+flag "--online" help="Also ask npm whether each name is free or already this repository's"
+arg "[skill]..." help="The skills to check, by default every one"
+'''
+run         = 'eval "set -- ${usage_skill-}"; exec node <script> check ${usage_online:+--online} "$@"'
+
+["skill-packages:write"]
+description = "Write each skill's npm package and release entries from its frontmatter"
+usage       = '''
+flag "--scope <scope>" help="The npm scope, such as @name: needed until a skill package names one"
+arg "[skill]..." help="The skills to write, by default every one"
+'''
+run         = 'eval "set -- ${usage_skill-}"; exec node <script> write ${usage_scope:+--scope "$usage_scope"} "$@"'
+
+["skill-packages:next"]
+description = "Print the commands for a skill package's next step, the registry's state included"
+usage       = 'arg "<skill>" help="The skill"'
+run         = 'exec node <script> next "$usage_skill"'
