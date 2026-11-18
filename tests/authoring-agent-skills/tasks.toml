@@ -1,0 +1,35 @@
+# vim:set expandtab shiftwidth=4 filetype=toml:
+# SPDX-License-Identifier: GPL-3.0-only
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/tests/authoring-agent-skills/tasks.toml
+#
+#
+
+#
+# The map of the authoring-agent-skills tests: see tests/AGENTS.md.
+#
+
+["test:authoring-agent-skills"]
+description = "Test the authoring-agent-skills skill's scripts"
+depends     = [ "test:authoring-agent-skills:*" ]
+
+["test:authoring-agent-skills:check-skill"]
+description = "Test check-skill.mjs: each finding, what it leaves alone, exit codes, and this repository's skills"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/check-skill.mjs",
+    "covers:skills",
+]
+run         = "bun test ./tests/authoring-agent-skills/check-skill.test.mts"
+
+["test:authoring-agent-skills:extract-user-turns"]
+description = "Test extract-user-turns.mjs over made-up Claude Code and Codex transcripts"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/extract-user-turns.mjs",
+]
+run         = "bun test ./tests/authoring-agent-skills/extract-user-turns.test.mts"
