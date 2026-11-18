@@ -21,9 +21,12 @@ const emdash = "\u2014";
 let repo: string;
 
 // Without git's own variables, which a hook running these tests inherits
-// and which would point git at the real repository.
+// and which would point git at the real repository, nor a mise task's
+// $usage_staged, which the script reads.
 const env = Object.fromEntries(
-    Object.entries(process.env).filter(([name]) => !name.startsWith("GIT_")),
+    Object.entries(process.env).filter(
+        ([name]) => !name.startsWith("GIT_") && name !== "usage_staged",
+    ),
 );
 
 const git = (...args: string[]) => {
@@ -31,8 +34,11 @@ const git = (...args: string[]) => {
     if (run.exitCode !== 0) throw new Error(run.stderr.toString());
 };
 
-const lint = (...args: string[]) =>
-    Bun.spawnSync(["sh", script, ...args], { cwd: repo, env }).exitCode;
+const lint = (...args: string[]) => lintIn(env, ...args);
+
+const lintIn = (environment: typeof env, ...args: string[]) =>
+    Bun.spawnSync(["sh", script, ...args], { cwd: repo, env: environment })
+        .exitCode;
 
 beforeEach(async () => {
     repo = await mkdtemp(join(tmpdir(), "lint-emdash-"));
@@ -68,5 +74,11 @@ describe("lint-emdash.sh", () => {
     it("with --staged, passes an em dash only in an unstaged change", async () => {
         await writeFile(join(repo, "a.md"), `plain ${emdash} text\n`);
         expect(lint("--staged")).toBe(0);
+    });
+
+    it("under a mise task's --staged, as $usage_staged, checks staged lines only", async () => {
+        await writeFile(join(repo, "a.md"), `plain ${emdash} text\n`);
+        expect(lintIn({ ...env, usage_staged: "true" })).toBe(0);
+        expect(lintIn({ ...env, usage_staged: "false" })).toBe(1);
     });
 });

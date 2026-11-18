@@ -12,14 +12,15 @@
 # Usage: lint-emdash.sh [--staged]
 #
 # Fails on an em dash (U+2014) in any tracked or untracked file, or with
-# --staged, on any line the staged changes add.
+# --staged, on any line the staged changes add. A mise task's --staged
+# flag, exported as $usage_staged=true, does the same.
 
 set -eu
 
 # U+2014 as UTF-8 bytes, so this file does not trip its own check.
 emdash=$(printf '\342\200\224')
 
-if [ "${1-}" = --staged ]; then
+if [ "${1-}" = --staged ] || [ "${usage_staged-}" = true ]; then
     if git diff --cached -U0 | grep '^+' | grep -q "$emdash"; then
         echo "Em dash (U+2014) in staged changes; em dashes are prohibited." >&2
         exit 1
