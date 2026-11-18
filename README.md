@@ -30,6 +30,7 @@ harnesses.
 | `compact-summary`        | Writing and rating a compaction's instructions       |
 | `configuring-mise-tasks` | Writing and naming a repository's mise tasks alike   |
 | `fragmenting-tests`      | Splitting long tests, mapped by mise tasks           |
+| `usage-spec`             | Writing CLI specs in KDL and generating from them    |
 | `worktrees`              | Making git worktrees that come out whole             |
 
 Install all of them, or one, into a project, or with `--global` for every
