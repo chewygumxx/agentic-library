@@ -10,6 +10,15 @@
 Nodes that say something about several declarations at once, or about
 what a command prints.
 
+## Contents
+
+- [Include](#include)
+- [Shared flags](#flagset-and-use)
+- [Groups](#group)
+- [Sigil arguments](#sigil-arguments)
+- [Clauses](#clause)
+- [Outputs and exit codes](#output-select-and-exit_code)
+
 ## `include`
 
 ```kdl
@@ -17,8 +26,11 @@ include file="./settings.usage.kdl"
 ```
 
 Merges another file, resolved from the including file, where the
-`include` stands: of two declarations of one value, the later wins. An
-included file that declares a command's flags replaces that command's
+`include` stands: of two declarations of one value, the later wins.
+Pass the spec by file path to resolve relative includes. A spec from
+stdin or `--spec` has no source directory.
+
+An included file that declares a command's flags replaces that command's
 `use` and `group` nodes with them. It does not survive a
 round trip: re-emitted specs hold the merged result.
 
