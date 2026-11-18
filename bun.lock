@@ -69,7 +69,7 @@
     },
     "skills/publishing-skills-to-npm": {
       "name": "@chewygumxx/skill-publishing-skills-to-npm",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/writing-usage-specs": {
       "name": "@chewygumxx/skill-writing-usage-specs",
