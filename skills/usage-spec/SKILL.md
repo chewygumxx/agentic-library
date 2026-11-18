@@ -138,7 +138,10 @@ argument name, lower-cased with dashes turned to underscores.
   where a value has spaces: `eval "set -- $usage_files"` or
   `eval "files=($usage_files)"` recovers the list.
 - `usage_cmd` holds the chosen subcommand path, `db migrate`, by its
-  canonical name even when an alias was typed; unset at the root.
+  canonical name even when an alias was typed; unset at the root, and in
+  a usage script that another one runs. A flag or argument named `cmd`
+  takes the variable for its own value, given or not, and the path is
+  then never exported: name it otherwise in a script that dispatches.
 - `usage` exits `1` when the command line breaks the spec and `181` when
   the spec or a `mount` cannot be read; otherwise it exits with the
   script's own code.
