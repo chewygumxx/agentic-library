@@ -1,0 +1,9 @@
+{
+    "mcpServers": {
+        "skill-seekers": {
+            "type": "stdio",
+            "command": "mise",
+            "args": ["run", "mcp:skill-seekers"]
+        }
+    }
+}
