@@ -1,6 +1,6 @@
 {
     "name": "@chewygumxx/skill-writing-usage-specs",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "description": "Writes and checks usage specs, the KDL describing a CLI's commands, arguments and flags, and generates completions, docs and clients from them. Use when writing, reviewing or debugging a usage spec, whether a .usage.kdl file, the #USAGE comments of a script run by a usage shebang, or a mise task's usage field; or when generating shell completions, Markdown, man pages, SDKs or a breaking-change check from one with the usage CLI.",
     "keywords": [
         "agent-skills"
