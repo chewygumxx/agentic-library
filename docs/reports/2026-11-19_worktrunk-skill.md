@@ -91,4 +91,55 @@ verified that the npm package includes the bundled references. The
 package kept the upstream tool's name, `worktrunk`, as its skill
 identifier. The package check reports the non-gerund name as advisory.
 
+## Authoring review
+
+The entry point was already below Claude's 500-line guidance and
+linked directly to every local reference. The revision shortened it
+from 66 to 54 lines, moved headless instructions to the worktree guide,
+gave error recovery its own route, and added a table of contents to the
+worktree reference, which exceeds 100 lines. The description keeps
+Worktrunk-specific triggers and describes the skill in third person.
+The identifier `worktrunk` matches its directory and satisfies the
+format requirements. A gerund such as `using-worktrunk` would better
+match the collection's style and distinguish it from the upstream
+skill. This revision retains the existing skill and npm identifiers.
+[Claude authoring guide](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#naming-conventions)
+[Agent Skills specification](https://agentskills.io/specification)
+
+The troubleshooting guide now connects symptoms to native commands
+for inspecting the actual checkout, config, approvals, and hook logs.
+It distinguishes a branch or directory collision, an inactive shell
+wrapper, failed setup that leaves a worktree behind, and a merge that
+has already integrated before cleanup fails. The automation guide
+corrects the dev-server URL to `url` under `[list]`. The worktree guide
+documents the default list JSON envelope and the inline override for
+configurations that still select the legacy array.
+
+The optional Python helper delegates switching and hooks to Worktrunk.
+It captures native JSON, emits a usable path on success, and surfaces
+the surviving checkout on stderr if setup failed. This replaces the
+repeated shell parsing from the earlier headless answer. Other tasks
+use native preview and inspection commands, including `wt config
+show`, `wt config approvals list`, and `wt hook <type> --dry-run`.
+
+Both `/spec/` and `/spec.md` returned HTTP 404. The live sitemap and
+the upstream GitHub documentation tree have no `spec` page. When the
+Skill Seekers GitHub scrape timed out, the review used a direct clone
+to inspect the documentation tree. It verified that the skill links
+to all 16 tagged upstream references and the list JSON schema. It
+checked behavior against the tagged Markdown, integration tests, and
+released CLI. The package delivers workflow guides and links to the
+full upstream material.
+[Live sitemap](https://worktrunk.dev/sitemap.xml)
+[Upstream documentation tree](https://github.com/max-sixty/worktrunk/tree/af88969/docs/src/content/docs)
+
+The four original CLI probes still passed. Five additional checks
+exercised the helper with a checkout path containing spaces, an early
+failure without a path, and a post-creation failure that retains the
+path and exit status. The other checks verified selecting schema 2
+over a legacy configuration and matching the rendered dev-server
+port against the URL in `wt list` output. The prompt evaluation above
+used guided skill access in Codex. This review measured CLI behavior
+and checked the package structure against the Claude authoring guide.
+
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
