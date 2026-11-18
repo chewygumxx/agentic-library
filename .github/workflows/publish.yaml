@@ -14,7 +14,8 @@
 # publishes those releases; a bare tag stages nothing, so every version on
 # npm has an immutable release. A staged version is not installable until
 # it is approved on npmjs.com with the maintainer's 2FA, so this workflow
-# alone can never release a package. A private package is refused.
+# alone can never release a package. A private package is refused, and a
+# release whose tag does not start skill- is skipped.
 #
 # Authentication is npm trusted publishing: npm exchanges this job's OIDC
 # token for a short-lived credential, so no NPM_TOKEN secret exists. Each
@@ -36,8 +37,10 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: false
 
+# Releases of anything but a skill are not this workflow's.
 jobs:
     check:
+        if: startsWith(github.event.release.tag_name, 'skill-')
         uses: chewygumxx/.github/.github/workflows/lint.yaml@v1
 
     publish:
