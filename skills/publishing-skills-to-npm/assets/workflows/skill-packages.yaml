@@ -1,0 +1,51 @@
+# vim:set expandtab shiftwidth=4 filetype=yaml foldlevel=3:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/skills/publishing-skills-to-npm/assets/workflows/skill-packages.yaml
+#
+#
+
+#
+# Copied to .github/workflows/skill-packages.yaml, its own path above
+# changed to match, or its steps into the repository's CI. Replace each
+# <...>. A CI already running a check task that depends on
+# skill-packages:check needs only the --online run below.
+#
+# Online, the check also asks npm whether each public name is free or
+# already this repository's, so a name another repository holds fails
+# the pull request, before anyone tries to publish it; --pack compares
+# what npm would ship with what git tracks.
+#
+
+name: Skill Packages
+
+on:
+    pull_request:
+    push:
+        branches:
+            - main
+
+permissions:
+    contents: read
+
+jobs:
+    check:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Setup Toolchain
+              uses: <setup action, such as actions/setup-node@v7 or jdx/mise-action@v4>
+
+            - name: Install
+              run: <locked install, such as bun install --frozen-lockfile or npm ci>
+
+            - name: Check Skill Packages
+              run: node <script> check --online --pack

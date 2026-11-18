@@ -1,0 +1,107 @@
+# vim:set expandtab shiftwidth=4 filetype=yaml foldlevel=3:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/skills/publishing-skills-to-npm/assets/workflows/publish.yaml
+#
+#
+
+#
+# Copied to .github/workflows/publish.yaml, its own path above changed to
+# match. Replace each <...>. Its file name is the one each package's
+# trusted publisher names, so keep it.
+#
+# Publishes one skill's package per published GitHub release tagged
+# skill-<skill>@<version>, if that is its manifest's name and version. A
+# bare tag publishes nothing, so every version on npm has a release.
+#
+# Two jobs, so the one holding the OIDC token runs as little as it can:
+# resolve installs, checks the package with skill-packages.mjs and reads
+# the tag back, with no write permission at all; publish checks out the
+# same commit, installs nothing, as npm publish needs no node_modules, and
+# publishes. Its command must be one the trusted publisher allows: npm
+# stage publish always is; npm publish, if the publisher allows it.
+#
+
+name: Publish
+
+on:
+    release:
+        types:
+            - published
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    resolve:
+        if: startsWith(github.event.release.tag_name, 'skill-')
+        runs-on: ubuntu-latest
+
+        outputs:
+            dir: ${{ steps.package.outputs.dir }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Setup Toolchain
+              uses: <setup action, such as actions/setup-node@v7 or jdx/mise-action@v4>
+
+            - name: Install
+              run: <locked install, such as bun install --frozen-lockfile or npm ci>
+
+            - name: Resolve Package
+              id: package
+              env:
+                  TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  name="${TAG%@*}"
+                  version="${TAG##*@}"
+                  skill="${name#skill-}"
+                  dir="skills/$skill"
+                  node <script> check --pack "$skill"
+                  read -r actual_name actual_version private < <(jq -r '[.name, .version, (.private // false)] | @tsv' "$dir/package.json")
+                  test "$actual_name" = "@<scope>/$name" || { echo "::error::$dir is $actual_name, tag says @<scope>/$name"; exit 1; }
+                  test "$actual_version" = "$version" || { echo "::error::$dir is $actual_version, tag says $version"; exit 1; }
+                  test "$private" = false || { echo "::error::$dir is private"; exit 1; }
+                  echo "dir=$dir" >> "$GITHUB_OUTPUT"
+
+    publish:
+        needs: resolve
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            id-token: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            # Node 22.14 or later with npm 11.5.1 or later, which do the
+            # OIDC exchange and sign the provenance.
+            # No cache: nothing restored from another run reaches this job.
+            - name: Setup Node
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+                  package-manager-cache: false
+
+            # The package's prepack copies in the licence, if it shares the
+            # repository's.
+            - name: Publish
+              env:
+                  DIR: ${{ needs.resolve.outputs.dir }}
+              # The registry named, so no .npmrc in the checkout redirects it.
+              run: npm publish --workspace "$DIR" --registry https://registry.npmjs.org/

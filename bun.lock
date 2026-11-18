@@ -23,6 +23,7 @@
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
         "@chewygumxx/skill-managing-git-worktrees": "workspace:*",
         "@chewygumxx/skill-mapping-tests": "workspace:*",
+        "@chewygumxx/skill-publishing-skills-to-npm": "workspace:*",
         "@chewygumxx/skill-writing-usage-specs": "workspace:*",
         "@chewygumxx/tsconfig": "^1.0.1",
         "@chewygumxx/yamllint-config": "^1.0.0",
@@ -65,6 +66,10 @@
     "skills/mapping-tests": {
       "name": "@chewygumxx/skill-mapping-tests",
       "version": "0.0.2",
+    },
+    "skills/publishing-skills-to-npm": {
+      "name": "@chewygumxx/skill-publishing-skills-to-npm",
+      "version": "0.0.1",
     },
     "skills/writing-usage-specs": {
       "name": "@chewygumxx/skill-writing-usage-specs",
@@ -131,6 +136,8 @@
     "@chewygumxx/skill-managing-git-worktrees": ["@chewygumxx/skill-managing-git-worktrees@workspace:skills/managing-git-worktrees"],
 
     "@chewygumxx/skill-mapping-tests": ["@chewygumxx/skill-mapping-tests@workspace:skills/mapping-tests"],
+
+    "@chewygumxx/skill-publishing-skills-to-npm": ["@chewygumxx/skill-publishing-skills-to-npm@workspace:skills/publishing-skills-to-npm"],
 
     "@chewygumxx/skill-writing-usage-specs": ["@chewygumxx/skill-writing-usage-specs@workspace:skills/writing-usage-specs"],
 

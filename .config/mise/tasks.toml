@@ -44,6 +44,7 @@ depends     = [
     "lint:yaml         {% if not usage.staged %}--all{% endif %}",
     "lint:deps",
     "lint:package",
+    "lint:skills",
     "lint:types",
 ]
 
@@ -194,6 +195,23 @@ run         = [
     "bunx --bun --no-install sort-package-json --check package.json skills/*/package.json",
     'for dir in skills/*/; do bunx --bun --no-install publint --level warning "$dir" || exit 1; done',
 ]
+
+# The skill's own script, as any repository publishing skills would run
+# it: each package, release-please entry and root devDependency must be
+# what the skill's frontmatter implies.
+["lint:skills"]
+description = "Check each skill's name, description and npm package against its frontmatter"
+sources     = [
+    "bun.lock",
+    ".config/mise/config.toml",
+    ".config/release-please.json",
+    ".config/release-please-manifest.json",
+    "package.json",
+    "skills/**/*",
+    "!skills/*/LICENSE",
+]
+outputs     = { auto = true }
+run         = "node skills/publishing-skills-to-npm/scripts/skill-packages.mjs check"
 
 ["lint:types"]
 description = "Type-check with tsc"

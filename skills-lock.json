@@ -59,6 +59,13 @@
       "version": "0.0.2",
       "computedHash": "c81ac2417e97c29a6d173c327c35222b185704eb030c7257a33b80950c13f5e3"
     },
+    "publishing-skills-to-npm": {
+      "source": "@chewygumxx/skill-publishing-skills-to-npm",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.1",
+      "computedHash": "1012b7f4145c78e960333cac72e66cd92e81b0422b86c86df54bc9cf0efcc048"
+    },
     "skill-builder": {
       "source": "yusufkaraaslan/Skill_Seekers",
       "ref": "d26c2e3e0384c664a6fcc71ca10ddcd26026ac0b",

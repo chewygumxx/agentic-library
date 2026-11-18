@@ -1,0 +1,29 @@
+// vim:set expandtab shiftwidth=4 filetype=pkl:
+// SPDX-License-Identifier: GPL-3.0-only
+
+//
+//
+// ~chewygumxx/agentic-library.git
+// ::: :/skills/publishing-skills-to-npm/assets/hk.pkl
+//
+//
+
+//
+// Merged into the repository's hk.pkl, its <hk version> its own. A
+// pre-commit that already runs a check task depending on
+// skill-packages:check needs nothing here. The check runs offline, so a
+// commit never waits on npm; CI asks the registry.
+//
+
+amends "package://github.com/jdx/hk/releases/download/v<hk version>/hk@<hk version>#/Config.pkl"
+
+hooks {
+    ["pre-commit"] {
+        steps {
+            ["skill-packages"] {
+                glob = List("skills/**", "package.json", ".config/release-please*.json")
+                check = "mise run skill-packages:check"
+            }
+        }
+    }
+}

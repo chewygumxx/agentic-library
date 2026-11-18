@@ -1,0 +1,140 @@
+# vim:set expandtab shiftwidth=4 filetype=yaml foldlevel=3:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/skills/publishing-skills-to-npm/assets/workflows/release-please.yaml
+#
+#
+
+#
+# Copied to .github/workflows/release-please.yaml, its own path above
+# changed to match. Replace each <...>.
+#
+# On every push to main, release-please keeps one pull request open that
+# bumps each skill with a feat or fix since its last release. Once it
+# merges, the next run publishes a GitHub release per bumped skill, tagged
+# skill-<skill>@<version>, which starts publish.yaml.
+#
+# Both jobs act as a GitHub App: what GITHUB_TOKEN creates starts no other
+# workflow, so neither publish.yaml nor CI on the release pull request
+# would run. The lockfiles job resyncs what records the versions, as
+# release-please bumps package.json alone.
+#
+# One release pull request for every skill, release-please's default, on
+# the branch release-please--branches--main. A dispatch re-runs the
+# lockfiles job against it, as when a refresh failed and release-please
+# has nothing new to change. With separate-pull-requests, refresh each of
+# the action's prs output instead.
+#
+# actionlint, to 1.7.12 at least, predates create-github-app-token's
+# client-id, and reports it unknown and app-id missing: ignore those two
+# messages for that action.
+#
+
+name: Release Please
+
+on:
+    push:
+        branches:
+            - main
+    workflow_dispatch: {}
+
+permissions:
+    contents: read
+
+# One run at a time, so two never rewrite the release branch at once.
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: false
+
+jobs:
+    release-please:
+        runs-on: ubuntu-latest
+
+        outputs:
+            prs_created: ${{ steps.release.outputs.prs_created }}
+
+        steps:
+            - name: Mint App Token
+              id: app
+              uses: actions/create-github-app-token@v3
+              with:
+                  client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+            - name: Release Please
+              id: release
+              uses: googleapis/release-please-action@v5
+              with:
+                  token: ${{ steps.app.outputs.token }}
+                  config-file: .config/release-please.json
+                  manifest-file: .config/release-please-manifest.json
+
+    lockfiles:
+        needs: release-please
+        if: needs.release-please.outputs.prs_created == 'true' || github.event_name == 'workflow_dispatch'
+        runs-on: ubuntu-latest
+
+        env:
+            BRANCH: release-please--branches--main
+
+        steps:
+            - name: Mint App Token
+              id: app
+              uses: actions/create-github-app-token@v3
+              with:
+                  client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+                  private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+
+            - name: Find Release Branch
+              id: branch
+              env:
+                  GH_TOKEN: ${{ steps.app.outputs.token }}
+              run: |
+                  if gh api "repos/${GITHUB_REPOSITORY}/branches/${BRANCH}" --silent 2>/dev/null; then
+                      echo "exists=true" >> "$GITHUB_OUTPUT"
+                  else
+                      echo "No ${BRANCH}: no release pull request to refresh"
+                  fi
+
+            # Kept credentials push the commit below as the App.
+            - name: Checkout Release Branch
+              if: steps.branch.outputs.exists == 'true'
+              uses: actions/checkout@v7
+              with:
+                  ref: ${{ env.BRANCH }}
+                  token: ${{ steps.app.outputs.token }}
+
+            - name: Setup Toolchain
+              if: steps.branch.outputs.exists == 'true'
+              uses: <setup action, such as actions/setup-node@v7 or jdx/mise-action@v4>
+
+            # An install that may rewrite the lockfile, scripts off: a
+            # prepare running skills experimental_sync is frozen in CI, and
+            # would refuse the very versions this job records.
+            - name: Install
+              if: steps.branch.outputs.exists == 'true'
+              run: <install with scripts off, such as bun install --ignore-scripts>
+
+            - name: Resync Skills Lock
+              if: steps.branch.outputs.exists == 'true'
+              run: <the sync, unfrozen, such as npx skills experimental_sync --yes --no-frozen-lockfile>
+
+            - name: Commit Lockfiles
+              if: steps.branch.outputs.exists == 'true'
+              env:
+                  GH_TOKEN: ${{ steps.app.outputs.token }}
+                  SLUG: ${{ steps.app.outputs.app-slug }}
+              run: |
+                  git add <lockfiles, such as bun.lock skills-lock.json>
+                  if git diff --cached --quiet; then
+                      echo "Lockfiles already match the release"
+                      exit 0
+                  fi
+                  id=$(gh api "/users/${SLUG}[bot]" --jq .id)
+                  git config user.name "${SLUG}[bot]"
+                  git config user.email "${id}+${SLUG}[bot]@users.noreply.github.com"
+                  git commit -m "build: Resync lockfiles to the release"
+                  git push origin "HEAD:${BRANCH}"

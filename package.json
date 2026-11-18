@@ -43,6 +43,7 @@
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
         "@chewygumxx/skill-managing-git-worktrees": "workspace:*",
         "@chewygumxx/skill-mapping-tests": "workspace:*",
+        "@chewygumxx/skill-publishing-skills-to-npm": "workspace:*",
         "@chewygumxx/skill-writing-usage-specs": "workspace:*",
         "@chewygumxx/tsconfig": "^1.0.1",
         "@chewygumxx/yamllint-config": "^1.0.0",

@@ -32,6 +32,7 @@ harnesses.
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
 | `managing-git-worktrees`         | Making git worktrees that come out whole             |
 | `mapping-tests`                  | Mapping each test file to a mise task                |
+| `publishing-skills-to-npm`       | Publishing skills to npm with trusted publishing     |
 | `writing-usage-specs`            | Writing CLI specs in KDL and generating from them    |
 
 Install all of them, or one, into a project, or with `--global` for every

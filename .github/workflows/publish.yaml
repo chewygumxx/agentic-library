@@ -60,9 +60,6 @@ jobs:
             - name: Setup Bun and Node
               uses: jdx/mise-action@v4
 
-            - name: Bun Install
-              run: bun install --frozen-lockfile
-
             - name: Resolve Package
               id: package
               env:
@@ -79,7 +76,9 @@ jobs:
                   echo "dir=$dir" >> "$GITHUB_OUTPUT"
 
             # npm, from mise's Node: Bun cannot publish by trusted
-            # publishing. The package's prepack copies in the licence.
+            # publishing. The package's prepack copies in the licence; the
+            # check job installed and linted, so this job, holding the OIDC
+            # token, runs no dependency's code.
             - name: Publish
               env:
                   DIR: ${{ steps.package.outputs.dir }}

@@ -1,0 +1,13 @@
+{
+    "$schema": "https://raw.githubusercontent.com/googleapis/release-please/<version the action runs, such as v17.6.0>/schemas/config.json",
+    "release-type": "node",
+    "bootstrap-sha": "<main's tip before release-please is added>",
+    "include-component-in-tag": true,
+    "include-v-in-tag": false,
+    "include-v-in-release-name": false,
+    "tag-separator": "@",
+    "bump-minor-pre-major": true,
+    "bump-patch-for-minor-pre-major": true,
+    "skip-changelog": true,
+    "packages": {}
+}

@@ -57,8 +57,10 @@ a `SKILL.md` is the skill's code, not its documentation.
 
 A commit touching several skills releases each. Keep one skill's change
 to one commit where you can: its message becomes that skill's release
-notes. A `Release-As: <version>` footer forces a version, as for the
-first `0.1.0`.
+notes. A `Release-As: <version>` footer releases a skill at that
+version, even in a `chore`, as for a first `0.1.0`; release-please maps
+commits to skills by the paths they touch, so the commit must touch the
+skill's directory.
 
 ### Releasing
 
