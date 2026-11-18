@@ -53,9 +53,32 @@ matters, as these move.
 Uploads accept only `name`, `description`, `license`, `compatibility`,
 `metadata` and `allowed-tools`: any other key is an error, so a skill
 for these cannot carry Claude Code's fields. Names cannot hold
-`anthropic` or `claude`, and neither field may hold an XML tag. The
-Claude API runs skills without network access or package installs, so a
+`anthropic` or `claude`, and neither field may hold an XML tag;
+`check-skill.mjs --target portable` refuses all of these. The Claude
+API runs skills without network access or package installs, so a
 script there may use only what the execution environment provides.
+
+An upload fails on its packaging as often as on its frontmatter:
+
+- **claude.ai** takes a ZIP whose root is the skill's folder, named as
+  the skill is, not the files loose at the root. Code execution must be
+  on; the skill is then enabled under Customize > Skills, or provisioned
+  for a Team or Enterprise organisation. Its help on custom skills gives
+  200 characters as the description's limit, against the 1,024 the
+  specification and the API give: if an upload refuses a longer one,
+  shorten it.
+- **The Claude API** takes a ZIP or the files themselves, `SKILL.md` at
+  the upload's root or in one enclosing folder, under 30 MB
+  uncompressed. `POST /v1/skills` creates a skill; a new version, by
+  `POST /v1/skills/<id>/versions`, is a whole snapshot with the same
+  `name`, and files left out are gone. A request pins a version or asks
+  for `latest`, and takes at most 20 skills. A skill is visible to every
+  key in its workspace.
+
+```sh
+zip -r <name>.zip <name>/   # from the skill's parent directory
+unzip -l <name>.zip         # every path should start <name>/
+```
 
 ## Codex
 
@@ -70,6 +93,8 @@ script there may use only what the execution environment provides.
   the file.
 - **Invocation:** `$name` or `/skills` explicitly; implicitly when a task
   matches the description.
+- **Distribution:** a plugin bundles skills for others to install,
+  beside a repository's `.agents/skills/`.
 - **Limits:** the initial listing takes at most 2% of the context window,
   or 8,000 characters when the window is unknown; descriptions shorten
   first, then skills drop, with a warning.

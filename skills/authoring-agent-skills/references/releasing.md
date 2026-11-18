@@ -8,7 +8,21 @@
 # Releasing a skill
 
 A released skill is a dependency: projects install it, pin it, and take
-its updates without reading them. Release it as code.
+its updates without reading them. Release it as code, through the
+channel its users install from.
+
+## Channels
+
+| Users install it from | A release is | Read |
+| --- | --- | --- |
+| A git repository, by the `skills` CLI | A commit or tag on its default branch; consumers pin a ref | This page |
+| npm, one package per skill | A published version | This page, then `publishing-skills-to-npm` if installed |
+| claude.ai | An uploaded ZIP, enabled per person or provisioned for an organisation | [Clients](clients.md) |
+| The Claude API | A new version of the skill, uploaded whole | [Clients](clients.md) |
+| A Claude Code or Codex plugin | A plugin version in its marketplace | Each client's plugin documentation |
+
+A skill may go out through several; each has its own way to break, so
+release and check each one.
 
 ## Before the first release
 
@@ -39,8 +53,9 @@ Release tools differ below `1.0.0`; release-please's
 `bump-minor-pre-major` and `bump-patch-for-minor-pre-major` give the
 last column's patch and minor.
 
-A release tool reading these commits (release-please, semantic-release,
-changesets) writes the release notes from them, so:
+Find the repository's release mechanism, and give it the input it
+reads. Commit-driven tools, such as release-please and semantic-release,
+take the version and the release notes from these commits, so:
 
 - **Keep one skill's change to one commit,** its message written for
   that skill's users.
@@ -49,6 +64,10 @@ changesets) writes the release notes from them, so:
 - **Resync lockfiles in the same commit** as the change that alters a
   skill's content, as a frozen install in CI rejects a stale hash: the
   `skills` CLI's `skills-lock.json`, for one.
+
+Changesets reads none of this: a contributor declares each release in a
+file under `.changeset/`, its bump and its note, and commit types do
+nothing. In such a repository, add the changeset with the change.
 
 ## Publishing
 
@@ -63,8 +82,8 @@ changesets) writes the release notes from them, so:
 - **Correct, never remove:** deprecate a broken version and release a
   fix, as consumers may already pin it.
 
-A repository releasing skills to npm with release-please can follow the
-`publishing-skills-to-npm` skill, which derives each package from its
-frontmatter and prints each release's next commands.
+For skills released to npm with release-please, the
+`publishing-skills-to-npm` skill, where installed, derives each package
+from its frontmatter and prints each release's next commands.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

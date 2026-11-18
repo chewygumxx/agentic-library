@@ -1,7 +1,7 @@
 {
     "name": "@chewygumxx/skill-authoring-agent-skills",
     "version": "0.0.1",
-    "description": "Writes, checks, evaluates, reviews and releases agent skills, the SKILL.md directories that Claude Code, Codex and other clients load, against the Agent Skills specification and the authoring practices of Anthropic and agentskills.io, with a checker script and a miner for past sessions' corrections. Use when creating or editing a skill, wording its name, description or frontmatter, deciding what belongs in SKILL.md, references or scripts, testing whether it triggers or helps, reviewing one, drawing one from past sessions, or preparing a skill's release.",
+    "description": "Writes, checks, evaluates, reviews and releases agent skills, the SKILL.md directories that Claude Code, Codex, claude.ai and other clients load, against the Agent Skills specification and the authoring practices of Anthropic and agentskills.io, with a checker script and a miner for past sessions' corrections. Use when creating or editing a skill, wording its name, description or frontmatter, deciding what belongs in SKILL.md, references or scripts, testing whether it triggers or helps, reviewing one, drawing one from past sessions, packaging or uploading one, finding why a client refuses or ignores one, or preparing a skill's release.",
     "keywords": [
         "agent-skills"
     ],
