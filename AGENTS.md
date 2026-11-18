@@ -25,8 +25,10 @@ context, include such within the commit message body.
   what it covers. Read [`tests/AGENTS.md`](tests/AGENTS.md) before adding
   or changing one.
 - `.agents/skills/` and `.claude/skills/*` contain the skills this repository
-  sources by symlink. Synced by [`skills`](https://github.com/vercel-labs/skills),
-  as specified by `skills-lock.json`.
+  sources by symlink. Synced by [`skills`](https://github.com/vercel-labs/skills)
+  on `bun install`, as declared by the `skills` field of `package.json` and
+  pinned by `skills-lock.json`. Declare a skill there, then `bun run skills`;
+  never `skills add`, which sync skips.
 
 ## Repository Metadata
 

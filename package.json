@@ -13,7 +13,7 @@
     "license": "GPL-3.0-only",
     "scripts": {
         "check": "mise run check",
-        "prepare": "test ! -d node_modules/husky || { husky && bun run skills --no-remote; }",
+        "prepare": "test ! -d node_modules/husky || { husky && bun run skills; }",
         "skills": "DO_NOT_TRACK=1 skills experimental_sync --yes --agent claude-code codex"
     },
     "config": {
