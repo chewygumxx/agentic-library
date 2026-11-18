@@ -31,6 +31,9 @@ bun = "1.4"
 # Publication to NPM Registry.
 node = "24"
 
+# Git Hooks
+"aqua:jdx/hk" = "2.13.0"
+
 # -----------------------
 # Tools: Lint and Format
 # -----------------------
@@ -51,6 +54,15 @@ node = "24"
 
 # GitHub Actions
 "aqua:rhysd/actionlint" = "1.7.12"
+
+# ------
+# Hooks
+# ------
+
+# Installs hk's git hooks, from .config/hk.pkl, on every `mise install`. They
+# live in the repository's shared git config, so every worktree has them.
+[hooks]
+postinstall = "hk install --mise"
 
 # ------
 # Tasks
