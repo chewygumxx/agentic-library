@@ -1,0 +1,28 @@
+{
+    "name": "@chewygumxx/skill-publishing-skills-to-npm",
+    "version": "0.0.1",
+    "description": "Publishes a repository's agent skills to an npm scope, one package per skill, released by release-please and published from CI by npm trusted publishing with provenance, and lists the mistakes that cost a failed run on the way. Use when packaging skills for npm or for `skills experimental_sync`, setting up, validating or debugging an npm trusted publisher or provenance, configuring release-please or its GitHub App for per-skill releases, or cutting, bootstrapping or verifying a skill's release.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/publishing-skills-to-npm/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/publishing-skills-to-npm"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md",
+        "assets",
+        "references"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}
