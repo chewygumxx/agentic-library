@@ -2,7 +2,8 @@
     "import": ["@chewygumxx/cspell-config"],
     "ignorePaths": [
         "skills/*/assets/sample-*.jsonl",
-        "skills/*/scripts/vendor/**"
+        "skills/*/scripts/vendor/**",
+        "docs/reports/*/*.json"
     ],
     "words": [
         "agentskills",
@@ -64,6 +65,7 @@
         "onepassword",
         "osid",
         "osrelease",
+        "overcorrected",
         "overfits",
         "parameterise",
         "parameterises",
@@ -74,6 +76,7 @@
         "postpublish",
         "powerlevel",
         "prepublish",
+        "pypdf",
         "realpath",
         "remarkrc",
         "reqs",

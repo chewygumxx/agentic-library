@@ -1,0 +1,484 @@
+{
+    "stage": "stage-1",
+    "runs": 24,
+    "by_arm": {
+        "with": {
+            "passed": 141,
+            "total": 144,
+            "runs": 12,
+            "rate": 0.979,
+            "mean_tokens": 300340,
+            "mean_seconds": 61
+        },
+        "without": {
+            "passed": 130,
+            "total": 144,
+            "runs": 12,
+            "rate": 0.903,
+            "mean_tokens": 193070,
+            "mean_seconds": 51
+        }
+    },
+    "by_model_and_arm": {
+        "claude-haiku-5-5 with": {
+            "passed": 35,
+            "total": 36,
+            "runs": 3,
+            "rate": 0.972,
+            "mean_tokens": 529561,
+            "mean_seconds": 81
+        },
+        "claude-haiku-5-5 without": {
+            "passed": 32,
+            "total": 36,
+            "runs": 3,
+            "rate": 0.889,
+            "mean_tokens": 268641,
+            "mean_seconds": 57
+        },
+        "claude-sonnet-5-5 with": {
+            "passed": 34,
+            "total": 36,
+            "runs": 3,
+            "rate": 0.944,
+            "mean_tokens": 144039,
+            "mean_seconds": 23
+        },
+        "claude-sonnet-5-5 without": {
+            "passed": 33,
+            "total": 36,
+            "runs": 3,
+            "rate": 0.917,
+            "mean_tokens": 83270,
+            "mean_seconds": 18
+        },
+        "gpt-6.1-terra with": {
+            "passed": 36,
+            "total": 36,
+            "runs": 3,
+            "rate": 1,
+            "mean_tokens": 180088,
+            "mean_seconds": 50
+        },
+        "gpt-6.1-terra without": {
+            "passed": 32,
+            "total": 36,
+            "runs": 3,
+            "rate": 0.889,
+            "mean_tokens": 142768,
+            "mean_seconds": 43
+        },
+        "gpt-6.2-astra with": {
+            "passed": 36,
+            "total": 36,
+            "runs": 3,
+            "rate": 1,
+            "mean_tokens": 347672,
+            "mean_seconds": 89
+        },
+        "gpt-6.2-astra without": {
+            "passed": 33,
+            "total": 36,
+            "runs": 3,
+            "rate": 0.917,
+            "mean_tokens": 277599,
+            "mean_seconds": 85
+        }
+    },
+    "by_case_and_arm": {
+        "fix-broken-skill with": {
+            "passed": 44,
+            "total": 44,
+            "runs": 4,
+            "rate": 1,
+            "mean_tokens": 494627,
+            "mean_seconds": 85
+        },
+        "fix-broken-skill without": {
+            "passed": 40,
+            "total": 44,
+            "runs": 4,
+            "rate": 0.909,
+            "mean_tokens": 302103,
+            "mean_seconds": 68
+        },
+        "new-skill-from-docs with": {
+            "passed": 43,
+            "total": 44,
+            "runs": 4,
+            "rate": 0.977,
+            "mean_tokens": 208525,
+            "mean_seconds": 55
+        },
+        "new-skill-from-docs without": {
+            "passed": 38,
+            "total": 44,
+            "runs": 4,
+            "rate": 0.864,
+            "mean_tokens": 151552,
+            "mean_seconds": 52
+        },
+        "skill-from-corrections with": {
+            "passed": 54,
+            "total": 56,
+            "runs": 4,
+            "rate": 0.964,
+            "mean_tokens": 197869,
+            "mean_seconds": 44
+        },
+        "skill-from-corrections without": {
+            "passed": 52,
+            "total": 56,
+            "runs": 4,
+            "rate": 0.929,
+            "mean_tokens": 125554,
+            "mean_seconds": 33
+        }
+    },
+    "differing_assertions": {
+        "fix-broken-skill A3": {
+            "text": "The description says what the skill does in the third person, then when to use it",
+            "with": [4, 4],
+            "without": [1, 4]
+        },
+        "fix-broken-skill A9": {
+            "text": "references/details.md is linked from SKILL.md directly, or its content merged so nothing is nested",
+            "with": [4, 4],
+            "without": [3, 4]
+        },
+        "new-skill-from-docs A3": {
+            "text": "The description says what the skill does in the third person, then when to use it",
+            "with": [4, 4],
+            "without": [0, 4]
+        },
+        "new-skill-from-docs A4": {
+            "text": "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+            "with": [4, 4],
+            "without": [3, 4]
+        },
+        "skill-from-corrections A10": {
+            "text": "It says packages stay on 0.x until the API review",
+            "with": [3, 4],
+            "without": [4, 4]
+        },
+        "skill-from-corrections A3": {
+            "text": "The description says what the skill does in the third person, then when to use it",
+            "with": [3, 4],
+            "without": [0, 4]
+        }
+    },
+    "per_run": [
+        {
+            "model": "claude-haiku-5-5",
+            "effort": "high",
+            "case": "fix-broken-skill",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 1138113,
+            "seconds": 132,
+            "failed": []
+        },
+        {
+            "model": "claude-haiku-5-5",
+            "effort": "high",
+            "case": "fix-broken-skill",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 10,
+            "total": 11,
+            "tokens": 555654,
+            "seconds": 94,
+            "failed": ["A3"]
+        },
+        {
+            "model": "claude-sonnet-5-5",
+            "effort": "medium",
+            "case": "fix-broken-skill",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 171099,
+            "seconds": 23,
+            "failed": []
+        },
+        {
+            "model": "claude-sonnet-5-5",
+            "effort": "medium",
+            "case": "fix-broken-skill",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 11,
+            "total": 11,
+            "tokens": 98433,
+            "seconds": 17,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.1-terra",
+            "effort": "high",
+            "case": "fix-broken-skill",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 299022,
+            "seconds": 75,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.1-terra",
+            "effort": "high",
+            "case": "fix-broken-skill",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 9,
+            "total": 11,
+            "tokens": 210194,
+            "seconds": 54,
+            "failed": ["A3", "A9"]
+        },
+        {
+            "model": "gpt-6.2-astra",
+            "effort": "high",
+            "case": "fix-broken-skill",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 370273,
+            "seconds": 108,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.2-astra",
+            "effort": "high",
+            "case": "fix-broken-skill",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 10,
+            "total": 11,
+            "tokens": 344129,
+            "seconds": 106,
+            "failed": ["A3"]
+        },
+        {
+            "model": "claude-haiku-5-5",
+            "effort": "high",
+            "case": "new-skill-from-docs",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 10,
+            "total": 11,
+            "tokens": 196918,
+            "seconds": 57,
+            "failed": ["A6"]
+        },
+        {
+            "model": "claude-haiku-5-5",
+            "effort": "high",
+            "case": "new-skill-from-docs",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 9,
+            "total": 11,
+            "tokens": 139167,
+            "seconds": 47,
+            "failed": ["A3", "A6"]
+        },
+        {
+            "model": "claude-sonnet-5-5",
+            "effort": "medium",
+            "case": "new-skill-from-docs",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 113180,
+            "seconds": 24,
+            "failed": []
+        },
+        {
+            "model": "claude-sonnet-5-5",
+            "effort": "medium",
+            "case": "new-skill-from-docs",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 9,
+            "total": 11,
+            "tokens": 75861,
+            "seconds": 20,
+            "failed": ["A3", "A4"]
+        },
+        {
+            "model": "gpt-6.1-terra",
+            "effort": "high",
+            "case": "new-skill-from-docs",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 133127,
+            "seconds": 42,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.1-terra",
+            "effort": "high",
+            "case": "new-skill-from-docs",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 10,
+            "total": 11,
+            "tokens": 90612,
+            "seconds": 35,
+            "failed": ["A3"]
+        },
+        {
+            "model": "gpt-6.2-astra",
+            "effort": "high",
+            "case": "new-skill-from-docs",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 11,
+            "total": 11,
+            "tokens": 390874,
+            "seconds": 95,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.2-astra",
+            "effort": "high",
+            "case": "new-skill-from-docs",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 10,
+            "total": 11,
+            "tokens": 300568,
+            "seconds": 104,
+            "failed": ["A3"]
+        },
+        {
+            "model": "claude-haiku-5-5",
+            "effort": "high",
+            "case": "skill-from-corrections",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 14,
+            "total": 14,
+            "tokens": 253653,
+            "seconds": 54,
+            "failed": []
+        },
+        {
+            "model": "claude-haiku-5-5",
+            "effort": "high",
+            "case": "skill-from-corrections",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 13,
+            "total": 14,
+            "tokens": 111102,
+            "seconds": 29,
+            "failed": ["A3"]
+        },
+        {
+            "model": "claude-sonnet-5-5",
+            "effort": "medium",
+            "case": "skill-from-corrections",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 12,
+            "total": 14,
+            "tokens": 147838,
+            "seconds": 23,
+            "failed": ["A3", "A10"]
+        },
+        {
+            "model": "claude-sonnet-5-5",
+            "effort": "medium",
+            "case": "skill-from-corrections",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 13,
+            "total": 14,
+            "tokens": 75517,
+            "seconds": 17,
+            "failed": ["A3"]
+        },
+        {
+            "model": "gpt-6.1-terra",
+            "effort": "high",
+            "case": "skill-from-corrections",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 14,
+            "total": 14,
+            "tokens": 108115,
+            "seconds": 32,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.1-terra",
+            "effort": "high",
+            "case": "skill-from-corrections",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 13,
+            "total": 14,
+            "tokens": 127497,
+            "seconds": 39,
+            "failed": ["A3"]
+        },
+        {
+            "model": "gpt-6.2-astra",
+            "effort": "high",
+            "case": "skill-from-corrections",
+            "arm": "with",
+            "status": "ok",
+            "loaded_skill": true,
+            "passed": 14,
+            "total": 14,
+            "tokens": 281870,
+            "seconds": 65,
+            "failed": []
+        },
+        {
+            "model": "gpt-6.2-astra",
+            "effort": "high",
+            "case": "skill-from-corrections",
+            "arm": "without",
+            "status": "ok",
+            "loaded_skill": false,
+            "passed": 13,
+            "total": 14,
+            "tokens": 188101,
+            "seconds": 46,
+            "failed": ["A3"]
+        }
+    ]
+}

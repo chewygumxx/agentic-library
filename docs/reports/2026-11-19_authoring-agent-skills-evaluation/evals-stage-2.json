@@ -1,0 +1,146 @@
+{
+    "skill_name": "authoring-agent-skills",
+    "evals": [
+        {
+            "id": 4,
+            "name": "large-docs",
+            "prompt": "docs/ has the full reference for quarry, our data sync cli (it's big). write a skill so agents use quarry well, it'll be used in claude code and codex. put it in skills/",
+            "expected_output": "A skill for quarry whose SKILL.md stays short and holds the dangerous gotchas, with the reference detail split into files SKILL.md links directly, each with when to read it.",
+            "files": ["docs/"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill covers, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "SKILL.md is under 500 lines",
+                "Detail is split into reference files, each linked directly from SKILL.md, none only from another reference",
+                "SKILL.md says when to read each reference, not only that it exists",
+                "Each reference over 100 lines opens with a contents list",
+                "SKILL.md itself, not only a reference, warns that sync pulls by default and overwrites local changes",
+                "SKILL.md itself warns that prune without --keep-days deletes every snapshot",
+                "The skill says QUARRY_* environment variables override flags",
+                "The skill says --since and --until are UTC",
+                "The skill says parquet export drops nested columns, and to use jsonl",
+                "The skill says to run quarry auth harden after logging in",
+                "The reference files are not a verbatim copy of the 1,900-line docs"
+            ]
+        },
+        {
+            "id": 5,
+            "name": "upload-refused",
+            "prompt": "I'm trying to upload dist/report-writer.zip to claude.ai so the rest of the team can use the skill, and it fails with \"Upload failed: the skill folder could not be found in the archive\". It works fine in claude code from skills/report-writer. What's wrong with it? Fix whatever needs fixing so I can upload it.",
+            "expected_output": "A diagnosis that the ZIP holds the skill's files at its root rather than a report-writer/ folder, and a rebuilt dist/report-writer.zip with the folder at its root.",
+            "files": ["skills/report-writer/", "dist/report-writer.zip"],
+            "assertions": [
+                "It diagnoses the cause as the archive's layout: the files sit at the ZIP's root instead of inside a report-writer/ folder",
+                "dist/report-writer.zip afterwards holds report-writer/SKILL.md (every entry under report-writer/)",
+                "It verifies the new archive's layout (unzip -l or similar) rather than assuming it",
+                "It leaves the skill's frontmatter and content unchanged, or changes them only for a stated, upload-related reason",
+                "It does not claim the upload now succeeds, as it cannot test claude.ai"
+            ]
+        },
+        {
+            "id": 6,
+            "name": "release-with-changesets",
+            "prompt": "the report-writer skill says to run `npm run build` but that script got renamed to `npm run bundle` last month, agents keep running the wrong one. can you fix it in skills/report-writer and get it ready to release? commit when done",
+            "expected_output": "The fix in SKILL.md, a changeset for @acme/skill-report-writer with a patch bump, and a commit; no publish, version bump or tag by hand.",
+            "files": [
+                "skills/report-writer/",
+                ".changeset/",
+                "package.json",
+                "CONTRIBUTING.md"
+            ],
+            "assertions": [
+                "skills/report-writer/SKILL.md says npm run bundle, and no longer npm run build",
+                "A changeset file under .changeset/ names @acme/skill-report-writer with a patch bump",
+                "The changeset's note says what changed for the skill's users",
+                "The work is committed",
+                "It does not bump the package's version, publish, or tag by hand"
+            ]
+        },
+        {
+            "id": 7,
+            "name": "evaluate-a-skill",
+            "prompt": "does my report-writer skill (skills/report-writer) actually make agents better at doing the weekly report, or are they fine without it? set up a way to find out that I can rerun whenever I change the skill. don't run anything that calls a model yet, I'll kick it off myself once I've looked at it.",
+            "expected_output": "A rerunnable evaluation of report-writer: realistic test prompts, a with-skill and a without-skill run of each in fresh, isolated contexts, checks on the outputs, and a way to compare, with nothing that calls a model run yet.",
+            "files": ["skills/report-writer/", "package.json"],
+            "assertions": [
+                "It sets up test prompts that read like real requests for the weekly report, at least two",
+                "Each prompt runs both with the skill and without it, so the two can be compared",
+                "Each run starts in a fresh context, not the session that wrote or read the skill",
+                "The without-skill run cannot find the skill anywhere a client looks, project or user skill directories included",
+                "Runs cannot install or change skills where later runs, or the person's own clients, would find them",
+                "It defines checks on each output (assertions or a rubric), including the skill's own rules, such as incidents counted by start date",
+                "It records or compares results across runs (pass rates, or a summary to compare)",
+                "The evaluation files live outside skills/report-writer/, or are kept out of what ships with the skill",
+                "It runs nothing that calls a model, as asked, and says how to start it"
+            ]
+        },
+        {
+            "id": 1,
+            "name": "new-skill-from-docs",
+            "prompt": "our team uses an internal cli called tidyctl to clean up stale cloud resources, the docs are in docs/tidyctl.md. agents keep misusing it (deleting stuff they shouldnt, using the wrong config file etc). can you write an agent skill for it that works in both claude code and codex? put it under skills/",
+            "expected_output": "A skill under skills/ for tidyctl that leads an agent to plan before pruning, respect keep tags, use the right config file and recover from a partial run correctly.",
+            "files": ["docs/tidyctl.md"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill covers, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "It says prune deletes immediately and has no --dry-run, and to run plan first",
+                "It says keep=true tags are skipped only with --respect-tags or respect_tags = true",
+                "It names .tidyrc.toml as the config file, and that tidy.toml is ignored",
+                "It says --older-than takes whole days (14, not 14d)",
+                "It says exit 3 means resume <run-id>, never a second prune",
+                "It says to use TIDY_TOKEN and never --token",
+                "It holds no tool-invocation details irrelevant to tidyctl, such as generic explanations of what cloud resources are"
+            ]
+        },
+        {
+            "id": 2,
+            "name": "fix-broken-skill",
+            "prompt": "claude.ai refuses to upload skills/pdf-helper (some error about unexpected keys) and claude code never picks it up on its own unless I type /pdf-helper. please fix it so it works in claude.ai, claude code and codex.",
+            "expected_output": "skills/pdf-helper (or a renamed directory matching its name) that check-skill accepts, loads implicitly in Claude Code, uploads to claude.ai, and keeps every piece of the original guidance reachable.",
+            "files": ["skills/pdf-helper/", "shared/forms.md"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill covers, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "name is lowercase-hyphenated and matches its directory",
+                "disable-model-invocation is removed, so the skill can load on its own",
+                "version and tags are removed or moved under metadata as strings",
+                "The form-field guidance from shared/forms.md is brought inside the skill, not linked outside it",
+                "references/details.md is linked from SKILL.md directly, or its content merged so nothing is nested",
+                "The date-bound PyPDF2/pypdf guidance is replaced with current guidance (pypdf)",
+                "scripts/fill.py is referenced with forward slashes",
+                "Every instruction of the original that was not wrong survives, including that encrypted inputs must be decrypted first or pages come back empty",
+                "The skill exists in one directory: not copied by hand into several client directories (a symlink or an install is fine)"
+            ]
+        },
+        {
+            "id": 3,
+            "name": "skill-from-corrections",
+            "prompt": "I keep correcting agents about how we release acme-widgets. notes/turns.jsonl has the things I said to them over the last few weeks (one JSON object per line, with what the agent said just before). Turn it into a skill so I stop having to repeat myself.",
+            "expected_output": "A release skill for acme-widgets carrying each of the person's corrections as an instruction with its reason.",
+            "files": ["notes/turns.jsonl"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill covers, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "It says never to npm publish by hand: CI publishes on merging the release PR",
+                "It says never to squash: the changelog comes from the individual commits",
+                "It says to run pnpm install and commit pnpm-lock.yaml in the same commit as a dependency change",
+                "It types commits by what users see (--help fix is fix, README typo is docs)",
+                "It says to verify with npm view, provenance included, and to allow for registry lag",
+                "It says packages stay on 0.x until the API review",
+                "It says never to tag by hand or edit CHANGELOG.md by hand",
+                "It says to run just release-check before merging a release PR",
+                "It says packages/legacy-widgets must be removed from the release config",
+                "It does not paste the transcript in wholesale"
+            ]
+        }
+    ],
+    "frozen": "2026-11-19, for stage 2 onward, agreed with counsel (reports/counsel-stage-1.md)"
+}
