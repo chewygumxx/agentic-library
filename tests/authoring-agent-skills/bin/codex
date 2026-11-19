@@ -24,7 +24,7 @@ case $* in
 esac
 mkdir -p skills/made && printf -- '---\nname: made\ndescription: Makes things. Use when needed.\n---\n' >skills/made/SKILL.md
 if [ "${STUB_MODE:-use}" = use ]; then
-    printf '%s\n' "{\"type\":\"item.completed\",\"item\":{\"type\":\"command_execution\",\"command\":\"cat .agents/skills/$skill/SKILL.md\"}}"
+    printf '%s\n' "{\"type\":\"item.completed\",\"item\":{\"type\":\"command_execution\",\"command\":\"cat .agents/skills/$skill/SKILL.md\",\"exit_code\":0}}"
 fi
 printf '%s\n' '{"type":"turn.completed","usage":{"input_tokens":200,"output_tokens":30}}'
 printf '%s\n' '{"type":"item.completed","item":{"type":"agent_message","text":"Done."}}'

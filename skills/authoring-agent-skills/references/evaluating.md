@@ -62,6 +62,7 @@ against.
      "evals": [
        {
          "id": 1,
+         "name": "<its case directory>",
          "prompt": "<what a person would type>",
          "expected_output": "<what success looks like>",
          "files": ["<input file>"],
@@ -139,13 +140,19 @@ does not start or is not signed in, a skills directory or the installed
 skill is writable, the skill's or the case's source or what lies beside
 the output is in sight, or, in the without arm, the skill is readable
 anywhere a client looks: `--ro` what the client lacks, `--hide` what
-the probe names. Each run's `result.json` records its status (`ok`,
-`failed`, `limited` by a usage limit, `contaminated` if a baseline names
-the skill, `leaked` if a run installed one where another could find it),
-tokens, duration, whether it read the skill, and each skill it wrote
-with the checker's verdict. Only `ok` runs count; rerun `limited` ones
-after the reset. `--help` has the rest, and `--probe` checks a jail
-without spending a model.
+the probe names.
+
+Each run's `result.json` records its status: `ok`; `failed`, also when
+the client never reported the run's end; `limited` by a usage limit;
+`mismatched` if the client reports another model than asked;
+`contaminated` if a baseline read or invoked the skill, which a bare
+mention of its name is not; or `leaked` if a run installed a skill where
+another could find it. It also records the client's version, the model
+asked for and the one reported, where the client reports one, tokens,
+duration, whether the run read the skill, and each skill it wrote with
+the checker's verdict. Only `ok` runs count; rerun `limited` ones after
+the reset. `--help` has the rest, and `--probe` checks a jail without
+spending a model.
 
 Where bubblewrap is missing, such as on macOS, give each run a
 throwaway user or container with the same properties: an empty home
@@ -159,27 +166,35 @@ Code as `claude -p --output-format stream-json --verbose`, and Codex as
 A grader who knows which arm an output came from grades the arm:
 
 ```sh
-node scripts/blind-grades.mjs blind <runs> <blind-dir>
+node scripts/blind-grades.mjs blind <runs> <blind-dir> --evals evals.json
 ```
 
-It copies each `ok` run's output to `<blind-dir>/<case>/<random id>/`,
-with the run's paths and the skill's name redacted, and keeps the map
-from ids to runs out of the graders' reach. Give one grader per case the
-case's files, its assertions, and its outputs; for each output it
-writes `grading.json`:
+It copies each `ok` run that reported its end to
+`<blind-dir>/<case>/<random id>/`, with the run's paths and the skill's
+name redacted from every text file, and links leading out of the copy
+withheld; lists the runs it left out, and why, in
+`<runs>/blind-excluded.json`; and keeps the map from ids to runs out of
+the graders' reach. `--evals` freezes each case's assertions, with ids,
+in `<blind-dir>/<case>/assertions.json`. An assertion a script can
+settle is better settled by it: written as
+`{ "text": "...", "check": "check-skill" }`, it takes the checker's
+verdict from the run's own record. Give one grader per case the case's
+files, its `assertions.json`, and its outputs; for each output it writes
+`grading.json`, every assertion once:
 
 ```json
 {
   "assertion_results": [
-    { "text": "<assertion>", "passed": true, "evidence": "<file: quoted text>" }
+    { "id": "A1", "passed": true, "evidence": "<file: quoted text>" }
   ]
 }
 ```
 
-Then `blind-grades.mjs unblind <runs> <blind-dir>` puts each grade back
-beside its run, takes the checker's verdict from the run itself, and
-totals them by arm, by model, by case, and by assertion, as an overall
-rate hides which assertion carries the difference.
+Then `blind-grades.mjs unblind <runs> <blind-dir>` checks each grading,
+leaving out and listing any that misses, repeats or adds an id, or lacks
+a boolean or evidence; puts each grade back beside its run; and totals
+them by arm, by model, by case, and by assertion, as an overall rate
+hides which assertion carries the difference.
 
 ## Trigger evaluations
 

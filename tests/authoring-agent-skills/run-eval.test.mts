@@ -168,10 +168,53 @@ describe.skipIf(!hasBwrap)("a run", () => {
         expect(r.record?.status).toBe("limited");
     });
 
-    it("marks a without run that names the skill", () => {
+    it("counts a without run that only names the skill", () => {
         const w = world();
         const r = run(w, { arm: "without", mode: "name" });
+        expect(r.record).toMatchObject({
+            status: "ok",
+            mentioned_skill: true,
+            loaded_skill: false,
+        });
+    });
+
+    it("marks a without run that read the skill", () => {
+        const w = world();
+        const r = run(w, { arm: "without", mode: "use" });
         expect(r.record?.status).toBe("contaminated");
+    });
+
+    it("counts a without run whose read of the skill failed", () => {
+        const w = world();
+        const r = run(w, { arm: "without", mode: "tried" });
+        expect(r.record).toMatchObject({ status: "ok", loaded_skill: false });
+    });
+
+    it("marks a run of another model than asked", () => {
+        const w = world();
+        w.env = { ...w.env, STUB_OBSERVED: "other" };
+        const r = run(w, {});
+        expect(r.record).toMatchObject({
+            status: "mismatched",
+            observed_model: "other",
+            model_check: "mismatch",
+        });
+    });
+
+    it("fails a run that never reports its end", () => {
+        const w = world();
+        const r = run(w, { mode: "cut" });
+        expect(r.record).toMatchObject({ status: "failed", ended: false });
+    });
+
+    it("records the client's version, and Codex's model as unobserved", () => {
+        const w = world();
+        const r = run(w, { client: "codex" });
+        expect(r.record).toMatchObject({
+            client_version: "codex-cli 0.0.0",
+            model_check: "unobserved",
+            ended: true,
+        });
     });
 
     it("marks a run that installs a skill in the person's client state", () => {

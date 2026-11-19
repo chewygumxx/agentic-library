@@ -83,10 +83,15 @@ the runtime directory out of sight, and, in the without arm, the skill
 nowhere; a failed probe refuses the run. With the person's profile, a
 new SKILL.md in their client homes marks the run leaked.
 
-status in result.json: ok; failed (the client exited non-zero);
-limited (a usage limit stopped it: rerun after the reset); contaminated
-(a without run whose transcript names the skill); leaked (it installed
-a skill where another run could find it). Only ok runs count.
+status in result.json: ok; failed (the client exited non-zero, or
+never reported the run's end); limited (a usage limit stopped it: rerun
+after the reset); mismatched (the client reports another model than
+asked); contaminated (a without run that read or invoked the skill;
+mentioned_skill records a bare mention); leaked (it installed a skill
+where another run could find it). Only ok runs count. The record also
+keeps the client's version, the profile, and the model the client
+reports (model_check: match, mismatch, or unobserved where it reports
+none, as Codex does).
 
 Exit codes: 0 recorded, whatever the status but limited; 75 limited;
 2 bad arguments, or --out overlapping --skill or --case; 3 a probe
@@ -535,7 +540,8 @@ const signedIn =
         : "codex login status >/dev/null 2>&1";
 const probeScript = [
     "status=0",
-    `if ! ${o.client} --version >/dev/null 2>&1; then echo "${o.client} does not start in the jail: bind what it needs with --ro"; exit 1; fi`,
+    `if ! v=$(${o.client} --version 2>/dev/null); then echo "${o.client} does not start in the jail: bind what it needs with --ro"; exit 1; fi`,
+    `echo "version: $v" | head -1`,
     `if ! ${signedIn}; then echo "${o.client} is not signed in inside the jail: sign it in, or give it a key in the environment"; status=1; fi`,
     installed
         ? "true"
@@ -577,6 +583,8 @@ const probe = spawnSync("bwrap", [...jail(ws), "sh", "-c", probeScript], {
     env,
 });
 rmSync(beside, { force: true });
+const clientVersion =
+    probe.stdout.match(/^version: (.*)$/m)?.[1]?.trim() || null;
 if (probe.status !== 0) {
     process.stderr.write(probe.stdout + probe.stderr);
     fail(
@@ -666,6 +674,10 @@ let final = null;
 let cost = null;
 let limited = false;
 let loaded = false;
+// The client's own end of a run, and the model it says it ran: a run
+// that never ended, or ran another model than asked, counts for nothing.
+let ended = false;
+let observedModel = null;
 if (o.client === "claude") {
     const result = events.findLast((e) => e.type === "result");
     if (result) {
@@ -682,15 +694,25 @@ if (o.client === "claude") {
             Boolean(result.is_error) &&
             (result.api_error === "usage_limit_reached" ||
                 result.api_error_status === 429);
+        ended = !result.is_error;
     }
-    // Loaded: the Skill tool named it, or a tool call read a file in it.
-    loaded = events.some((e) =>
-        (e.message?.content ?? []).some(
-            (b) =>
-                b.type === "tool_use" &&
-                ((b.name === "Skill" && b.input?.skill === name) ||
-                    JSON.stringify(b.input ?? {}).includes(`skills/${name}/`)),
-        ),
+    observedModel =
+        events.find((e) => e.type === "system" && e.subtype === "init")
+            ?.model ?? null;
+    // Loaded: the Skill tool named it, or a tool call read a file in it,
+    // and the call succeeded; an attempt proves no access.
+    const blocks = events.flatMap((e) => e.message?.content ?? []);
+    const succeeded = new Set(
+        blocks
+            .filter((b) => b.type === "tool_result" && !b.is_error)
+            .map((b) => b.tool_use_id),
+    );
+    loaded = blocks.some(
+        (b) =>
+            b.type === "tool_use" &&
+            succeeded.has(b.id) &&
+            ((b.name === "Skill" && b.input?.skill === name) ||
+                JSON.stringify(b.input ?? {}).includes(`skills/${name}/`)),
     );
 } else {
     for (const e of events) {
@@ -707,13 +729,32 @@ if (o.client === "claude") {
         /usage limit|rate limit|hit your limit|limit reached|quota/i.test(
             `${raw}\n${stderr}`,
         );
-    // Loaded: a command it ran read a file in the skill.
-    loaded = events.some((e) =>
-        String(e.item?.command ?? "").includes(`skills/${name}/`),
+    // Codex's events name no model: it stays unobserved.
+    ended =
+        events.some((e) => e.type === "turn.completed") &&
+        !events.some((e) => ["turn.failed", "error"].includes(e.type));
+    // Loaded: a command it ran, and that succeeded, read a file in the
+    // skill.
+    loaded = events.some(
+        (e) =>
+            e.type === "item.completed" &&
+            e.item?.exit_code === 0 &&
+            String(e.item?.command ?? "").includes(`skills/${name}/`),
     );
 }
 
-const contaminated = o.arm === "without" && `${raw}\n${stderr}`.includes(name);
+// Contaminated: a baseline that read or invoked the skill. A mention of
+// its name, as in a listing or prose, is recorded but proves no access.
+const mentioned = `${raw}\n${stderr}`.includes(name);
+const contaminated = o.arm === "without" && loaded;
+// The model asked for, by name or alias, against the one the client
+// reports; a client that reports none leaves it unobserved, which is
+// not a mismatch.
+const modelCheck = !observedModel
+    ? "unobserved"
+    : observedModel.includes(o.model)
+      ? "match"
+      : "mismatch";
 const leakedFiles = skillFilesIn(clientHomes).filter(
     (f) => !skillFilesBefore.has(f),
 );
@@ -762,15 +803,22 @@ const status = limited
     ? "limited"
     : leakedFiles.length
       ? "leaked"
-      : contaminated
-        ? "contaminated"
-        : code === 0
-          ? "ok"
-          : "failed";
+      : modelCheck === "mismatch"
+        ? "mismatched"
+        : contaminated
+          ? "contaminated"
+          : code === 0 && ended
+            ? "ok"
+            : "failed";
 const record = {
     client: o.client,
+    client_version: clientVersion,
     model: o.model,
     effort: o.effort ?? null,
+    profile: o.profile,
+    observed_model: observedModel,
+    model_check: modelCheck,
+    ended,
     case: basename(caseDir),
     arm: o.arm,
     skill: name,
@@ -780,6 +828,7 @@ const record = {
     tokens,
     cost_usd: cost,
     loaded_skill: loaded,
+    mentioned_skill: mentioned,
     leaked: leakedFiles,
     skills_written: skills,
     final_message: final,
