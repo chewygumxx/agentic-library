@@ -45,8 +45,9 @@
         "sort-package-json",
         "sync-header-metadata"
     ],
-    // The tool manager, which `package.json` runs for its `check`.
-    "ignoreBinaries": ["mise"],
+    // The tool manager, which `package.json` runs for its `check`; and
+    // bubblewrap, which run-eval.mjs jails each evaluation run in.
+    "ignoreBinaries": ["mise", "bwrap"],
     // Configured under `.config/`, where neither tool looks unless the mise
     // tasks pass the path.
     "prettier": {

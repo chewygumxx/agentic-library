@@ -187,8 +187,13 @@ family understood.
 - **Transcripts, not just outputs:** wasted steps point at vague,
   irrelevant or menu-like instructions.
 
-[Evaluating](references/evaluating.md) has the file formats, the loop
-and when to stop. Keep evaluation files out of the published skill.
+Run each case with [`scripts/run-eval.mjs`](scripts/run-eval.mjs),
+which isolates it, as a run left loose can install a skill where the
+next baseline finds it, and blind the outputs for grading with
+[`scripts/blind-grades.mjs`](scripts/blind-grades.mjs).
+[Evaluating](references/evaluating.md) has the cases, the file formats,
+the loop and when to stop. Keep evaluation files out of the published
+skill.
 
 ## 6. Review it
 
