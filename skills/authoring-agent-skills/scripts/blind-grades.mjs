@@ -47,7 +47,8 @@ blind    Copies every ok run under <runs-dir> (each a directory holding
          assertions, with ids A1, A2, ..., in <runs-dir>/blind-rubric.json,
          and gives each case's grader a copy in
          <blind-dir>/<case>/assertions.json; a case with none refuses
-         the batch. Replaces <blind-dir>.
+         the batch; the map records that it does, so unblinding fails
+         without the rubric. Replaces <blind-dir>.
 unblind  Reads each <blind-dir>/<case>/<id>/grading.json, checks it,
          writes it to its run as grading.json, and prints totals: by
          arm, by model and arm, by case and arm, and each assertion
@@ -291,7 +292,12 @@ if (command === "blind") {
         map[id] = relative(runsDir, run);
         counts[res.case] = (counts[res.case] ?? 0) + 1;
     }
-    writeFileSync(mapFile, `${JSON.stringify(map, null, 2)}\n`);
+    // Whether the batch needs its rubric is kept in the map itself, so
+    // that losing the rubric fails closed rather than loosening the check.
+    writeFileSync(
+        mapFile,
+        `${JSON.stringify({ rubric: Boolean(rubric), runs: map }, null, 2)}\n`,
+    );
     writeFileSync(
         join(runsDir, "blind-excluded.json"),
         `${JSON.stringify(excluded, null, 2)}\n`,
@@ -316,8 +322,16 @@ if (!existsSync(mapFile)) {
     process.stderr.write(`blind-grades: no ${mapFile}; blind first\n`);
     process.exit(2);
 }
-const map = read(mapFile);
-const rubric = existsSync(rubricFile) ? read(rubricFile) : null;
+const mapData = read(mapFile);
+// A map from before the rubric holds the ids alone.
+const map = mapData.runs ?? mapData;
+if (mapData.rubric === true && !existsSync(rubricFile)) {
+    process.stderr.write(
+        `blind-grades: this batch was blinded with --evals, and ${rubricFile} is gone; blind it again\n`,
+    );
+    process.exit(2);
+}
+const rubric = mapData.rubric === true ? read(rubricFile) : null;
 const rows = [];
 const missing = [];
 const invalid = [];
@@ -385,7 +399,8 @@ for (const [id, rel] of Object.entries(map)) {
             .filter(
                 (f) =>
                     typeof verdicts[f.check]?.passed !== "boolean" ||
-                    !String(verdicts[f.check]?.evidence ?? "").trim(),
+                    typeof verdicts[f.check]?.evidence !== "string" ||
+                    !verdicts[f.check].evidence.trim(),
             )
             .map(
                 (f) => `check ${f.check} has no verdict in ${rel}/checks.json`,

@@ -411,6 +411,11 @@ describe("unblind", () => {
             cli("unblind", r.runsDir, r.blindDir, "--json").stdout,
         );
         expect(bad.invalid_grading).toHaveLength(2);
+        const rubric = join(r.runsDir, "blind-rubric.json");
+        const kept = readFileSync(rubric, "utf8");
+        rmSync(rubric);
+        expect(cli("unblind", r.runsDir, r.blindDir).status).toBe(2);
+        writeFileSync(rubric, kept);
         const runDirs = ["with", "without"].map((a) =>
             join(r.runsDir, "m", "case-0", a),
         );
@@ -429,6 +434,16 @@ describe("unblind", () => {
             cli("unblind", r.runsDir, r.blindDir, "--json").stdout,
         );
         expect(unchecked.invalid_grading[0]).toContain("zip-layout");
+        writeFileSync(
+            join(runDirs[0] ?? "", "checks.json"),
+            JSON.stringify({
+                "zip-layout": { passed: true, evidence: { a: 1 } },
+            }),
+        );
+        expect(
+            JSON.parse(cli("unblind", r.runsDir, r.blindDir, "--json").stdout)
+                .invalid_grading[0],
+        ).toContain("zip-layout");
         writeFileSync(
             join(runDirs[0] ?? "", "checks.json"),
             JSON.stringify({
