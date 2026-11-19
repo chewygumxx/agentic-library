@@ -21,6 +21,7 @@ these loops for you; this is the method it implements.
 - Grading blind
 - Trigger evaluations
 - Models
+- Staging the evaluation
 - When to stop
 
 ## Where the files live
@@ -199,9 +200,10 @@ rate hides which assertion carries the difference.
    name the category behind failed queries rather than their words.
    After several stalled rounds, try a different structure. Stay under
    1,024 characters.
-5. **Choose** the iteration with the best judging-set rate, which may
-   not be the last; about five iterations is usually enough. Confirm
-   with 5 to 10 fresh queries.
+5. **Choose** the iteration by the tuning set; about five iterations is
+   usually enough. Then freeze the description and judge it once on the
+   judging set: choosing among iterations by their judging rate spends
+   it on tuning. Confirm with 5 to 10 fresh queries.
 
 ## Models
 
@@ -210,6 +212,66 @@ shows what the skill leaves out; a large one, what it over-explains;
 another vendor's, what only one model family understood. A skill for
 several clients runs in each, as each lists and loads skills
 differently.
+
+## Staging the evaluation
+
+Spend as confidence grows: cheap, broad runs while the skill still
+changes, expensive ones once it holds still. Each stage should be able
+to turn up a finding that changes the skill or the decision to ship it;
+one that cannot is not worth its runs. Between stages, agree each fix
+with a reviewer of another model family, who catches what the author's
+family shares.
+
+1. **Rough observation.** After the draft, a review and its fixes: a
+   few paired runs on the cheaper models of each client the skill
+   targets, to find the obvious defects.
+2. **Amendments.** After those are fixed: more runs and more model
+   tiers, small, medium and large, of each family.
+3. **Data processing.** No runs: cheap models sift the transcripts and
+   grades for wasted steps, misreadings and assertions that measure
+   nothing; a large model at high effort confirms whatever they flag
+   against the original evidence, before anyone changes the skill.
+4. **Higher effort.** Agree first what adequate means, then fix, and
+   run the decisions still open at higher effort.
+5. **Repeat** until adequate, or until progress stalls below it.
+
+For example, for a skill both vendors' clients will load: stage 1, 3
+runs each on two smaller models per vendor; stage 2, 7 small, 5 medium
+and 3 large; stage 4, as stage 2, small models at their highest effort
+and others high. A short or low-stakes skill can merge stages.
+
+- **Scale runs** to how much the results vary and what a wrong call
+  costs: repeat a case whose result is mixed and would change the
+  decision, not one that is settled.
+- **Change cases between stages,** keeping a small common set to
+  measure change on. Drop one both arms pass every time: it measures the
+  model, not the skill. Add ones testing the decisions the last stage
+  found weak. When a change needs attributing, run the previous
+  snapshot against the new one on the common set, at the same effort;
+  otherwise compare arms within a stage, never one stage's rate with
+  another's, as cases, effort, graders and harness all moved.
+- **Estimate before starting,** by client, model and effort: the last
+  comparable stage's tokens per run, from each `result.json`, times the
+  runs planned, grading included, or a short pilot when the effort
+  changes. When it does not fit, drop redundant work first, and keep
+  both arms on the cases and clients that could change the decision.
+- **Keep a trigger holdout.** Tune the description on the tuning
+  queries alone; judge it on the judging set once, when it is frozen.
+  Picking among revisions by the judging rate spends the holdout.
+- **Unfit, not unfinished.** If the remaining failures are steps a
+  model keeps getting wrong however the prose puts them, or need live
+  access, move those steps into a script, or the whole skill into what
+  fits better: an MCP server, an executable, an SDK or a service.
+
+To close, commit a report beside sample data, where a permalink can
+cite it: the method; the commit evaluated, the case, assertion and
+harness versions, and each client's version, model and effort; results
+by stage, arm, model and case; exclusions; each finding and the fix it
+led to; the harness's own defects; and the limitations. The sample data
+is each stage's assertions and per-run results, cleared for sharing.
+Archive the rest whole, every transcript, workspace, grade and excluded
+run, in private storage, as transcripts can hold private data, and
+record in the report where it is and its checksum.
 
 ## When to stop
 

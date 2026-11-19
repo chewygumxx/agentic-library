@@ -186,6 +186,9 @@ family understood.
   judged on the rest.
 - **Transcripts, not just outputs:** wasted steps point at vague,
   irrelevant or menu-like instructions.
+- **In stages:** a few cheap runs first, then more models and higher
+  effort as the skill settles, each stage's fixes agreed with a
+  reviewer of another model family.
 
 Run each case with [`scripts/run-eval.mjs`](scripts/run-eval.mjs),
 which isolates it, as a run left loose can install a skill where the
