@@ -158,6 +158,8 @@ A run that sees more, or less, than intended measures nothing. For each:
      --ephemeral -C "$run/workspace" "$prompt"`. `turn.completed` events
      hold `usage`; a command reading `<name>/SKILL.md` shows it loaded.
      `--ephemeral` keeps the run out of the person's session history.
+     Give it `< /dev/null`: with stdin open and no terminal, it waits on
+     stdin and never starts.
 
    A usage limit ends a run early, and Claude Code reports it as an
    error result whose text is the notice (`api_error`
@@ -175,7 +177,9 @@ A run that sees more, or less, than intended measures nothing. For each:
 A grader who knows which arm an output came from grades the arm. Copy
 each run's output to a directory named by a random id, and keep the map
 from ids to runs away from the graders. Keep each skill's own directory
-name in the copy, as a renamed one fails the name check. Take
+name in the copy, as a renamed one fails the name check, and replace
+the run's path in its final message, as clients link to files by their
+absolute path, which names the arm. Take
 mechanical assertions, such as the checker's, from each run's own
 workspace. One grader per case, given the case's input files and
 assertions, writes for each output:
