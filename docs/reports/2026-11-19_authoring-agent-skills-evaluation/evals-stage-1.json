@@ -1,0 +1,68 @@
+{
+    "skill_name": "authoring-agent-skills",
+    "evals": [
+        {
+            "id": 1,
+            "name": "new-skill-from-docs",
+            "prompt": "our team uses an internal cli called tidyctl to clean up stale cloud resources, the docs are in docs/tidyctl.md. agents keep misusing it (deleting stuff they shouldnt, using the wrong config file etc). can you write an agent skill for it that works in both claude code and codex? put it under skills/",
+            "expected_output": "A skill under skills/ for tidyctl that leads an agent to plan before pruning, respect keep tags, use the right config file and recover from a partial run correctly.",
+            "files": ["docs/tidyctl.md"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill does in the third person, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "It says prune deletes immediately and has no --dry-run, and to run plan first",
+                "It says keep=true tags are skipped only with --respect-tags or respect_tags = true",
+                "It names .tidyrc.toml as the config file, and that tidy.toml is ignored",
+                "It says --older-than takes whole days (14, not 14d)",
+                "It says exit 3 means resume <run-id>, never a second prune",
+                "It says to use TIDY_TOKEN and never --token",
+                "It holds no tool-invocation details irrelevant to tidyctl, such as generic explanations of what cloud resources are"
+            ]
+        },
+        {
+            "id": 2,
+            "name": "fix-broken-skill",
+            "prompt": "claude.ai refuses to upload skills/pdf-helper (some error about unexpected keys) and claude code never picks it up on its own unless I type /pdf-helper. please fix it so it works in claude.ai, claude code and codex.",
+            "expected_output": "skills/pdf-helper (or a renamed directory matching its name) that check-skill accepts, loads implicitly in Claude Code, uploads to claude.ai, and keeps every piece of the original guidance reachable.",
+            "files": ["skills/pdf-helper/", "shared/forms.md"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill does in the third person, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "name is lowercase-hyphenated and matches its directory",
+                "disable-model-invocation is removed, so the skill can load on its own",
+                "version and tags are removed or moved under metadata as strings",
+                "The form-field guidance from shared/forms.md is brought inside the skill, not linked outside it",
+                "references/details.md is linked from SKILL.md directly, or its content merged so nothing is nested",
+                "The date-bound PyPDF2/pypdf guidance is replaced with current guidance (pypdf)",
+                "scripts/fill.py is referenced with forward slashes"
+            ]
+        },
+        {
+            "id": 3,
+            "name": "skill-from-corrections",
+            "prompt": "I keep correcting agents about how we release acme-widgets. notes/turns.jsonl has the things I said to them over the last few weeks (one JSON object per line, with what the agent said just before). Turn it into a skill so I stop having to repeat myself.",
+            "expected_output": "A release skill for acme-widgets carrying each of the person's corrections as an instruction with its reason.",
+            "files": ["notes/turns.jsonl"],
+            "assertions": [
+                "check-skill.mjs reports no errors for the skill directory written or fixed",
+                "The frontmatter holds only name, description, license, compatibility, metadata or allowed-tools, so claude.ai, Claude Code and Codex all accept it",
+                "The description says what the skill does in the third person, then when to use it",
+                "The skill names nothing outside its own directory: no absolute paths, no links that leave it",
+                "It says never to npm publish by hand: CI publishes on merging the release PR",
+                "It says never to squash: the changelog comes from the individual commits",
+                "It says to run pnpm install and commit pnpm-lock.yaml in the same commit as a dependency change",
+                "It types commits by what users see (--help fix is fix, README typo is docs)",
+                "It says to verify with npm view, provenance included, and to allow for registry lag",
+                "It says packages stay on 0.x until the API review",
+                "It says never to tag by hand or edit CHANGELOG.md by hand",
+                "It says to run just release-check before merging a release PR",
+                "It says packages/legacy-widgets must be removed from the release config",
+                "It does not paste the transcript in wholesale"
+            ]
+        }
+    ]
+}

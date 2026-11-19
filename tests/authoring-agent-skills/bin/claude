@@ -1,0 +1,41 @@
+#!/bin/sh
+# vim:set expandtab shiftwidth=4 filetype=sh:
+# SPDX-License-Identifier: GPL-3.0-only
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/tests/authoring-agent-skills/bin/claude
+#
+#
+
+# A stand-in for `claude -p ... --output-format stream-json`, for
+# run-eval.mjs's tests. $STUB_MODE picks what it does: use (read the
+# skill), limit, name (name the skill in its answer), escape (write to a
+# skills directory and to the home), leak (install a skill in its state).
+
+skill=${STUB_SKILL:-processing-things}
+mode=${STUB_MODE:-use}
+config=${CLAUDE_CONFIG_DIR:?run-eval.mjs sets it}
+mkdir -p skills/made && printf -- '---\nname: made\ndescription: Makes things. Use when needed.\n---\n' >skills/made/SKILL.md
+case $mode in
+use)
+    printf '%s\n' "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"name\":\"Read\",\"input\":{\"file_path\":\".claude/skills/$skill/SKILL.md\"}}]}}"
+    ;;
+escape)
+    touch "$config/skills/escaped" 2>/dev/null && echo "wrote skills" >&2
+    touch "$HOME/escaped" 2>/dev/null
+    ;;
+leak)
+    mkdir -p "$config/installed/$skill" &&
+        printf -- '---\nname: x\n---\n' >"$config/installed/$skill/SKILL.md"
+    ;;
+*) ;;
+esac
+if [ "$mode" = limit ]; then
+    printf '%s\n' '{"type":"result","is_error":true,"api_error":"usage_limit_reached","api_error_status":429,"result":"You have hit your limit","usage":{}}'
+elif [ "$mode" = name ]; then
+    printf '%s\n' "{\"type\":\"result\",\"result\":\"I followed $skill.\",\"usage\":{\"input_tokens\":10,\"output_tokens\":5}}"
+else
+    printf '%s\n' '{"type":"result","result":"Done.","total_cost_usd":0.01,"usage":{"input_tokens":100,"output_tokens":20}}'
+fi

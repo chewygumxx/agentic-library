@@ -1,0 +1,52 @@
+# vim:set expandtab shiftwidth=4 filetype=toml:
+# SPDX-License-Identifier: GPL-3.0-only
+#:schema https://mise.jdx.dev/schema/mise-task.json
+
+#
+#
+# ~chewygumxx/agentic-library.git
+# ::: :/tests/authoring-agent-skills/tasks.toml
+#
+#
+
+#
+# The map of the authoring-agent-skills tests: see tests/AGENTS.md.
+#
+
+["test:authoring-agent-skills"]
+description = "Test the authoring-agent-skills skill's scripts"
+depends     = [ "test:authoring-agent-skills:*" ]
+
+["test:authoring-agent-skills:check-skill"]
+description = "Test check-skill.mjs: each finding, what it leaves alone, exit codes, and this repository's skills"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/check-skill.mjs",
+    "covers:skills",
+]
+run         = "bun test ./tests/authoring-agent-skills/check-skill.test.mts"
+
+["test:authoring-agent-skills:extract-user-turns"]
+description = "Test extract-user-turns.mjs over made-up Claude Code and Codex transcripts"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/extract-user-turns.mjs",
+]
+run         = "bun test ./tests/authoring-agent-skills/extract-user-turns.test.mts"
+
+["test:authoring-agent-skills:run-eval"]
+description = "Test run-eval.mjs with stand-in clients: what it records, and what its jail and probe refuse"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/run-eval.mjs",
+    "covers:skills/authoring-agent-skills/scripts/check-skill.mjs",
+]
+run         = "bun test ./tests/authoring-agent-skills/run-eval.test.mts"
+
+["test:authoring-agent-skills:blind-grades"]
+description = "Test blind-grades.mjs: blinding leaves nothing naming the arm; unblinding puts grades back and totals them"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/blind-grades.mjs",
+]
+run         = "bun test ./tests/authoring-agent-skills/blind-grades.test.mts"

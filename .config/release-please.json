@@ -10,6 +10,9 @@
     "bump-patch-for-minor-pre-major": true,
     "skip-changelog": true,
     "packages": {
+        "skills/authoring-agent-skills": {
+            "component": "skill-authoring-agent-skills"
+        },
         "skills/configuring-mise-tasks": {
             "component": "skill-configuring-mise-tasks"
         },
