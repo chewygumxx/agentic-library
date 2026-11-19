@@ -85,6 +85,8 @@ describe.skipIf(!hasBwrap)("a run", () => {
         [`name: ${SKILL} # the skill`, 0],
         [`name: '${SKILL}' # quoted`, 0],
         ["name: ../escaped", 2],
+        ["name: null", 2],
+        ["description: no name", 2],
     ])(
         "reads %s as YAML, and refuses a name a path cannot take",
         (line, code) => {
@@ -120,22 +122,21 @@ describe.skipIf(!hasBwrap)("a run", () => {
         },
     );
 
-    it("refuses a baseline whose workspace holds the skill by a quoted name", () => {
-        const w = world();
-        const copy = join(
-            w.root,
-            "case",
-            "files",
-            ".claude",
-            "skills",
-            "other",
-        );
-        mkdirSync(copy, { recursive: true });
-        writeFileSync(join(copy, "SKILL.md"), `---\nname: "${SKILL}"\n---\n`);
-        const r = run(w, { arm: "without", extra: ["--probe"] });
-        expect(r.status).toBe(3);
-        expect(r.stderr).toContain("baseline can read the skill");
-    });
+    it.each([`"${SKILL}"`, `!!str ${SKILL}`])(
+        "refuses a baseline whose workspace holds the skill named %s",
+        (written) => {
+            const w = world();
+            const copy = join(w.root, "case", "files", "notes", "other");
+            mkdirSync(copy, { recursive: true });
+            writeFileSync(
+                join(copy, "SKILL.md"),
+                `---\nname: ${written}\n---\n`,
+            );
+            const r = run(w, { arm: "without", extra: ["--probe"] });
+            expect(r.status).toBe(3);
+            expect(r.stderr).toContain("baseline can read the skill");
+        },
+    );
 
     it("keeps the skill out of a without run's workspace", () => {
         const w = world();

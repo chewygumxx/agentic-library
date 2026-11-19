@@ -171,18 +171,28 @@ if (!existsSync(join(caseDir, "prompt.md"))) {
 if (!existsSync(join(skillDir, "SKILL.md"))) {
     fail(`${o.skill} holds no SKILL.md`);
 }
-// The skill's own name, from its frontmatter, read as YAML, as a
-// snapshot's directory may be named anything; else its directory's. It
-// names directories, so it must be a valid skill name.
-const frontName = (() => {
-    const yaml = readFileSync(join(skillDir, "SKILL.md"), "utf8").match(
+// A SKILL.md's name, as its frontmatter reads in YAML; undefined if it
+// has none, or none that parses.
+function nameIn(file) {
+    let text;
+    try {
+        text = readFileSync(file, "utf8");
+    } catch {
+        return undefined;
+    }
+    const yaml = text.match(
         /^---\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/,
     )?.[1];
     if (yaml === undefined) return undefined;
     const doc = parseDocument(yaml);
-    return doc.errors.length ? undefined : doc.toJS()?.name;
-})();
-const name = frontName ?? basename(skillDir);
+    if (doc.errors.length) return undefined;
+    const value = doc.toJS();
+    return value && typeof value === "object" ? value.name : undefined;
+}
+// The skill's own name, from its frontmatter, as a snapshot's directory
+// may be named anything. It names directories, so it must be a valid
+// skill name.
+const name = nameIn(join(skillDir, "SKILL.md"));
 if (
     typeof name !== "string" ||
     name.length > 64 ||
@@ -582,10 +592,12 @@ const probeScript = [
         (r) =>
             `if touch ${sh(join(r, ".run-eval-probe"))} 2>/dev/null; then rm -f ${sh(join(r, ".run-eval-probe"))}; echo "writable: ${r}"; status=1; fi`,
     ),
-    // Found by a SKILL.md naming it, quoted or not, or a directory of its
-    // name; the name holds only letters, digits and hyphens.
+    // Found by any file with its name line, as a backup under another
+    // name, a directory of its name, or, below, a SKILL.md whose
+    // frontmatter names it however it is written, each listed here for
+    // the runner to read.
     o.arm === "without"
-        ? `found=$( { grep -rlsIE --exclude-dir=.git ${sh(`^name:[[:space:]]*["']?${name}["']?[[:space:]]*(#.*)?$`)} ${searched.map(sh).join(" ")}; find ${searched.map(sh).join(" ")} -name .git -prune -o -type d -name ${sh(name)} -print; } 2>/dev/null | head -5); if [ -n "$found" ]; then echo "baseline can read the skill: $found"; status=1; fi`
+        ? `found=$( { grep -rlsIE --exclude-dir=.git ${sh(`^name:[[:space:]]*["']?${name}["']?[[:space:]]*(#.*)?$`)} ${searched.map(sh).join(" ")}; find ${searched.map(sh).join(" ")} -name .git -prune -o -type d -name ${sh(name)} -print; } 2>/dev/null | head -5); if [ -n "$found" ]; then echo "baseline can read the skill: $found"; status=1; fi; find ${searched.map(sh).join(" ")} -name .git -prune -o -name SKILL.md -print 2>/dev/null | sed 's/^/skill-md: /'`
         : "true",
     "exit $status",
 ].join("\n");
@@ -610,8 +622,19 @@ const probe = spawnSync("bwrap", [...jail(ws), "sh", "-c", probeScript], {
 rmSync(beside, { force: true });
 const clientVersion =
     probe.stdout.match(/^version: (.*)$/m)?.[1]?.trim() || null;
+// Each SKILL.md the baseline can see, read by its path, which the jail
+// binds unchanged, as the frontmatter parser reads it.
+const copies = [...probe.stdout.matchAll(/^skill-md: (.*)$/gm)]
+    .map((m) => m[1])
+    .filter((f) => nameIn(f) === name);
+if (copies.length) {
+    probe.stdout += `baseline can read the skill: ${copies.slice(0, 5).join(" ")}\n`;
+    probe.status = probe.status || 1;
+}
 if (probe.status !== 0) {
-    process.stderr.write(probe.stdout + probe.stderr);
+    process.stderr.write(
+        probe.stdout.replace(/^(skill-md|version): .*\n/gm, "") + probe.stderr,
+    );
     fail(
         "the jail's probe failed; nothing ran. Bind what the client needs (--ro); hide what it found the skill in (--hide), or remove the skill from there; make a writable skills directory read-only (--ro).",
         3,
