@@ -31,6 +31,7 @@ harnesses.
 | `coordinating-agents`            | Running agents within their context and usage limits |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |
 | `managing-git-worktrees`         | Making git worktrees that come out whole             |
+| `managing-worktrunk-worktrees`   | Managing worktrees and their setup with Worktrunk    |
 | `mapping-tests`                  | Mapping each test file to a mise task                |
 | `publishing-skills-to-npm`       | Publishing skills to npm with trusted publishing     |
 | `writing-usage-specs`            | Writing CLI specs in KDL and generating from them    |
