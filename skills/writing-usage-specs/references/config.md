@@ -72,3 +72,6 @@ An unknown type name is kept and read as a string.
 `usage generate json-schema -f mycli.usage.kdl --title mycli --url <url>`
 writes the file's schema. A large block goes in its own file, brought in
 with `include`.
+
+For source ordering, merged values, and invalid layer entries, see
+the upstream [configuration resolution rules](https://usage.jdx.dev/spec/resolution).

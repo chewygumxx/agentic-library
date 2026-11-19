@@ -11,6 +11,16 @@ The `arg` and `flag` vocabulary. A flag's value is itself an `arg`, so
 what this says of an argument's value holds for a flag's too. The lines
 of a block are alternatives, not one spec.
 
+## Contents
+
+- [Declaring](#declaring)
+- [Values and their sources](#values-and-their-sources)
+- [Choices and validation](#choices-and-validation)
+- [Hyphens and `--`](#hyphens-and---)
+- [Relationships](#relationships)
+- [Deprecation and effect](#deprecation-and-effect)
+- [Scope](#scope)
+
 ## Declaring
 
 ```kdl
@@ -42,11 +52,13 @@ generated Markdown), `help_heading` to group it, `display_order`, `hide`,
 - `default="x"`, or a list as a child node, `default "a" "b"`.
 - `env="MYCLI_X"`, then `env_fallback "A" "B"` in order, then
   `deprecated_env "OLD"`, read last and reported as deprecated. The
-  command line beats all of them; any of them beats `default`. An empty
-  variable is set. For a switch, only `1` and `true` in any case set it.
+  command line beats all of them, and an environment value beats a
+  conditional or unconditional default. An empty variable is set. For a
+  switch, only `1` and `true` in any case set it.
 - `default_if "--json" "true"` on the flag receiving the value: the default
   when `--json` is present; `default_if "--output" "json" "pretty"` when
-  `--output` is `json`. The first match wins.
+  `--output` is `json`. The first match wins before the plain `default`.
+  Inspect the origins with `usage explain`.
 - `default_missing="always"`: the value of a bare `--color`.
 - `value_optional=#true` with `[LEVEL]`: absent, bare and valued differ.
 - `require_equals=#true`: only `--inspect=9229` binds; pair it with
@@ -83,6 +95,12 @@ keeps words whole after `--`, or once a `double_dash="automatic"`
 argument binds: `ex a,b -- c,d` binds `a`, `b` and `c,d`.
 
 ## Hyphens and `--`
+
+If a required positional goes missing after `--include a target`, check
+the flag's arity with `usage explain`. The `<glob>...` declaration
+consumes both words. For one glob per occurrence, use `<glob>` with
+`var=#true` and repeat the flag. For multiple values per occurrence,
+check the boundary using `var_max` or a separator.
 
 - `allow_negative_numbers=#true`: `-1` is a value; `--force` still a flag.
 - `allow_hyphen_values=#true` (flags): the next word is the value whatever

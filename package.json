@@ -43,6 +43,7 @@
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
         "@chewygumxx/skill-managing-git-worktrees": "workspace:*",
+        "@chewygumxx/skill-managing-worktrunk-worktrees": "workspace:*",
         "@chewygumxx/skill-mapping-tests": "workspace:*",
         "@chewygumxx/skill-publishing-skills-to-npm": "workspace:*",
         "@chewygumxx/skill-writing-usage-specs": "workspace:*",

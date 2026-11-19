@@ -10,6 +10,15 @@
 What Tab offers for a value, and how the shells get it. The lines of a
 block are alternatives.
 
+## Contents
+
+- [Where candidates come from](#where-candidates-come-from)
+- [Type](#type)
+- [Run](#run)
+- [Delegate](#delegate)
+- [Installing completions](#installing-completions)
+- [Checking](#checking)
+
 ## Where candidates come from
 
 The argument's `choices`, when it declares them, win over every
@@ -112,8 +121,10 @@ bash-completion; `source <(usage g completion-init zsh)` in `~/.zshrc`;
 ## Checking
 
 ```sh
-usage complete-word -f mycli.usage.kdl -- mycli deploy --env ''
+usage complete-word -f scripts/greet.sh -- greet --greeting ''
 ```
 
-prints what Tab offers for the last word, `''` for all of it, so a spec's
-completion is tested without a shell.
+Run from the skill directory to see `hello` and `welcome` as candidates.
+The final `''` asks for all matches for the current word. Use the target
+`--shell` for quoting and try Tab in the actual shell for insertion
+behavior.

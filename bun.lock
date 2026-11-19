@@ -23,6 +23,7 @@
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
         "@chewygumxx/skill-managing-git-worktrees": "workspace:*",
+        "@chewygumxx/skill-managing-worktrunk-worktrees": "workspace:*",
         "@chewygumxx/skill-mapping-tests": "workspace:*",
         "@chewygumxx/skill-publishing-skills-to-npm": "workspace:*",
         "@chewygumxx/skill-writing-usage-specs": "workspace:*",
@@ -68,6 +69,10 @@
       "name": "@chewygumxx/skill-managing-git-worktrees",
       "version": "0.0.2",
     },
+    "skills/managing-worktrunk-worktrees": {
+      "name": "@chewygumxx/skill-managing-worktrunk-worktrees",
+      "version": "0.0.2",
+    },
     "skills/mapping-tests": {
       "name": "@chewygumxx/skill-mapping-tests",
       "version": "0.0.2",
@@ -78,7 +83,7 @@
     },
     "skills/writing-usage-specs": {
       "name": "@chewygumxx/skill-writing-usage-specs",
-      "version": "0.0.2",
+      "version": "0.0.3",
     },
   },
   "packages": {
@@ -141,6 +146,8 @@
     "@chewygumxx/skill-managing-dotfiles-with-chezmoi": ["@chewygumxx/skill-managing-dotfiles-with-chezmoi@workspace:skills/managing-dotfiles-with-chezmoi"],
 
     "@chewygumxx/skill-managing-git-worktrees": ["@chewygumxx/skill-managing-git-worktrees@workspace:skills/managing-git-worktrees"],
+
+    "@chewygumxx/skill-managing-worktrunk-worktrees": ["@chewygumxx/skill-managing-worktrunk-worktrees@workspace:skills/managing-worktrunk-worktrees"],
 
     "@chewygumxx/skill-mapping-tests": ["@chewygumxx/skill-mapping-tests@workspace:skills/mapping-tests"],
 
