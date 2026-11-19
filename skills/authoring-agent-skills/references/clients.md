@@ -79,9 +79,15 @@ An upload fails on its packaging as often as on its frontmatter:
   for `latest`, and takes at most 20 skills. A skill is visible to every
   key in its workspace.
 
+Rebuild it from the skill's parent directory, then verify the archive
+you made, not the one you started from: list its entries, as neither
+the checker, which reads the directory, nor a ZIP integrity test reads
+its layout. Every entry should start `<name>/`, with `<name>/SKILL.md`
+among them. Only then upload, and say the upload itself is untested.
+
 ```sh
-zip -r <name>.zip <name>/   # from the skill's parent directory
-unzip -l <name>.zip         # every path should start <name>/
+zip -r <name>.zip <name>/
+unzip -l <name>.zip
 ```
 
 ## Codex
