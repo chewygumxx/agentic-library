@@ -79,6 +79,11 @@ instruction, ask of each:
   convention; "don't push yet" steered one task. A rejection or an
   interrupt says the agent was wrong there, not always that the action
   is wrong.
+- **Did the notes widen it?** The notes on an answer often state the
+  rule behind the choice, wider than the question asked: "0.1.0, and
+  every package stays on 0.x until the API review". Words such as
+  "every", "always" and "never" mark a standing rule, not a one-off
+  answer.
 - **Whose behaviour?** A person's preference, a project's convention,
   or a tool's behaviour as observed then, which a newer version may
   have changed: check the last against current documentation.
