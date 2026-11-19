@@ -124,12 +124,12 @@ function main() {
         parsed = parseArgs({
             allowPositionals: true,
             options: {
-                target: { type: "string", default: "any" },
-                json: { type: "boolean", default: false },
-                strict: { type: "boolean", default: false },
-                "run-help": { type: "boolean", default: false },
-                ignore: { type: "string", multiple: true, default: [] },
-                help: { type: "boolean", short: "h", default: false },
+                target: { type: "string" },
+                json: { type: "boolean" },
+                strict: { type: "boolean" },
+                "run-help": { type: "boolean" },
+                ignore: { type: "string", multiple: true },
+                help: { type: "boolean", short: "h" },
             },
         });
     } catch (error) {
@@ -137,6 +137,9 @@ function main() {
         process.exit(2);
     }
     const { values: options, positionals } = parsed;
+    // Node before 18.11 ignores parseArgs' defaults: apply them here.
+    options.target ??= "any";
+    options.ignore ??= [];
     if (options.help) {
         process.stdout.write(`${USAGE}\n`);
         return;
@@ -673,9 +676,13 @@ function parseFrontmatter(text) {
             "SKILL.md does not open with ---, so no client reads its frontmatter",
         );
     }
-    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n?---[ \t]*(\r?\n|$)/);
+    // The closing --- is a line of its own: one inside a value, or
+    // indented in a block scalar, does not end the frontmatter.
+    const match = text.match(
+        /^---\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/,
+    );
     if (!match) throw new Error("frontmatter is never closed with ---");
-    const yaml = match[1];
+    const yaml = match[1] ?? "";
     const fail = (problem) => {
         const err = new Error(`frontmatter: ${problem.message.split("\n")[0]}`);
         err.line = (problem.linePos?.[0]?.line ?? 0) + 1;
@@ -700,7 +707,8 @@ function parseFrontmatter(text) {
     if (!(value instanceof Map)) {
         throw new Error("frontmatter is not a mapping of keys to values");
     }
-    const front = {};
+    // No prototype, so a key such as __proto__ is kept as a key.
+    const front = Object.create(null);
     for (const [key, field] of value) {
         if (typeof key !== "string") {
             throw new Error(`frontmatter key ${String(key)} is not a string`);

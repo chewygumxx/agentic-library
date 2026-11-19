@@ -435,6 +435,48 @@ describe("targets", () => {
 });
 
 describe("YAML", () => {
+    it("ends the frontmatter only at a --- line of its own", () => {
+        const overlong = findings(
+            skill("processing-things", {
+                front: [
+                    "name: processing-things",
+                    `description: Processes. Use when ${"x".repeat(1010)}---`,
+                    "license: MIT",
+                ],
+            }),
+        );
+        expect(codes(overlong)).toContain("error description-length");
+        const block = findings(
+            skill("processing-things", {
+                front: [
+                    "name: processing-things",
+                    "description: |",
+                    "  Processes things.",
+                    "  ---",
+                    "  Use when needed.",
+                    "license: MIT",
+                ],
+            }),
+        );
+        expect(block).toEqual([]);
+    });
+
+    it("keeps a key named __proto__", () => {
+        const front = [...GOOD_FRONT, "__proto__: null"];
+        expect(
+            codes(findings(skill("processing-things", { front }))),
+        ).toContain("warning key-unknown");
+        expect(
+            codes(
+                findings(
+                    skill("processing-things", { front }),
+                    "--target",
+                    "portable",
+                ),
+            ),
+        ).toContain("error key-unknown");
+    });
+
     it("reads flow mappings, YAML escapes and aliases", () => {
         const list = findings(
             skill("processing-things", {
