@@ -14,7 +14,13 @@
 
 import { afterAll, describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+    chmodSync,
+    mkdirSync,
+    mkdtempSync,
+    rmSync,
+    writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -425,6 +431,17 @@ describe("options", () => {
         expect(text).not.toContain("my-repo");
         expect(text).toContain("/work/REPO");
         expect(text).toContain("[redacted]");
+    });
+
+    it("skips a directory it cannot read, and says so", () => {
+        const locked = join(base, "locked");
+        mkdirSync(locked);
+        chmodSync(locked, 0o000);
+        const result = extract(...repo, "--claude-dir", locked);
+        chmodSync(locked, 0o755);
+        expect(result.status).toBe(0);
+        expect(result.stderr).toContain(`skipped ${locked}`);
+        expect(result.turns.length).toBeGreaterThan(0);
     });
 
     it("refuses to run without --output, or with a bad option", () => {

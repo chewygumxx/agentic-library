@@ -109,21 +109,25 @@ function main() {
     try {
         ({ values: options } = parseArgs({
             options: {
-                match: { type: "string", multiple: true, default: [] },
-                "claude-dir": { type: "string", multiple: true, default: [] },
-                "codex-dir": { type: "string", multiple: true, default: [] },
+                match: { type: "string", multiple: true },
+                "claude-dir": { type: "string", multiple: true },
+                "codex-dir": { type: "string", multiple: true },
                 tool: { type: "string" },
                 kinds: { type: "string" },
                 "max-context": { type: "string" },
-                "include-subagents": { type: "boolean", default: false },
+                "include-subagents": { type: "boolean" },
                 output: { type: "string" },
-                redact: { type: "string", multiple: true, default: [] },
-                help: { type: "boolean", short: "h", default: false },
+                redact: { type: "string", multiple: true },
+                help: { type: "boolean", short: "h" },
             },
         }));
     } catch (error) {
         process.stderr.write(`${error.message}\n\n${USAGE}\n`);
         process.exit(2);
+    }
+    // Node before 18.11 ignores parseArgs' defaults: apply them here.
+    for (const key of ["match", "claude-dir", "codex-dir", "redact"]) {
+        options[key] ??= [];
     }
     if (options.help) {
         process.stdout.write(`${USAGE}\n`);
@@ -277,7 +281,18 @@ function jsonlFiles(dir) {
     if (!existsSync(dir)) fail(`no such directory: ${dir}`);
     const files = [];
     const walk = (path) => {
-        for (const entry of readdirSync(path, { withFileTypes: true })) {
+        let entries;
+        try {
+            entries = readdirSync(path, { withFileTypes: true });
+        } catch (error) {
+            // A directory this user cannot read holds no transcript of
+            // theirs; say so, and read on.
+            process.stderr.write(
+                `extract-user-turns: skipped ${path}: ${error.code}\n`,
+            );
+            return;
+        }
+        for (const entry of entries) {
             const child = join(path, entry.name);
             if (entry.isDirectory()) walk(child);
             else if (entry.name.endsWith(".jsonl")) files.push(child);
