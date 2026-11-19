@@ -88,8 +88,10 @@ probes passed.
 The repository checks passed all 235 tests. `bun run skills` synced
 the workspace skill and `mise run skill-packages:check --pack worktrunk`
 verified that the npm package includes the bundled references. The
-package kept the upstream tool's name, `worktrunk`, as its skill
-identifier. The package check reports the non-gerund name as advisory.
+package then kept the upstream tool's name, `worktrunk`, as its skill
+identifier, which the package check reported as a non-gerund advisory.
+[Naming and executable examples](#naming-and-executable-examples)
+records the later rename.
 
 ## Authoring review
 
@@ -102,7 +104,8 @@ Worktrunk-specific triggers and describes the skill in third person.
 The identifier `worktrunk` matches its directory and satisfies the
 format requirements. A gerund such as `using-worktrunk` would better
 match the collection's style and distinguish it from the upstream
-skill. The initial review retained the existing identifiers.
+skill. The initial review retained the existing identifier, which
+the next revision replaced.
 [Claude authoring guide](https://platform.claude.com/docs/en/agents-and-tools/agent-skills/best-practices#naming-conventions)
 [Agent Skills specification](https://agentskills.io/specification)
 
@@ -180,5 +183,29 @@ probes also passed.
 Both `skills-ref validate` and the skill-creator validator accepted
 the skill. The package check verified the bundled references and helper.
 Local sync verified the new links for Codex and Claude Code.
+
+## Independent validation
+
+A second agent checked these findings against the repository and the
+tagged v0.82.0 source, without running Worktrunk. The repository
+tests, skill lint and package check passed again. A fresh download of
+the release binary matched its published checksum and the binary the
+probes used. Every versioned link in the skill resolves at the tag.
+
+The source confirms the claims the examples rely on. The hidden `--ff`
+flag overrides the `ff` setting, and combining `--no-commit` with
+`--no-rebase` requires the target to be an ancestor of the source.
+`pre-start` is a hook type and `post-create` is not. An upstream
+integration test asserts that `wt switch --format=json` keeps `path`
+when `pre-start` fails. Schema 2 list output, the global
+`--config-set`, `[list] url`, the approval and dry-run commands,
+`branch_outcome`, `refs/wt-backup/`, and the Git 2.43 minimum match
+the tagged documentation or source.
+
+The runtime probes were not repeated. The prompt evaluation remains
+one self-graded answer per variant, and its scores predate the rename
+and executable examples, so they indicate direction rather than size.
+[Pre-start failure test](https://github.com/max-sixty/worktrunk/blob/v0.82.0/tests/integration_tests/switch.rs#L9246-L9270)
+[Merge flag precedence](https://github.com/max-sixty/worktrunk/blob/v0.82.0/src/commands/merge.rs#L60)
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
