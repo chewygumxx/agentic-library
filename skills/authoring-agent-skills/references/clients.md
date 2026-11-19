@@ -116,4 +116,9 @@ copies or symlinks, and pins what it installed in `skills-lock.json`. A
 skill installed this way arrives as its directory alone, which is why a
 skill must not lean on anything outside it.
 
+For a skill several clients load, keep one editable source directory
+and expose it to each by a symlink or the client's own installer. A
+copy a client or a deployment format requires is fine; copies kept by
+hand drift apart, the first edit landing in one and not the others.
+
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

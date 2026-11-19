@@ -224,6 +224,8 @@ lockfiles and the first publish.
   skill.
 - Editing a description until it matches each failed query overfits it:
   name the category those queries share instead.
+- One skill, one editable directory: for several clients, link it into
+  each or use their installers, never hand-kept copies, which drift.
 - Packaging that ships the skill's directory ships everything in it,
   evaluation workspaces included.
 
