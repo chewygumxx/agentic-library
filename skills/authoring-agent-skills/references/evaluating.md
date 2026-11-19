@@ -17,6 +17,8 @@ these loops for you; this is the method it implements.
 
 - Where the files live
 - Output evaluations
+- Running a case in isolation
+- Grading blind
 - Trigger evaluations
 - Models
 - When to stop
@@ -49,7 +51,9 @@ against.
    would type them, with paths, names and some mess, plus the input
    files and a sentence on what success looks like. Vary phrasing and
    detail, and include an edge: ambiguous instructions, malformed
-   input, an unusual request.
+   input, an unusual request. Test the decisions the skill exists to
+   change: a case whose answer sits in its input files measures how well
+   a model transcribes, and passes as well without the skill.
 
    ```json
    {
@@ -69,15 +73,15 @@ against.
 2. **Runs.** Each case twice: with the skill, and without it (or with
    the snapshot). Each run starts clean: a subagent, `claude -p`, or
    `codex exec`, never the session that wrote the skill, which has read
-   it already. Record each run's tokens and duration as it ends; some
-   clients report them only then.
+   it already, and isolated, as below. Record each run's tokens and
+   duration as it ends; some clients report them only then.
 3. **Assertions,** written after the first run, once you have seen what
    good looks like: specific and checkable ("the output is valid JSON",
    "the chart labels both axes"), neither vague ("is good") nor brittle
    (an exact phrase). Check mechanical ones with a script.
-4. **Grading.** PASS needs quoted evidence from the output; a heading
-   with no substance under it fails. Note assertions that always pass or
-   always fail: they measure nothing.
+4. **Grading.** Blind, as below. PASS needs quoted evidence from the
+   output; a heading with no substance under it fails. Note assertions
+   that always pass or always fail: they measure nothing.
 5. **Benchmark.** Pass rate, time and tokens for each configuration, and
    the difference: what the skill buys, and what it costs.
 6. **Read the transcripts.** Steps the agent wasted point at vague
@@ -90,6 +94,88 @@ against.
    that cost more than they return, and explain why rather than adding
    another MUST. Rerun everything as the next iteration.
 
+## Running a case in isolation
+
+A run that sees more, or less, than intended measures nothing. For each:
+
+1. **A scratch workspace:** a new directory holding the case's input
+   files, with `git init` and a first commit, so `git status` shows
+   afterwards what the run changed.
+2. **The candidate in one arm only:** copy it to where each client
+   finds a project skill, `.claude/skills/<name>/` and
+   `.agents/skills/<name>/` in the with-skill workspace. The baseline's
+   workspace has neither.
+3. **A candidate-free baseline:** check that no directory a client loads
+   skills from holds a copy or link of it, the user's included
+   (`~/.claude/skills`, `$CLAUDE_CONFIG_DIR/skills`, `~/.agents/skills`,
+   `$CODEX_HOME/skills`), following links to their targets. Mark a
+   baseline whose transcript names the candidate as contaminated.
+4. **A jail.** An agent asked to make a skill may install it where the
+   person's own clients look, so the next baseline finds it, and the
+   person's setup changes. Run each client with the home directory
+   read-only but for the run's directory, the clients' state and the
+   caches, and every skills directory read-only within those. With
+   bubblewrap, binding each skills directory by its real path, as it
+   cannot mount onto a link:
+
+   ```sh
+   codex_home=${CODEX_HOME:-$HOME/.codex}
+   claude_home=${CLAUDE_CONFIG_DIR:-$HOME/.claude}
+   codex_skills=$(realpath "$codex_home/skills")
+   claude_skills=$(realpath "$claude_home/skills")
+   bwrap --dev-bind / / --ro-bind "$HOME" "$HOME" \
+       --bind "$run" "$run" --bind /tmp /tmp \
+       --bind "$codex_home" "$codex_home" \
+       --bind "$claude_home" "$claude_home" \
+       --ro-bind "$codex_skills" "$codex_skills" \
+       --ro-bind "$claude_skills" "$claude_skills" \
+       --chdir "$run/workspace" -- <client command>
+   ```
+
+   Add a `--ro-bind` for each other skills directory that exists, and
+   bind any other cache a client writes. Where bubblewrap is missing, a
+   throwaway user or container does the same.
+5. **Launch it unattended,** its events as JSON, with any terminal
+   multiplexer's variables unset so the client's hooks do not report
+   into your own session. Skipping approvals is safe only in the jail.
+   - Claude Code: `claude -p "$prompt" --model <model> --effort <effort>
+     --output-format stream-json --verbose --dangerously-skip-permissions`.
+     The last `result` event holds `usage`, `total_cost_usd`,
+     `num_turns` and the final text; a `Skill` tool call naming the
+     candidate shows it loaded.
+   - Codex: `codex exec --json -m <model> -c model_reasoning_effort=<effort>
+     --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check
+     -C "$run/workspace" "$prompt"`. `turn.completed` events hold
+     `usage`; a command reading `<name>/SKILL.md` shows it loaded.
+6. **A record per run,** `result.json` beside its transcript and
+   `git status`: client, model, effort, case, arm, a status (`ok`,
+   `failed`, `limited` by a usage limit, `contaminated`), duration,
+   tokens, whether it loaded the candidate, and each skill it wrote with
+   the checker's verdict. Rerun what a limit stopped; keep invalid runs
+   apart, with the reason.
+
+## Grading blind
+
+A grader who knows which arm an output came from grades the arm. Copy
+each run's output to a directory named by a random id, and keep the map
+from ids to runs away from the graders. Keep each skill's own directory
+name in the copy, as a renamed one fails the name check. Take
+mechanical assertions, such as the checker's, from each run's own
+workspace. One grader per case, given the case's input files and
+assertions, writes for each output:
+
+```json
+{
+  "assertion_results": [
+    { "text": "<assertion>", "passed": true, "evidence": "<file: quoted text>" }
+  ],
+  "summary": { "passed": 0, "failed": 0, "total": 0, "pass_rate": 0.0 }
+}
+```
+
+Unblind only to aggregate: by model and arm, and by case and assertion,
+as an overall rate hides which assertion carries the difference.
+
 ## Trigger evaluations
 
 1. **Queries.** About 20: 8 to 10 that should load the skill, varied in
@@ -99,7 +185,8 @@ against.
    "write a fibonacci function" test nothing.
 2. **Split** them, shuffled, about 60% to tune on and 40% to judge by,
    with positives and negatives in both, fixed across iterations.
-3. **Run** each query 3 times, as triggering varies, and count a run as
+3. **Run** each query 3 times, isolated as output runs are, as
+   triggering varies, and count a run as
    a trigger when the agent loaded the skill: a `Skill` tool call
    naming it, or a read of its `SKILL.md`, in the run's JSON output. A
    should-trigger query passes above a rate of 0.5, a should-not below.
