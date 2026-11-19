@@ -118,6 +118,9 @@ its domain. Put the main use first: clients shorten descriptions when
 many skills share the listing's budget. At most 1,024 characters.
 
 **Body.** Ask of each line: would the agent get this wrong without it?
+That question is for new writing. Repairing or restructuring a skill,
+keep every instruction that is not wrong or superseded, moving it where
+it belongs; remove one only if it is, or if the person asks.
 
 - Explain why, so the agent can judge cases the text never names. Keep
   exact, do-not-vary commands for the fragile steps, such as a
