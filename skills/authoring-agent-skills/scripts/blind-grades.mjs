@@ -331,7 +331,12 @@ if (mapData.rubric === true && !existsSync(rubricFile)) {
     );
     process.exit(2);
 }
-const rubric = mapData.rubric === true ? read(rubricFile) : null;
+// A flat map from before the map recorded it needs its rubric if one is
+// beside it.
+const rubric =
+    mapData.rubric === true || (!mapData.runs && existsSync(rubricFile))
+        ? read(rubricFile)
+        : null;
 const rows = [];
 const missing = [];
 const invalid = [];

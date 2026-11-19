@@ -411,6 +411,15 @@ describe("unblind", () => {
             cli("unblind", r.runsDir, r.blindDir, "--json").stdout,
         );
         expect(bad.invalid_grading).toHaveLength(2);
+        // A map from before it recorded the need: flat, its rubric beside.
+        const mapFile = join(r.runsDir, "blind-map.json");
+        const map = readFileSync(mapFile, "utf8");
+        writeFileSync(mapFile, JSON.stringify(JSON.parse(map).runs));
+        expect(
+            JSON.parse(cli("unblind", r.runsDir, r.blindDir, "--json").stdout)
+                .invalid_grading,
+        ).toHaveLength(2);
+        writeFileSync(mapFile, map);
         const rubric = join(r.runsDir, "blind-rubric.json");
         const kept = readFileSync(rubric, "utf8");
         rmSync(rubric);
