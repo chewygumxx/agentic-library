@@ -135,10 +135,13 @@ it belongs; remove one only if it is, or if the person asks.
   tools, and no dates that will go stale.
 
 **Progressive disclosure.** `SKILL.md` stays under 500 lines and about
-5,000 tokens. Detail moves to `references/`, each file linked from
-`SKILL.md` itself with when to read it ("read X if the build fails"),
-never only from another reference, and given a contents list past 100
-lines. Templates and data go in `assets/`.
+5,000 tokens. Split by need, not by the size of the source: a reference
+earns its file when the body would pass that budget, or when only some
+tasks need it. Distilled from a large source, a skill may fit in one
+file; what matters is that nothing the agent needs is left behind. A
+reference is linked from `SKILL.md` itself with when to read it ("read
+X if the build fails"), never only from another reference, and given a
+contents list past 100 lines. Templates and data go in `assets/`.
 
 **Scripts over specification.** When the agent would derive, copy or
 validate structured data by hand, or rewrite the same code each run,
