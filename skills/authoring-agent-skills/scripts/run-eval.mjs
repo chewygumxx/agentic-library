@@ -39,6 +39,7 @@ import {
 import { homedir } from "node:os";
 import { basename, dirname, join, relative, resolve } from "node:path";
 import { parseArgs } from "node:util";
+import { parseDocument } from "./vendor/yaml.mjs";
 
 const SELF_DIR = dirname(new URL(import.meta.url).pathname);
 
@@ -170,13 +171,27 @@ if (!existsSync(join(caseDir, "prompt.md"))) {
 if (!existsSync(join(skillDir, "SKILL.md"))) {
     fail(`${o.skill} holds no SKILL.md`);
 }
-// The skill's own name, from its frontmatter, as a snapshot's directory
-// may be named anything; else its directory's.
-const name =
-    readFileSync(join(skillDir, "SKILL.md"), "utf8")
-        .match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1]
-        ?.match(/^name:[ \t]*["']?([^"'\r\n]+?)["']?[ \t]*$/m)?.[1] ??
-    basename(skillDir);
+// The skill's own name, from its frontmatter, read as YAML, as a
+// snapshot's directory may be named anything; else its directory's. It
+// names directories, so it must be a valid skill name.
+const frontName = (() => {
+    const yaml = readFileSync(join(skillDir, "SKILL.md"), "utf8").match(
+        /^---\r?\n(?:([\s\S]*?)\r?\n)?---[ \t]*(?:\r?\n|$)/,
+    )?.[1];
+    if (yaml === undefined) return undefined;
+    const doc = parseDocument(yaml);
+    return doc.errors.length ? undefined : doc.toJS()?.name;
+})();
+const name = frontName ?? basename(skillDir);
+if (
+    typeof name !== "string" ||
+    name.length > 64 ||
+    !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(name)
+) {
+    fail(
+        `the skill's name ${JSON.stringify(name)} is not a valid skill name; run check-skill.mjs on it`,
+    );
+}
 const bwrap = spawnSync("bwrap", ["--version"], { encoding: "utf8" });
 if (bwrap.error) {
     fail(
@@ -567,8 +582,10 @@ const probeScript = [
         (r) =>
             `if touch ${sh(join(r, ".run-eval-probe"))} 2>/dev/null; then rm -f ${sh(join(r, ".run-eval-probe"))}; echo "writable: ${r}"; status=1; fi`,
     ),
+    // Found by a SKILL.md naming it, quoted or not, or a directory of its
+    // name; the name holds only letters, digits and hyphens.
     o.arm === "without"
-        ? `found=$(grep -rlsIF --exclude-dir=.git ${sh(`name: ${name}`)} ${searched.map(sh).join(" ")} 2>/dev/null | head -5); if [ -n "$found" ]; then echo "baseline can read the skill: $found"; status=1; fi`
+        ? `found=$( { grep -rlsIE --exclude-dir=.git ${sh(`^name:[[:space:]]*["']?${name}["']?[[:space:]]*(#.*)?$`)} ${searched.map(sh).join(" ")}; find ${searched.map(sh).join(" ")} -name .git -prune -o -type d -name ${sh(name)} -print; } 2>/dev/null | head -5); if [ -n "$found" ]; then echo "baseline can read the skill: $found"; status=1; fi`
         : "true",
     "exit $status",
 ].join("\n");

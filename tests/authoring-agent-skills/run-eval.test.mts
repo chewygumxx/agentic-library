@@ -9,108 +9,15 @@
 //
 
 // run-eval.mjs, with stand-ins for claude and codex in bin/: what it
-// records of a run, and what its jail and probe keep a run from seeing
-// or changing. Needs bubblewrap; skipped where it is missing.
+// records of a run, and the arguments it refuses. Its jail and probe are
+// in run-eval-jail.test.mts. Needs bubblewrap; skipped where it is
+// missing.
 
 import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
-import {
-    existsSync,
-    mkdirSync,
-    mkdtempSync,
-    readdirSync,
-    readFileSync,
-    rmSync,
-    symlinkSync,
-    writeFileSync,
-} from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-
-const script = join(
-    import.meta.dir,
-    "..",
-    "..",
-    "skills",
-    "authoring-agent-skills",
-    "scripts",
-    "run-eval.mjs",
-);
-const stubs = join(import.meta.dir, "bin");
-const hasBwrap = !spawnSync("bwrap", ["--version"]).error;
-const SKILL = "processing-things";
-
-// A fresh home, client homes, a case and a skill, all under one root.
-function world() {
-    const root = mkdtempSync(join(tmpdir(), "run-eval-"));
-    const home = join(root, "home");
-    const claudeHome = join(home, ".claude");
-    const codexHome = join(home, ".codex");
-    for (const dir of [
-        join(claudeHome, "skills"),
-        join(codexHome, "skills"),
-        join(root, "case", "files"),
-        join(root, "skills", SKILL),
-    ]) {
-        mkdirSync(dir, { recursive: true });
-    }
-    writeFileSync(join(root, "case", "prompt.md"), "make a skill\n");
-    writeFileSync(join(claudeHome, ".credentials.json"), "{}\n");
-    writeFileSync(join(codexHome, "auth.json"), "{}\n");
-    writeFileSync(join(root, "case", "files", "notes.md"), "notes\n");
-    writeFileSync(
-        join(root, "skills", SKILL, "SKILL.md"),
-        `---\nname: ${SKILL}\ndescription: Processes things. Use when needed.\n---\n`,
-    );
-    const env: Record<string, string | undefined> = {
-        ...process.env,
-        HOME: home,
-        CLAUDE_CONFIG_DIR: claudeHome,
-        CODEX_HOME: codexHome,
-        PATH: `${stubs}:${process.env.PATH}`,
-        STUB_SKILL: SKILL,
-    };
-    return { root, home, claudeHome, codexHome, env };
-}
-
-function run(
-    w: ReturnType<typeof world>,
-    options: { client?: string; arm?: string; mode?: string; extra?: string[] },
-) {
-    const out = join(
-        w.root,
-        "out",
-        `${options.client ?? "claude"}-${options.arm ?? "with"}-${options.mode ?? "use"}`,
-    );
-    const result = spawnSync(
-        "node",
-        [
-            script,
-            "--client",
-            options.client ?? "claude",
-            "--model",
-            "m",
-            "--case",
-            join(w.root, "case"),
-            "--arm",
-            options.arm ?? "with",
-            "--skill",
-            join(w.root, "skills", SKILL),
-            "--out",
-            out,
-            ...(options.extra ?? []),
-        ],
-        {
-            encoding: "utf8",
-            env: { ...w.env, STUB_MODE: options.mode ?? "use" },
-        },
-    );
-    const file = join(out, "result.json");
-    const record = existsSync(file)
-        ? (JSON.parse(readFileSync(file, "utf8")) as Record<string, unknown>)
-        : null;
-    return { ...result, out, record };
-}
+import { hasBwrap, run, SKILL, script, world } from "./run-eval-world.mts";
 
 describe.skipIf(!hasBwrap)("a run", () => {
     it("records a with run that read the skill and wrote one", () => {
@@ -172,6 +79,62 @@ describe.skipIf(!hasBwrap)("a run", () => {
                 join(out, "workspace", ".agents", "skills", SKILL, "SKILL.md"),
             ),
         ).toBe(true);
+    });
+
+    it.each([
+        [`name: ${SKILL} # the skill`, 0],
+        [`name: '${SKILL}' # quoted`, 0],
+        ["name: ../escaped", 2],
+    ])(
+        "reads %s as YAML, and refuses a name a path cannot take",
+        (line, code) => {
+            const w = world();
+            const snapshot = join(w.root, "snapshot");
+            mkdirSync(snapshot);
+            writeFileSync(
+                join(snapshot, "SKILL.md"),
+                `---\n${line}\ndescription: Processes things. Use when needed.\n---\n`,
+            );
+            const out = join(w.root, "out", "yaml");
+            const r = spawnSync(
+                "node",
+                [
+                    script,
+                    ...["--client", "claude", "--model", "m", "--arm", "with"],
+                    ...["--case", join(w.root, "case"), "--skill", snapshot],
+                    ...["--out", out],
+                ],
+                { encoding: "utf8", env: { ...w.env, STUB_MODE: "plain" } },
+            );
+            expect(r.status).toBe(code);
+            if (code === 0) {
+                expect(
+                    existsSync(
+                        join(out, "workspace", ".claude", "skills", SKILL),
+                    ),
+                ).toBe(true);
+            } else {
+                expect(existsSync(join(w.root, "out", "escaped"))).toBe(false);
+                expect(r.stderr).toContain("name");
+            }
+        },
+    );
+
+    it("refuses a baseline whose workspace holds the skill by a quoted name", () => {
+        const w = world();
+        const copy = join(
+            w.root,
+            "case",
+            "files",
+            ".claude",
+            "skills",
+            "other",
+        );
+        mkdirSync(copy, { recursive: true });
+        writeFileSync(join(copy, "SKILL.md"), `---\nname: "${SKILL}"\n---\n`);
+        const r = run(w, { arm: "without", extra: ["--probe"] });
+        expect(r.status).toBe(3);
+        expect(r.stderr).toContain("baseline can read the skill");
     });
 
     it("keeps the skill out of a without run's workspace", () => {
@@ -275,287 +238,6 @@ describe.skipIf(!hasBwrap)("a run", () => {
         const r = run(w, { mode: "leak", extra: ["--profile", "person"] });
         expect(r.record?.status).toBe("leaked");
         expect(String(r.record?.leaked)).toContain("installed");
-    });
-});
-
-describe.skipIf(!hasBwrap)("the jail", () => {
-    it.each(["with", "without"])(
-        "keeps the source, the case, other runs and the host out of a %s run",
-        (arm) => {
-            const w = world();
-            const sibling = run(w, {});
-            const host = mkdtempSync(join(tmpdir(), "run-eval-host-"));
-            writeFileSync(join(host, "marker"), "host\n");
-            const source = join(w.root, "skills", SKILL, "SKILL.md");
-            const result = join(sibling.out, "result.json");
-            const before = readFileSync(source, "utf8");
-            w.env = {
-                ...w.env,
-                STUB_PEEK: [
-                    source,
-                    join(w.root, "case", "prompt.md"),
-                    result,
-                    join(host, "marker"),
-                ].join(":"),
-                STUB_POKE: [source, result, join(host, "marker")].join(":"),
-            };
-            const r = run(w, { arm, mode: "peek" });
-            expect(r.record?.status).toBe("ok");
-            expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
-            expect(readFileSync(source, "utf8")).toBe(before);
-            expect(readFileSync(join(host, "marker"), "utf8")).toBe("host\n");
-        },
-    );
-
-    it.each([["out", "the run can see beside its output"]])(
-        "refuses a run that --ro lets see %s",
-        (dir, message) => {
-            const w = world();
-            mkdirSync(join(w.root, dir), { recursive: true });
-            const r = run(w, {
-                extra: ["--ro", join(w.root, dir), "--probe"],
-            });
-            expect(r.status).toBe(3);
-            expect(r.stderr).toContain(message);
-            expect(readdirSync(join(w.root, "out"))).not.toContainEqual(
-                expect.stringMatching(/^\.run-eval-beside/),
-            );
-        },
-    );
-
-    it("keeps a fresh profile's writes in the jail", () => {
-        const w = world();
-        const leak = run(w, { mode: "leak" });
-        expect(leak.record?.status).toBe("ok");
-        expect(existsSync(join(w.claudeHome, "installed"))).toBe(false);
-        const escaped = run(w, { mode: "escape" });
-        expect(escaped.record?.status).toBe("ok");
-        expect(existsSync(join(w.claudeHome, "skills", "escaped"))).toBe(false);
-        expect(existsSync(join(w.home, "escaped"))).toBe(false);
-    });
-
-    it("gives a fresh profile the credentials, and nothing else", () => {
-        const w = world();
-        writeFileSync(join(w.claudeHome, "CLAUDE.md"), `Use ${SKILL}.\n`);
-        w.env = {
-            ...w.env,
-            STUB_PEEK: [
-                join(w.claudeHome, "CLAUDE.md"),
-                join(w.home, ".run-eval", "claude", "CLAUDE.md"),
-            ].join(":"),
-        };
-        const r = run(w, { arm: "without", mode: "peek" });
-        expect(r.record?.status).toBe("ok");
-        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
-    });
-
-    it.each(["claude", "codex"])(
-        "refuses to run %s signed out, or apart from its binary",
-        (client) => {
-            const w = world();
-            const file =
-                client === "claude"
-                    ? join(w.claudeHome, ".credentials.json")
-                    : join(w.codexHome, "auth.json");
-            rmSync(file);
-            const r = run(w, { client });
-            expect(r.status).toBe(3);
-            expect(r.stderr).toContain(`${client} is not signed in`);
-            const bare = world();
-            bare.env = { ...bare.env, PATH: "/usr/bin:/bin" };
-            const s = run(bare, { client });
-            expect(s.status).toBe(3);
-        },
-    );
-
-    it("gives a run its own client's credentials, read-only", () => {
-        const w = world();
-        const own = join(w.claudeHome, ".credentials.json");
-        w.env = {
-            ...w.env,
-            STUB_PEEK: join(w.home, ".run-eval", "codex", "auth.json"),
-            STUB_POKE: join(w.home, ".run-eval", "claude", ".credentials.json"),
-        };
-        const r = run(w, { mode: "peek" });
-        expect(r.record?.status).toBe("ok");
-        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
-        expect(readFileSync(own, "utf8")).toBe("{}\n");
-    });
-
-    it("freezes the installed skill in a with run", () => {
-        const w = world();
-        const installed = [".claude", ".agents"].map((d) =>
-            join("skills", SKILL, "SKILL.md").replace(/^/, `${d}/`),
-        );
-        w.env = { ...w.env, STUB_POKE: installed.join(":") };
-        const r = run(w, { mode: "peek" });
-        expect(r.record?.status).toBe("ok");
-        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
-    });
-
-    it.each([
-        ["--ro", "case"],
-        ["--rw", "skills"],
-    ])("refuses %s over the %s", (flag, dir) => {
-        const w = world();
-        const r = run(w, { extra: [flag, join(w.root, dir), "--probe"] });
-        expect(r.status).toBe(2);
-        expect(r.stderr).toContain(`${flag} ${join(w.root, dir)} overlaps`);
-    });
-
-    // Never --out /: should the guard regress, the runner would empty it.
-    it.each(["--ro", "--rw"])("refuses %s /", (flag) => {
-        const w = world();
-        const r = run(w, { extra: [flag, "/", "--dry-run"] });
-        expect(r.status).toBe(2);
-        expect(r.stdout).toBe("");
-    });
-
-    it("refuses --out holding the home", () => {
-        const w = world();
-        const box = join(w.root, "box");
-        mkdirSync(join(box, "home"), { recursive: true });
-        w.env = { ...w.env, HOME: join(box, "home") };
-        const r = run(w, { extra: ["--out", box] });
-        expect(r.status).toBe(2);
-        expect(existsSync(join(box, "home"))).toBe(true);
-    });
-
-    it("refuses --out through a symlink into the case", () => {
-        const w = world();
-        symlinkSync(join(w.root, "case"), join(w.root, "link"));
-        const r = run(w, {
-            extra: ["--out", join(w.root, "link", "new", "run")],
-        });
-        expect(r.status).toBe(2);
-        expect(r.stderr).toContain("--out and --case overlap");
-        expect(existsSync(join(w.root, "case", "new"))).toBe(false);
-    });
-
-    it("refuses --out inside the skill, and deletes nothing", () => {
-        const w = world();
-        const skill = join(w.root, "skills", SKILL);
-        const r = spawnSync(
-            "node",
-            [
-                script,
-                ...["--client", "claude", "--model", "m", "--arm", "with"],
-                ...["--case", join(w.root, "case"), "--skill", skill],
-                ...["--out", join(skill, "runs")],
-            ],
-            { encoding: "utf8", env: w.env },
-        );
-        expect(r.status).toBe(2);
-        expect(r.stderr).toContain("--out and --skill overlap");
-        expect(existsSync(join(skill, "SKILL.md"))).toBe(true);
-    });
-
-    it("refuses writes to the person's skills directories and home", () => {
-        const w = world();
-        const r = run(w, { mode: "escape", extra: ["--profile", "person"] });
-        expect(r.record?.status).toBe("ok");
-        expect(existsSync(join(w.claudeHome, "skills", "escaped"))).toBe(false);
-        expect(existsSync(join(w.home, "escaped"))).toBe(false);
-        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).not.toContain(
-            "wrote skills",
-        );
-    });
-
-    it("hides past sessions, so a copy there passes the probe", () => {
-        const w = world();
-        mkdirSync(join(w.claudeHome, "file-history"), { recursive: true });
-        writeFileSync(
-            join(w.claudeHome, "file-history", "x"),
-            `name: ${SKILL}\n`,
-        );
-        const r = run(w, {
-            arm: "without",
-            extra: ["--profile", "person", "--probe"],
-        });
-        expect(r.status).toBe(0);
-        expect(r.stdout).toContain("probe passed");
-    });
-
-    it("refuses a without run that could read the skill", () => {
-        const w = world();
-        mkdirSync(join(w.claudeHome, "notes"), { recursive: true });
-        writeFileSync(
-            join(w.claudeHome, "notes", "copy.md"),
-            `name: ${SKILL}\n`,
-        );
-        const r = run(w, { arm: "without", extra: ["--profile", "person"] });
-        expect(r.status).toBe(3);
-        expect(r.stderr).toContain("baseline can read the skill");
-        expect(r.record).toBeNull();
-    });
-
-    it("passes the probe once that copy is hidden", () => {
-        const w = world();
-        mkdirSync(join(w.claudeHome, "notes"), { recursive: true });
-        writeFileSync(
-            join(w.claudeHome, "notes", "copy.md"),
-            `name: ${SKILL}\n`,
-        );
-        const r = run(w, {
-            arm: "without",
-            extra: [
-                "--profile",
-                "person",
-                "--hide",
-                join(w.claudeHome, "notes"),
-                "--probe",
-            ],
-        });
-        expect(r.status).toBe(0);
-    });
-});
-
-describe.skipIf(!hasBwrap)("inside a git hook", () => {
-    it("leaves the hook's repository alone, and runs no hook", () => {
-        const w = world();
-        const decoy = join(w.root, "decoy");
-        mkdirSync(join(decoy, "hooks"), { recursive: true });
-        const clean = Object.fromEntries(
-            Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
-        );
-        spawnSync("git", ["init", "-q", decoy], { env: clean });
-        writeFileSync(
-            join(decoy, "hooks", "pre-commit"),
-            `#!/bin/sh\ntouch ${join(w.root, "hook-ran")}\n`,
-            { mode: 0o755 },
-        );
-        spawnSync(
-            "git",
-            ["-C", decoy, "config", "core.hooksPath", join(decoy, "hooks")],
-            { env: clean },
-        );
-        // A pre-commit check exports these, as git does for a worktree.
-        w.env = {
-            ...w.env,
-            GIT_DIR: join(decoy, ".git"),
-            GIT_INDEX_FILE: join(decoy, ".git", "index"),
-        };
-        const r = run(w, {});
-        expect(r.record?.status).toBe("ok");
-        expect(existsSync(join(w.root, "hook-ran"))).toBe(false);
-        const count = spawnSync(
-            "git",
-            ["-C", decoy, "rev-list", "--all", "--count"],
-            {
-                encoding: "utf8",
-                env: clean,
-            },
-        );
-        expect(count.stdout.trim()).toBe("0");
-        const log = spawnSync(
-            "git",
-            ["-C", join(r.out, "workspace"), "log", "--format=%s"],
-            {
-                encoding: "utf8",
-                env: clean,
-            },
-        );
-        expect(log.stdout.trim()).toBe("fixture");
     });
 });
 
