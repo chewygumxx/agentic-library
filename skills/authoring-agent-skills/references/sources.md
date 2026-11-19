@@ -58,7 +58,7 @@ and their limits change faster than any skill that describes them.
 | A fixed section order and 5 to 10 examples (Skill Seekers) | Moderate detail (agentskills.io): examples where the output's quality depends on them |
 | Third person, "Processes ..." (Anthropic) or imperative, "Use this skill when ..." (agentskills.io) | Both: what it does in the third person, then a `Use when` sentence |
 | Gerund names: "consider" (Anthropic), required (Skill Seekers), unmentioned (specification) | A convention to follow unless a collection already uses another |
-| Hard description limit | 1,024 characters everywhere; Claude Code also cuts its listing at 1,536 with `when_to_use` |
+| Description limit | 1,024 characters in the specification and the Claude API; claude.ai's help says 200, unconfirmed by an upload ([clients](clients.md)); Claude Code cuts its listing at 1,536 with `when_to_use` |
 
 ## What none of them settles
 

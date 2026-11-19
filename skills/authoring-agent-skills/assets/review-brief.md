@@ -41,8 +41,9 @@ Judge it on:
    Anything it needs that does not travel with its directory, and,
    for a skill meant for any project, anything that leans on the one it
    was written in.
-7. **Conformity.** Run `node <path to check-skill.mjs> <path to the
-   skill>`, and compare against the Agent Skills specification and
+7. **Conformity.** Run `node <path to check-skill.mjs> --target
+   <portable, or claude-code for a skill for that client alone> <path to
+   the skill>`, and compare against the Agent Skills specification and
    Anthropic's skill authoring best practices.
 
 `<anything else: a past finding to recheck, a section in doubt>`

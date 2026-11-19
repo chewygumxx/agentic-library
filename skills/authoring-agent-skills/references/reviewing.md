@@ -33,8 +33,9 @@ its placeholders, and hand it over. It asks, in this order:
    with its directory. A skill for one project may name that project's
    paths and tools; a skill for any project leans on none, and asks for
    what it needs. Nothing secret either way.
-7. **Does it conform?** `scripts/check-skill.mjs` passes, and the
-   [sources](sources.md) agree.
+7. **Does it conform?** `scripts/check-skill.mjs` passes for the
+   clients it targets (`--target portable`, or `claude-code` for that
+   client alone), and the [sources](sources.md) agree.
 
 ## Between agents
 
