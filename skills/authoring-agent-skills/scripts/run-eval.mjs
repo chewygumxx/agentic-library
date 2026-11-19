@@ -26,9 +26,11 @@ import {
     cpSync,
     createWriteStream,
     existsSync,
+    lstatSync,
     mkdirSync,
     readdirSync,
     readFileSync,
+    readlinkSync,
     realpathSync,
     rmSync,
     statSync,
@@ -54,6 +56,11 @@ it, and files/, copied into the workspace.
 options:
   --effort <level>       Reasoning effort; default the client's own.
   --timeout-min <n>      Stop the run after n minutes; default 40.
+  --profile <fresh|person>
+                         fresh (default): the client's home is empty
+                         but for its credentials, read-only; person: their
+                         own client homes, settings, hooks, MCP servers
+                         and skills, sessions hidden, skills read-only.
   --ro <path>            Also bind a path read-only into the jail;
                          repeatable, for tools the client runs.
   --rw <path>            Also bind a path writable; repeatable.
@@ -63,13 +70,18 @@ options:
   --dry-run              Print the jail's command and stop.
   -h, --help             Show this help.
 
-The jail: an empty home, with only what the clients need bound back:
-their binaries and configuration read-only, their own state writable,
-past transcripts hidden, and every directory a client finds skills in
-read-only, by its real path. Before running, a probe must find each of
-those unwritable and, in the without arm, the skill nowhere; a failed
-probe refuses the run. After it, a new SKILL.md in a writable client
-directory marks the run leaked.
+The jail: of the host, only the system directories (/usr, /etc and
+the like) and PATH, read-only; an empty /tmp, runtime directory and
+home, with only the client's profile and the tools on PATH bound back,
+read-only, by their real paths; and <out>, writable. So the skill's
+source, the case and other runs are out of sight wherever they lie, and
+so is the session bus. The network is shared: the clients reach their
+APIs, and could reach the host's network services. Before running, a
+probe must find the client starting and signed in, the skills
+directories unwritable, the skill's source, what lies beside <out> and
+the runtime directory out of sight, and, in the without arm, the skill
+nowhere; a failed probe refuses the run. With the person's profile, a
+new SKILL.md in their client homes marks the run leaked.
 
 status in result.json: ok; failed (the client exited non-zero);
 limited (a usage limit stopped it: rerun after the reset); contaminated
@@ -77,7 +89,8 @@ limited (a usage limit stopped it: rerun after the reset); contaminated
 a skill where another run could find it). Only ok runs count.
 
 Exit codes: 0 recorded, whatever the status but limited; 75 limited;
-2 bad arguments; 3 a probe failed, nothing ran.
+2 bad arguments, or --out overlapping --skill or --case; 3 a probe
+failed, nothing ran.
 
 Tested with Claude Code 2.x (claude -p --output-format stream-json) and
 Codex CLI 0.169 (codex exec --json); other versions may emit other
@@ -107,6 +120,7 @@ try {
             skill: { type: "string" },
             out: { type: "string" },
             "timeout-min": { type: "string" },
+            profile: { type: "string" },
             ro: { type: "string", multiple: true },
             rw: { type: "string", multiple: true },
             hide: { type: "string", multiple: true },
@@ -127,6 +141,7 @@ o.ro ??= [];
 o.rw ??= [];
 o.hide ??= [];
 o["timeout-min"] ??= "40";
+o.profile ??= "fresh";
 for (const key of ["client", "model", "case", "arm", "skill", "out"]) {
     if (!o[key]) fail(`--${key} is required; see --help`);
 }
@@ -135,6 +150,9 @@ if (!["claude", "codex"].includes(o.client)) {
 }
 if (!["with", "without"].includes(o.arm)) {
     fail(`--arm must be with or without, not ${o.arm}`);
+}
+if (!["fresh", "person"].includes(o.profile)) {
+    fail(`--profile must be fresh or person, not ${o.profile}`);
 }
 const caseDir = resolve(o.case);
 const skillDir = resolve(o.skill);
@@ -159,6 +177,8 @@ const home = homedir();
 const at = (p) => join(home, p);
 const claudeHome = process.env.CLAUDE_CONFIG_DIR || at(".claude");
 const codexHome = process.env.CODEX_HOME || at(".codex");
+const dataHome = process.env.XDG_DATA_HOME || at(".local/share");
+const configHome = process.env.XDG_CONFIG_HOME || at(".config");
 const real = (p) => {
     try {
         return realpathSync(p);
@@ -167,88 +187,267 @@ const real = (p) => {
     }
 };
 const unique = (list) => [...new Set(list.filter(Boolean))];
+const within = (p, dir) => p === dir || p.startsWith(`${dir}/`);
+const overlaps = (a, b) => within(a, b) || within(b, a);
+
+// A path as it will be once made: its nearest existing ancestor's real
+// path, then the rest, so a symlink above a new --out is followed.
+const realOrMade = (p) => {
+    const rest = [];
+    let at = p;
+    while (!existsSync(at) && dirname(at) !== at) {
+        rest.unshift(basename(at));
+        at = dirname(at);
+    }
+    return join(real(at) ?? at, ...rest);
+};
+// --out is emptied before the run: it must neither hold nor lie in the
+// skill or the case; and no bind may show either to the run.
+const outReal = realOrMade(out);
+const skillReal = real(skillDir);
+const caseReal = real(caseDir);
+for (const [flag, dir] of [
+    ["--skill", skillReal],
+    ["--case", caseReal],
+]) {
+    if (overlaps(outReal, dir)) {
+        fail(`--out and ${flag} overlap: keep ${o.out} apart from ${dir}`);
+    }
+}
+for (const flag of ["ro", "rw"]) {
+    for (const p of o[flag]) {
+        const r = realOrMade(resolve(p));
+        if (overlaps(r, skillReal) || overlaps(r, caseReal)) {
+            fail(`--${flag} ${p} overlaps the skill or the case`);
+        }
+    }
+}
+
+// A fresh profile, by default: each client's home is empty but for the
+// person's credentials, bound so that a refreshed token reaches their own
+// copy, with none of their settings, hooks, MCP servers, memory, sessions
+// or skills, any of which may differ between runs or name the skill.
+// --profile person keeps their client homes, sessions hidden and skills
+// read-only, to evaluate against their own setup.
+const fresh = o.profile === "fresh";
+const jailClaude = fresh ? at(".run-eval/claude") : claudeHome;
+const jailCodex = fresh ? at(".run-eval/codex") : codexHome;
+// Only this client's, read-only: nothing a run does reaches the
+// person's login. A run that must refresh its token cannot keep the new
+// one; for long batches, give the client a long-lived token in the
+// environment instead.
+const credentials = fresh
+    ? [
+          o.client === "claude"
+              ? [join(claudeHome, ".credentials.json"), jailClaude]
+              : [join(codexHome, "auth.json"), jailCodex],
+      ].filter(([p]) => existsSync(p))
+    : [];
 
 // Where each client finds skills, as their documentation gives it.
-// Project skills are the workspace's own; everything else is the
-// person's, kept read-only so a baseline keeps what a person has.
+// Project skills are the workspace's own; the rest, with the person's
+// profile, are theirs, kept read-only so a baseline keeps what they have.
 const SKILL_ROOTS = [
-    join(claudeHome, "skills"),
-    at(".claude/skills"),
-    join(claudeHome, "plugins"),
-    join(codexHome, "skills"),
-    join(codexHome, "plugins"),
-    at(".agents/skills"),
+    ...(fresh
+        ? []
+        : [
+              join(claudeHome, "skills"),
+              at(".claude/skills"),
+              join(claudeHome, "plugins"),
+              join(codexHome, "skills"),
+              join(codexHome, "plugins"),
+              at(".agents/skills"),
+          ]),
     "/etc/codex/skills",
 ];
 const skillRoots = unique(SKILL_ROOTS.filter(existsSync).map(real));
 
-// What the clients run from or read: binaries, version managers,
-// configuration. PATH entries under the home are bound back read-only.
+// What the clients run from, read-only: each PATH entry under the home
+// and each client's own binary, by its real path; for one in the home's
+// data directory or a dot-directory, the tool's whole directory there,
+// and its configuration, as a version manager needs. Never a directory
+// holding a client's home, the skill, the case or the output: then only
+// the entry itself, or nothing.
+const guarded = unique([
+    real(claudeHome),
+    real(codexHome),
+    skillReal,
+    caseReal,
+    outReal,
+]);
+const safe = (p) => !guarded.some((g) => within(g, p));
+const toolRoot = (p) => {
+    if (within(p, dataHome) && p !== dataHome) {
+        return join(dataHome, relative(dataHome, p).split("/")[0]);
+    }
+    const top = relative(home, p).split("/")[0];
+    if (top.startsWith(".") && ![".local", ".config"].includes(top)) {
+        return join(home, top);
+    }
+    return p;
+};
+const pathDirs = (process.env.PATH ?? "").split(":").filter(Boolean);
+const clientBinary = pathDirs
+    .map((d) => join(d, o.client))
+    .find((p) => existsSync(p));
+// Symlinks are bound by their targets, as a mount cannot land on one,
+// and recreated where they are not already inside a bound directory.
+const isLink = (p) => {
+    try {
+        return lstatSync(p).isSymbolicLink();
+    } catch {
+        return false;
+    }
+};
+const tools = unique(
+    [...pathDirs, real(clientBinary ?? "")]
+        .filter((p) => p && within(p, home) && p !== home)
+        .flatMap((p) => (isLink(p) ? [real(p)] : [p, real(p)])),
+).flatMap((p) => {
+    const root = toolRoot(p);
+    if (root !== p && safe(root)) {
+        const config = within(root, dataHome)
+            ? join(configHome, basename(root))
+            : null;
+        return [root, config];
+    }
+    return safe(p) ? [p] : [];
+});
+const links = pathDirs
+    .filter((p) => within(p, home) && isLink(p) && real(p))
+    .filter((p) => !tools.some((t) => t !== p && within(p, t)))
+    .flatMap((p) => ["--symlink", real(p), p]);
 const readOnly = unique([
-    at(".local/bin"),
-    at(".local/share"),
-    at(".config"),
-    at(".npmrc"),
-    ...(process.env.PATH ?? "").split(":").filter((p) => p.startsWith(home)),
+    ...tools,
+    ...(fresh ? [] : [at(".config"), at(".npmrc")]),
     ...o.ro.map((p) => resolve(p)),
-]).filter(existsSync);
-// What the clients write: their own state, caches.
+]).filter((p) => p && existsSync(p));
+// What the clients write, with the person's profile: their own state,
+// caches.
 const writable = unique([
-    claudeHome,
-    at(".claude.json"),
-    codexHome,
-    at(".cache"),
-    at(".local/state"),
+    ...(fresh
+        ? []
+        : [
+              claudeHome,
+              at(".claude.json"),
+              codexHome,
+              at(".cache"),
+              at(".local/state"),
+          ]),
     ...o.rw.map((p) => resolve(p)),
 ]).filter(existsSync);
 // Past sessions, file backups and prompt history name, and may hold
 // copies of, the skill under test: hidden, directories behind an empty
-// mount and files behind /dev/null.
+// mount and files behind /dev/null. With a fresh profile, the person's
+// client homes, wherever a bind would show them.
+const bound = [...readOnly, ...writable];
 const hidden = unique([
-    ...[
-        "projects",
-        "file-history",
-        "paste-cache",
-        "plans",
-        "sessions",
-        "shell-snapshots",
-        "tasks",
-        "jobs",
-        "backups",
-        "session-env",
-        "history.jsonl",
-    ].map((p) => join(claudeHome, p)),
-    ...[
-        "sessions",
-        "archived_sessions",
-        "memories",
-        "shell_snapshots",
-        "history.jsonl",
-        "session_index.jsonl",
-    ].map((p) => join(codexHome, p)),
-    at(".local/state/coordinating-agents"),
+    ...(fresh
+        ? [claudeHome, codexHome, at(".claude.json")].filter((p) =>
+              bound.some((b) => within(p, b)),
+          )
+        : [
+              ...[
+                  "projects",
+                  "file-history",
+                  "paste-cache",
+                  "plans",
+                  "sessions",
+                  "shell-snapshots",
+                  "tasks",
+                  "jobs",
+                  "backups",
+                  "session-env",
+                  "history.jsonl",
+              ].map((p) => join(claudeHome, p)),
+              ...[
+                  "sessions",
+                  "archived_sessions",
+                  "memories",
+                  "shell_snapshots",
+                  "history.jsonl",
+                  "session_index.jsonl",
+              ].map((p) => join(codexHome, p)),
+          ]),
     ...o.hide.map((p) => resolve(p)),
 ]).filter(existsSync);
 const hide = (p) =>
     statSync(p).isDirectory() ? ["--tmpfs", p] : ["--bind", "/dev/null", p];
 
+// Of the host, only what the clients run from, read-only: no other
+// home, no /tmp, /var, /srv, /mnt or /run, where the skill's source, the
+// case or another run's output may lie, and no session bus, through
+// which a run could start a process outside the jail.
+const SYSTEM = [
+    "/usr",
+    "/bin",
+    "/sbin",
+    "/lib",
+    "/lib32",
+    "/lib64",
+    "/libx32",
+    "/etc",
+    "/opt",
+    "/nix",
+    "/gnu",
+    "/snap",
+];
+const outsideHome = (p) => !within(p, home);
+const system = SYSTEM.filter(existsSync).flatMap((p) =>
+    lstatSync(p).isSymbolicLink()
+        ? ["--symlink", readlinkSync(p), p]
+        : ["--ro-bind", p, p],
+);
+// Where /etc/resolv.conf leads, as under systemd-resolved, for DNS; and
+// PATH entries outside the home, such as a version manager's.
+const extra = unique([
+    real("/etc/resolv.conf"),
+    ...pathDirs.filter((p) => p.startsWith("/") && outsideHome(p)).map(real),
+])
+    .filter((p) => !SYSTEM.some((s) => within(p, s)) && safe(p))
+    .flatMap((p) => ["--ro-bind", p, p]);
+const runtimeDir = process.env.XDG_RUNTIME_DIR;
+const scratch = unique(["/tmp", "/var/tmp", runtimeDir]);
+
 const ws = join(out, "workspace");
+// The skill as installed in the with arm, read-only, so a run cannot
+// change what it is measured with.
+const frozen =
+    o.arm === "with"
+        ? [".claude/skills", ".agents/skills"].map((d) => join(ws, d, name))
+        : [];
 const jail = (cwd) => [
-    "--dev-bind",
-    "/",
-    "/",
+    "--unshare-pid",
+    "--new-session",
+    "--die-with-parent",
+    ...system,
+    "--dev",
+    "/dev",
+    "--proc",
+    "/proc",
+    ...scratch.flatMap((p) => ["--tmpfs", p]),
+    ...extra,
     "--tmpfs",
     home,
     ...readOnly.flatMap((p) => ["--ro-bind", p, p]),
+    ...links,
     ...writable.flatMap((p) => ["--bind", p, p]),
     ...hidden.flatMap(hide),
+    ...(fresh ? ["--dir", jailClaude, "--dir", jailCodex] : []),
+    ...credentials.flatMap(([p, dir]) => [
+        "--ro-bind",
+        p,
+        join(dir, basename(p)),
+    ]),
     ...skillRoots.flatMap((p) => ["--ro-bind", p, p]),
     "--bind",
     out,
     out,
+    ...frozen.flatMap((p) => ["--ro-bind", p, p]),
+    "--remount-ro",
+    "/",
     "--chdir",
     cwd,
-    "--die-with-parent",
     "--",
 ];
 
@@ -290,18 +489,59 @@ git(
     "fixture",
 );
 
+// The client must not report into the caller's terminal multiplexer,
+// run its git against the caller's repository, nor look for the
+// session bus or SSH agent the jail hides; with a fresh profile, it
+// finds its home in the jail.
+const env = {
+    ...Object.fromEntries(
+        Object.entries(cleanEnv).filter(
+            ([k]) =>
+                !/^(HERDR_|TMUX|ZELLIJ|STY$|DBUS_SESSION_BUS_ADDRESS$|SSH_AUTH_SOCK$)/.test(
+                    k,
+                ),
+        ),
+    ),
+    CLAUDE_CONFIG_DIR: jailClaude,
+    CODEX_HOME: jailCodex,
+};
+
 // -------------------------------------------------------------- probe
 
 // Where a client could find a skill: its skills roots, its own state,
-// and the workspace. The probe and the leak check look there.
-const clientHomes = [claudeHome, codexHome].filter(existsSync);
-const searched = unique([...skillRoots, ...clientHomes, ws]);
+// and the workspace. The probe looks there, and with the person's
+// profile, the leak check too.
+const clientHomes = fresh ? [] : [claudeHome, codexHome].filter(existsSync);
+const searched = unique([...skillRoots, jailClaude, jailCodex, ws]);
 
-// Inside the jail: every skills root refuses a write, and in the
-// without arm, nothing the run can read names the skill outside the
-// person's skills, which may hold it only if they installed it.
+// Inside the jail: the client starts and is signed in; every skills
+// root refuses a write; the skill's source, unless the person installed
+// it, what lies beside the run's output, and the host's runtime
+// directory are out of sight; and in the without arm, nothing the run
+// can read names the skill outside the person's skills, which may hold
+// it only if they installed it.
+const installed = skillRoots.some((r) => skillReal.startsWith(`${r}/`));
+const beside = join(dirname(out), `.run-eval-beside-${process.pid}`);
+const signedIn =
+    o.client === "claude"
+        ? `claude auth status 2>/dev/null | grep -q '"loggedIn": *true'`
+        : "codex login status >/dev/null 2>&1";
 const probeScript = [
     "status=0",
+    `if ! ${o.client} --version >/dev/null 2>&1; then echo "${o.client} does not start in the jail: bind what it needs with --ro"; exit 1; fi`,
+    `if ! ${signedIn}; then echo "${o.client} is not signed in inside the jail: sign it in, or give it a key in the environment"; status=1; fi`,
+    installed
+        ? "true"
+        : `if [ -e ${sh(skillReal)} ]; then echo "the run can read the skill's source: ${skillReal}"; status=1; fi`,
+    `if [ -e ${sh(caseReal)} ]; then echo "the run can read the case's source: ${caseReal}"; status=1; fi`,
+    ...frozen.map(
+        (p) =>
+            `if touch ${sh(join(p, ".run-eval-probe"))} 2>/dev/null; then echo "the installed skill is writable: ${p}"; status=1; fi`,
+    ),
+    `if [ -e ${sh(beside)} ]; then echo "the run can see beside its output: ${dirname(out)}"; status=1; fi`,
+    runtimeDir
+        ? `if [ -n "$(ls -A ${sh(runtimeDir)} 2>/dev/null)" ]; then echo "the run can reach the host's runtime directory: ${runtimeDir}"; status=1; fi`
+        : "true",
     ...skillRoots.map(
         (r) =>
             `if touch ${sh(join(r, ".run-eval-probe"))} 2>/dev/null; then rm -f ${sh(join(r, ".run-eval-probe"))}; echo "writable: ${r}"; status=1; fi`,
@@ -324,19 +564,22 @@ if (o["dry-run"]) {
     );
     process.exit(0);
 }
+writeFileSync(beside, "");
 const probe = spawnSync("bwrap", [...jail(ws), "sh", "-c", probeScript], {
     encoding: "utf8",
+    env,
 });
+rmSync(beside, { force: true });
 if (probe.status !== 0) {
     process.stderr.write(probe.stdout + probe.stderr);
     fail(
-        "the jail's probe failed; nothing ran. Hide what it found the skill in (--hide), or remove the skill from there; make a writable skills directory read-only (--ro).",
+        "the jail's probe failed; nothing ran. Bind what the client needs (--ro); hide what it found the skill in (--hide), or remove the skill from there; make a writable skills directory read-only (--ro).",
         3,
     );
 }
 if (o.probe) {
     process.stdout.write(
-        `probe passed: ${skillRoots.length} skills directories read-only; ${o.arm === "without" ? "the skill is out of sight" : "the skill is installed in the workspace"}\n`,
+        `probe passed: ${o.client} signed in, ${o.profile} profile; ${skillRoots.length} skills directories read-only; ${o.arm === "without" ? "the skill is out of sight" : "the skill is installed in the workspace"}\n`,
     );
     process.exit(0);
 }
@@ -373,13 +616,6 @@ const command =
               ws,
               prompt,
           ];
-// The client must not report into the caller's terminal multiplexer,
-// nor run its git against the caller's repository.
-const env = Object.fromEntries(
-    Object.entries(cleanEnv).filter(
-        ([k]) => !/^(HERDR_|TMUX|ZELLIJ|STY$)/.test(k),
-    ),
-);
 const started = Date.now();
 const transcript = createWriteStream(join(out, "transcript.jsonl"));
 const errors = createWriteStream(join(out, "stderr.log"));

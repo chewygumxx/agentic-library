@@ -113,12 +113,32 @@ it, and `files/`, copied into a fresh workspace with a first commit, so
 skill as a project skill, where Claude Code and Codex both find it;
 `--arm without` leaves it out. Run each case in both arms, on each model.
 
-The script runs the client in bubblewrap, in an empty home with only
-what it needs bound back, past sessions and file backups hidden, and
-every skills directory read-only. Before running it probes the jail,
-and refuses (exit 3) if a skills directory is writable or, in the
-without arm, the skill is readable anywhere a client looks: `--hide`
-what it names. Each run's `result.json` records its status (`ok`,
+The script runs the client in bubblewrap. Of the host it sees only the
+system directories and the tools on `PATH`, read-only; `/tmp`, the
+runtime directory and the home are empty; and its own output directory.
+So the skill's source, the case and the other runs are out of sight
+wherever they lie, and so is the session bus, through which a run could
+start a process outside the jail. The network is shared, as the client
+needs its API.
+
+Each run gets a fresh profile: a client home empty but for that
+client's credentials, read-only, so the person's settings, hooks, MCP
+servers, memory files and skills, which differ between machines and may
+name the skill, stay out of both arms. The client, and whatever it
+runs, can read those credentials, and cannot keep a token it refreshes:
+for a long batch, give it a long-lived token in the environment, such
+as one from `claude setup-token`, or an API key. `--profile person`
+keeps the person's own setup instead, past sessions hidden and skills
+read-only, to measure the skill against what they already have. The
+skill as installed in the with arm is read-only, so a run cannot change
+what it is measured with.
+
+Before running it probes the jail, and refuses (exit 3) if the client
+does not start or is not signed in, a skills directory or the installed
+skill is writable, the skill's or the case's source or what lies beside
+the output is in sight, or, in the without arm, the skill is readable
+anywhere a client looks: `--ro` what the client lacks, `--hide` what
+the probe names. Each run's `result.json` records its status (`ok`,
 `failed`, `limited` by a usage limit, `contaminated` if a baseline names
 the skill, `leaked` if a run installed one where another could find it),
 tokens, duration, whether it read the skill, and each skill it wrote
@@ -127,11 +147,11 @@ after the reset. `--help` has the rest, and `--probe` checks a jail
 without spending a model.
 
 Where bubblewrap is missing, such as on macOS, give each run a
-throwaway user or container with the same properties: an empty home,
-the person's skills read-only, and the clients' past sessions out of
-reach. Launch Claude Code as `claude -p --output-format stream-json
---verbose`, and Codex as `codex exec --json --ephemeral < /dev/null`, as
-the script does.
+throwaway user or container with the same properties: an empty home
+and client profile, the skill's and the case's sources and the other
+runs out of reach, and no way to the person's session. Launch Claude
+Code as `claude -p --output-format stream-json --verbose`, and Codex as
+`codex exec --json --ephemeral < /dev/null`, as the script does.
 
 ## Grading blind
 

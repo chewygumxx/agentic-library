@@ -13,6 +13,15 @@
 # skill when $STUB_MODE is use, and writes a skill to its workspace.
 
 skill=${STUB_SKILL:-processing-things}
+# Signed in when the profile holds credentials, as the jail's preflight asks.
+case $* in
+--version) echo "codex-cli 0.0.0" && exit 0 ;;
+"login status")
+    [ -f "${CODEX_HOME:?run-eval.mjs sets it}/auth.json" ] && echo "Logged in" && exit 0
+    echo "Not logged in" && exit 1
+    ;;
+*) ;;
+esac
 mkdir -p skills/made && printf -- '---\nname: made\ndescription: Makes things. Use when needed.\n---\n' >skills/made/SKILL.md
 if [ "${STUB_MODE:-use}" = use ]; then
     printf '%s\n' "{\"type\":\"item.completed\",\"item\":{\"type\":\"command_execution\",\"command\":\"cat .agents/skills/$skill/SKILL.md\"}}"

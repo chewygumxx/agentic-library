@@ -18,7 +18,10 @@ import {
     existsSync,
     mkdirSync,
     mkdtempSync,
+    readdirSync,
     readFileSync,
+    rmSync,
+    symlinkSync,
     writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
@@ -52,6 +55,8 @@ function world() {
         mkdirSync(dir, { recursive: true });
     }
     writeFileSync(join(root, "case", "prompt.md"), "make a skill\n");
+    writeFileSync(join(claudeHome, ".credentials.json"), "{}\n");
+    writeFileSync(join(codexHome, "auth.json"), "{}\n");
     writeFileSync(join(root, "case", "files", "notes.md"), "notes\n");
     writeFileSync(
         join(root, "skills", SKILL, "SKILL.md"),
@@ -169,18 +174,171 @@ describe.skipIf(!hasBwrap)("a run", () => {
         expect(r.record?.status).toBe("contaminated");
     });
 
-    it("marks a run that installs a skill in a client's state", () => {
+    it("marks a run that installs a skill in the person's client state", () => {
         const w = world();
-        const r = run(w, { mode: "leak" });
+        const r = run(w, { mode: "leak", extra: ["--profile", "person"] });
         expect(r.record?.status).toBe("leaked");
         expect(String(r.record?.leaked)).toContain("installed");
     });
 });
 
 describe.skipIf(!hasBwrap)("the jail", () => {
-    it("refuses writes to skills directories and the home", () => {
+    it.each(["with", "without"])(
+        "keeps the source, the case, other runs and the host out of a %s run",
+        (arm) => {
+            const w = world();
+            const sibling = run(w, {});
+            const host = mkdtempSync(join(tmpdir(), "run-eval-host-"));
+            writeFileSync(join(host, "marker"), "host\n");
+            const source = join(w.root, "skills", SKILL, "SKILL.md");
+            const result = join(sibling.out, "result.json");
+            const before = readFileSync(source, "utf8");
+            w.env = {
+                ...w.env,
+                STUB_PEEK: [
+                    source,
+                    join(w.root, "case", "prompt.md"),
+                    result,
+                    join(host, "marker"),
+                ].join(":"),
+                STUB_POKE: [source, result, join(host, "marker")].join(":"),
+            };
+            const r = run(w, { arm, mode: "peek" });
+            expect(r.record?.status).toBe("ok");
+            expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
+            expect(readFileSync(source, "utf8")).toBe(before);
+            expect(readFileSync(join(host, "marker"), "utf8")).toBe("host\n");
+        },
+    );
+
+    it.each([["out", "the run can see beside its output"]])(
+        "refuses a run that --ro lets see %s",
+        (dir, message) => {
+            const w = world();
+            mkdirSync(join(w.root, dir), { recursive: true });
+            const r = run(w, {
+                extra: ["--ro", join(w.root, dir), "--probe"],
+            });
+            expect(r.status).toBe(3);
+            expect(r.stderr).toContain(message);
+            expect(readdirSync(join(w.root, "out"))).not.toContainEqual(
+                expect.stringMatching(/^\.run-eval-beside/),
+            );
+        },
+    );
+
+    it("keeps a fresh profile's writes in the jail", () => {
         const w = world();
-        const r = run(w, { mode: "escape" });
+        const leak = run(w, { mode: "leak" });
+        expect(leak.record?.status).toBe("ok");
+        expect(existsSync(join(w.claudeHome, "installed"))).toBe(false);
+        const escaped = run(w, { mode: "escape" });
+        expect(escaped.record?.status).toBe("ok");
+        expect(existsSync(join(w.claudeHome, "skills", "escaped"))).toBe(false);
+        expect(existsSync(join(w.home, "escaped"))).toBe(false);
+    });
+
+    it("gives a fresh profile the credentials, and nothing else", () => {
+        const w = world();
+        writeFileSync(join(w.claudeHome, "CLAUDE.md"), `Use ${SKILL}.\n`);
+        w.env = {
+            ...w.env,
+            STUB_PEEK: [
+                join(w.claudeHome, "CLAUDE.md"),
+                join(w.home, ".run-eval", "claude", "CLAUDE.md"),
+            ].join(":"),
+        };
+        const r = run(w, { arm: "without", mode: "peek" });
+        expect(r.record?.status).toBe("ok");
+        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
+    });
+
+    it.each(["claude", "codex"])(
+        "refuses to run %s signed out, or apart from its binary",
+        (client) => {
+            const w = world();
+            const file =
+                client === "claude"
+                    ? join(w.claudeHome, ".credentials.json")
+                    : join(w.codexHome, "auth.json");
+            rmSync(file);
+            const r = run(w, { client });
+            expect(r.status).toBe(3);
+            expect(r.stderr).toContain(`${client} is not signed in`);
+            const bare = world();
+            bare.env = { ...bare.env, PATH: "/usr/bin:/bin" };
+            const s = run(bare, { client });
+            expect(s.status).toBe(3);
+        },
+    );
+
+    it("gives a run its own client's credentials, read-only", () => {
+        const w = world();
+        const own = join(w.claudeHome, ".credentials.json");
+        w.env = {
+            ...w.env,
+            STUB_PEEK: join(w.home, ".run-eval", "codex", "auth.json"),
+            STUB_POKE: join(w.home, ".run-eval", "claude", ".credentials.json"),
+        };
+        const r = run(w, { mode: "peek" });
+        expect(r.record?.status).toBe("ok");
+        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
+        expect(readFileSync(own, "utf8")).toBe("{}\n");
+    });
+
+    it("freezes the installed skill in a with run", () => {
+        const w = world();
+        const installed = [".claude", ".agents"].map((d) =>
+            join("skills", SKILL, "SKILL.md").replace(/^/, `${d}/`),
+        );
+        w.env = { ...w.env, STUB_POKE: installed.join(":") };
+        const r = run(w, { mode: "peek" });
+        expect(r.record?.status).toBe("ok");
+        expect(readFileSync(join(r.out, "stderr.log"), "utf8")).toBe("");
+    });
+
+    it.each([
+        ["--ro", "case"],
+        ["--rw", "skills"],
+    ])("refuses %s over the %s", (flag, dir) => {
+        const w = world();
+        const r = run(w, { extra: [flag, join(w.root, dir), "--probe"] });
+        expect(r.status).toBe(2);
+        expect(r.stderr).toContain(`${flag} ${join(w.root, dir)} overlaps`);
+    });
+
+    it("refuses --out through a symlink into the case", () => {
+        const w = world();
+        symlinkSync(join(w.root, "case"), join(w.root, "link"));
+        const r = run(w, {
+            extra: ["--out", join(w.root, "link", "new", "run")],
+        });
+        expect(r.status).toBe(2);
+        expect(r.stderr).toContain("--out and --case overlap");
+        expect(existsSync(join(w.root, "case", "new"))).toBe(false);
+    });
+
+    it("refuses --out inside the skill, and deletes nothing", () => {
+        const w = world();
+        const skill = join(w.root, "skills", SKILL);
+        const r = spawnSync(
+            "node",
+            [
+                script,
+                ...["--client", "claude", "--model", "m", "--arm", "with"],
+                ...["--case", join(w.root, "case"), "--skill", skill],
+                ...["--out", join(skill, "runs")],
+            ],
+            { encoding: "utf8", env: w.env },
+        );
+        expect(r.status).toBe(2);
+        expect(r.stderr).toContain("--out and --skill overlap");
+        expect(existsSync(join(skill, "SKILL.md"))).toBe(true);
+    });
+
+    it("refuses writes to the person's skills directories and home", () => {
+        const w = world();
+        const r = run(w, { mode: "escape", extra: ["--profile", "person"] });
         expect(r.record?.status).toBe("ok");
         expect(existsSync(join(w.claudeHome, "skills", "escaped"))).toBe(false);
         expect(existsSync(join(w.home, "escaped"))).toBe(false);
@@ -196,7 +354,10 @@ describe.skipIf(!hasBwrap)("the jail", () => {
             join(w.claudeHome, "file-history", "x"),
             `name: ${SKILL}\n`,
         );
-        const r = run(w, { arm: "without", extra: ["--probe"] });
+        const r = run(w, {
+            arm: "without",
+            extra: ["--profile", "person", "--probe"],
+        });
         expect(r.status).toBe(0);
         expect(r.stdout).toContain("probe passed");
     });
@@ -208,7 +369,7 @@ describe.skipIf(!hasBwrap)("the jail", () => {
             join(w.claudeHome, "notes", "copy.md"),
             `name: ${SKILL}\n`,
         );
-        const r = run(w, { arm: "without" });
+        const r = run(w, { arm: "without", extra: ["--profile", "person"] });
         expect(r.status).toBe(3);
         expect(r.stderr).toContain("baseline can read the skill");
         expect(r.record).toBeNull();
@@ -223,7 +384,13 @@ describe.skipIf(!hasBwrap)("the jail", () => {
         );
         const r = run(w, {
             arm: "without",
-            extra: ["--hide", join(w.claudeHome, "notes"), "--probe"],
+            extra: [
+                "--profile",
+                "person",
+                "--hide",
+                join(w.claudeHome, "notes"),
+                "--probe",
+            ],
         });
         expect(r.status).toBe(0);
     });

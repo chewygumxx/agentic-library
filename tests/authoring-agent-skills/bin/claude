@@ -12,11 +12,26 @@
 # A stand-in for `claude -p ... --output-format stream-json`, for
 # run-eval.mjs's tests. $STUB_MODE picks what it does: use (read the
 # skill), limit, name (name the skill in its answer), escape (write to a
-# skills directory and to the home), leak (install a skill in its state).
+# skills directory and to the home), leak (install a skill in its state),
+# peek (look for each of $STUB_PEEK and write to each of $STUB_POKE,
+# colon-separated, and look in $XDG_RUNTIME_DIR).
 
 skill=${STUB_SKILL:-processing-things}
 mode=${STUB_MODE:-use}
 config=${CLAUDE_CONFIG_DIR:?run-eval.mjs sets it}
+# Signed in when the profile holds credentials, as the jail's preflight asks.
+case $* in
+--version) echo "0.0.0 (Claude Code)" && exit 0 ;;
+"auth status")
+    if [ -f "$config/.credentials.json" ]; then
+        echo '{ "loggedIn": true }'
+    else
+        echo '{ "loggedIn": false }' && exit 1
+    fi
+    exit 0
+    ;;
+*) ;;
+esac
 mkdir -p skills/made && printf -- '---\nname: made\ndescription: Makes things. Use when needed.\n---\n' >skills/made/SKILL.md
 case $mode in
 use)
@@ -29,6 +44,18 @@ escape)
 leak)
     mkdir -p "$config/installed/$skill" &&
         printf -- '---\nname: x\n---\n' >"$config/installed/$skill/SKILL.md"
+    ;;
+peek)
+    IFS=:
+    for p in ${STUB_PEEK:-}; do
+        [ -e "$p" ] && echo "saw: $p" >&2
+    done
+    for p in ${STUB_POKE:-}; do
+        printf x 2>/dev/null >>"$p" && echo "wrote: $p" >&2
+    done
+    unset IFS
+    entries=$(ls -A "${XDG_RUNTIME_DIR:-/nonexistent}" 2>/dev/null || true)
+    [ -n "$entries" ] && echo "saw: runtime directory" >&2
     ;;
 *) ;;
 esac
