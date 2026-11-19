@@ -86,8 +86,10 @@ new SKILL.md in their client homes marks the run leaked.
 status in result.json: ok; failed (the client exited non-zero, or
 never reported the run's end); limited (a usage limit stopped it: rerun
 after the reset); mismatched (the client reports another model than
-asked); contaminated (a without run that read or invoked the skill;
-mentioned_skill records a bare mention); leaked (it installed a skill
+asked); contaminated (a without run that invoked the skill, read it
+with the Read tool, or ran a command whose output shows its text;
+access_unclear marks a successful command that only named a file in it,
+for a person to judge, and mentioned_skill a bare mention); leaked (it installed a skill
 where another run could find it). Only ok runs count. The record also
 keeps the client's version, the profile, and the model the client
 reports (model_check: match, mismatch, or unobserved where it reports
@@ -678,6 +680,38 @@ let loaded = false;
 // that never ended, or ran another model than asked, counts for nothing.
 let ended = false;
 let observedModel = null;
+// A successful call naming a file in the skill whose output does not
+// show the skill's text: for a person to judge from the transcript.
+let unclear = false;
+// Lines long enough to be the skill's own, 20 characters or more, from each of its text files:
+// output holding one shows a file of it was read.
+const skillLines = new Set(
+    filesUnder(skillDir).flatMap((f) => {
+        const data = readFileSync(f);
+        if (data.includes(0)) return [];
+        return data
+            .toString("utf8")
+            .split("\n")
+            .map((l) => l.trim())
+            .filter((l) => l.length >= 20);
+    }),
+);
+// A line as grep -n, rg or cat -n print it: a file name and a line
+// number may come first.
+const bare = (line) =>
+    line
+        .replace(/^[^\s:]*:(?=\d+[:-])/, "")
+        .replace(/^\s*\d+[:\t-]\s?/, "")
+        .trim();
+const showsSkill = (text) =>
+    typeof text === "string" &&
+    text.split("\n").some((l) => skillLines.has(bare(l)));
+const textOf = (content) =>
+    typeof content === "string"
+        ? content
+        : Array.isArray(content)
+          ? content.map((c) => c?.text ?? "").join("\n")
+          : "";
 if (o.client === "claude") {
     const result = events.findLast((e) => e.type === "result");
     if (result) {
@@ -699,21 +733,27 @@ if (o.client === "claude") {
     observedModel =
         events.find((e) => e.type === "system" && e.subtype === "init")
             ?.model ?? null;
-    // Loaded: the Skill tool named it, or a tool call read a file in it,
-    // and the call succeeded; an attempt proves no access.
+    // Loaded: the Skill tool named it, the Read tool read a file in it,
+    // or another tool's output holds the skill's own text, and the call
+    // succeeded; an attempt, or a path alone, proves no access.
     const blocks = events.flatMap((e) => e.message?.content ?? []);
-    const succeeded = new Set(
+    const results = new Map(
         blocks
             .filter((b) => b.type === "tool_result" && !b.is_error)
-            .map((b) => b.tool_use_id),
+            .map((b) => [b.tool_use_id, textOf(b.content)]),
     );
-    loaded = blocks.some(
-        (b) =>
-            b.type === "tool_use" &&
-            succeeded.has(b.id) &&
-            ((b.name === "Skill" && b.input?.skill === name) ||
-                JSON.stringify(b.input ?? {}).includes(`skills/${name}/`)),
-    );
+    for (const b of blocks) {
+        if (b.type !== "tool_use" || !results.has(b.id)) continue;
+        if (b.name === "Skill" && b.input?.skill === name) {
+            loaded = true;
+        } else if (JSON.stringify(b.input ?? {}).includes(`skills/${name}/`)) {
+            if (b.name === "Read" || showsSkill(results.get(b.id))) {
+                loaded = true;
+            } else {
+                unclear = true;
+            }
+        }
+    }
 } else {
     for (const e of events) {
         if (e.type === "turn.completed" && e.usage) {
@@ -733,14 +773,20 @@ if (o.client === "claude") {
     ended =
         events.some((e) => e.type === "turn.completed") &&
         !events.some((e) => ["turn.failed", "error"].includes(e.type));
-    // Loaded: a command it ran, and that succeeded, read a file in the
-    // skill.
-    loaded = events.some(
-        (e) =>
-            e.type === "item.completed" &&
-            e.item?.exit_code === 0 &&
-            String(e.item?.command ?? "").includes(`skills/${name}/`),
-    );
+    // Loaded: a command it ran, and that succeeded, named a file in the
+    // skill and printed the skill's own text; a path alone proves no
+    // access.
+    for (const e of events) {
+        if (
+            e.type !== "item.completed" ||
+            e.item?.exit_code !== 0 ||
+            !String(e.item?.command ?? "").includes(`skills/${name}/`)
+        ) {
+            continue;
+        }
+        if (showsSkill(e.item?.aggregated_output)) loaded = true;
+        else unclear = true;
+    }
 }
 
 // Contaminated: a baseline that read or invoked the skill. A mention of
@@ -828,6 +874,7 @@ const record = {
     tokens,
     cost_usd: cost,
     loaded_skill: loaded,
+    access_unclear: unclear && !loaded,
     mentioned_skill: mentioned,
     leaked: leakedFiles,
     skills_written: skills,
@@ -838,6 +885,15 @@ process.stdout.write(
     `${o.client} ${o.model} ${record.case} ${o.arm}: ${status}, ${Math.round(duration_ms / 1000)} s, ${tokens} tokens\n`,
 );
 process.exit(limited ? 75 : 0);
+
+// Every file under a directory, links not followed.
+function filesUnder(dir) {
+    return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
+        const p = join(dir, e.name);
+        if (e.isDirectory()) return filesUnder(p);
+        return e.isFile() ? [p] : [];
+    });
+}
 
 // Every SKILL.md under the given directories, so a run that installs a
 // skill where another would find it shows.

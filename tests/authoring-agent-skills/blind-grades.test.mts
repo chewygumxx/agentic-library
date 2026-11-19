@@ -21,6 +21,7 @@ import {
     readdirSync,
     readFileSync,
     readlinkSync,
+    rmSync,
     symlinkSync,
     writeFileSync,
 } from "node:fs";
@@ -118,6 +119,9 @@ function runs() {
         );
         symlinkSync("skills/made/SKILL.md", join(ws, "inside-link"));
         symlinkSync(join(run, "result.json"), join(ws, "outside-link"));
+        // Inside by its path, outside by where it leads.
+        symlinkSync(run, join(ws, "via"));
+        symlinkSync("via/result.json", join(ws, "sneaky-link"));
         writeFileSync(join(run, "changes.txt"), "");
         writeFileSync(
             join(run, "result.json"),
@@ -227,7 +231,9 @@ describe("blind", () => {
                     join(r.blindDir, "case", id, "withheld-links.txt"),
                     "utf8",
                 ),
-            ).toBe("workspace/outside-link\n");
+            ).toBe(
+                "workspace/outside-link\nworkspace/sneaky-link\nworkspace/via\n",
+            );
         }
     });
 
@@ -343,6 +349,103 @@ describe("unblind", () => {
             total: 2,
             runs: 1,
         });
+    });
+
+    it("keeps the rubric from the graders' reach, and fails closed", () => {
+        const r = runs();
+        const evals = join(r.root, "evals.json");
+        writeFileSync(
+            evals,
+            JSON.stringify({
+                evals: [
+                    {
+                        name: "case",
+                        assertions: [
+                            "It works",
+                            {
+                                text: "The archive is right",
+                                check: "zip-layout",
+                            },
+                        ],
+                    },
+                ],
+            }),
+        );
+        expect(
+            cli(
+                "blind",
+                r.runsDir,
+                r.blindDir,
+                "--evals",
+                join(r.root, "none.json"),
+            ).status,
+        ).toBe(2);
+        writeFileSync(
+            join(r.root, "other.json"),
+            JSON.stringify({ evals: [] }),
+        );
+        expect(
+            cli(
+                "blind",
+                r.runsDir,
+                r.blindDir,
+                "--evals",
+                join(r.root, "other.json"),
+            ).status,
+        ).toBe(2);
+        cli("blind", r.runsDir, r.blindDir, "--evals", evals);
+        rmSync(join(r.blindDir, "case", "assertions.json"));
+        const ids = readdirSync(join(r.blindDir, "case"));
+        for (const id of ids) {
+            writeFileSync(
+                join(r.blindDir, "case", id, "grading.json"),
+                JSON.stringify({
+                    assertion_results: [
+                        { id: "A1", passed: true, evidence: "x" },
+                        { id: "A9", passed: true, evidence: "x" },
+                    ],
+                }),
+            );
+        }
+        const bad = JSON.parse(
+            cli("unblind", r.runsDir, r.blindDir, "--json").stdout,
+        );
+        expect(bad.invalid_grading).toHaveLength(2);
+        const runDirs = ["with", "without"].map((a) =>
+            join(r.runsDir, "m", "case-0", a),
+        );
+        for (const id of ids) {
+            writeFileSync(
+                join(r.blindDir, "case", id, "grading.json"),
+                JSON.stringify({
+                    assertion_results: [
+                        { id: "A1", passed: true, evidence: "x" },
+                        { id: "A2", passed: true, evidence: "graded" },
+                    ],
+                }),
+            );
+        }
+        const unchecked = JSON.parse(
+            cli("unblind", r.runsDir, r.blindDir, "--json").stdout,
+        );
+        expect(unchecked.invalid_grading[0]).toContain("zip-layout");
+        writeFileSync(
+            join(runDirs[0] ?? "", "checks.json"),
+            JSON.stringify({
+                "zip-layout": { passed: false, evidence: "flat" },
+            }),
+        );
+        writeFileSync(
+            join(runDirs[1] ?? "", "checks.json"),
+            JSON.stringify({
+                "zip-layout": { passed: true, evidence: "nested" },
+            }),
+        );
+        const out = cli("unblind", r.runsDir, r.blindDir, "--json");
+        expect(out.status).toBe(0);
+        const report = JSON.parse(out.stdout);
+        expect(report.by_arm.with).toMatchObject({ passed: 1, total: 2 });
+        expect(report.by_arm.without).toMatchObject({ passed: 2, total: 2 });
     });
 
     it("exits 1 when a run has no grading", () => {

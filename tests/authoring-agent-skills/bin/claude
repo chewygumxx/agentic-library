@@ -11,7 +11,7 @@
 
 # A stand-in for `claude -p ... --output-format stream-json`, for
 # run-eval.mjs's tests. $STUB_MODE picks what it does: use (read the
-# skill), tried (fail to read it), limit, name (name the skill in its
+# skill), tried (fail to read it), echo (print its path), limit, name (name the skill in its
 # answer), escape (write to a skills directory and to the home), leak
 # (install a skill in its state), cut (end without a result), peek (look
 # for each of $STUB_PEEK and write to each of $STUB_POKE,
@@ -42,6 +42,10 @@ use | tried)
     [ "$mode" = tried ] && error=true
     printf '%s\n' "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"id\":\"t1\",\"name\":\"Read\",\"input\":{\"file_path\":\".claude/skills/$skill/SKILL.md\"}}]}}"
     printf '%s\n' "{\"type\":\"user\",\"message\":{\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"t1\",\"is_error\":$error}]}}"
+    ;;
+echo)
+    printf '%s\n' "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"id\":\"t2\",\"name\":\"Bash\",\"input\":{\"command\":\"echo .claude/skills/$skill/SKILL.md\"}}]}}"
+    printf '%s\n' "{\"type\":\"user\",\"message\":{\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"t2\",\"is_error\":false,\"content\":\".claude/skills/$skill/SKILL.md\"}]}}"
     ;;
 escape)
     touch "$config/skills/escaped" 2>/dev/null && echo "wrote skills" >&2

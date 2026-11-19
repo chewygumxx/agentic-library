@@ -145,14 +145,16 @@ the probe names.
 Each run's `result.json` records its status: `ok`; `failed`, also when
 the client never reported the run's end; `limited` by a usage limit;
 `mismatched` if the client reports another model than asked;
-`contaminated` if a baseline read or invoked the skill, which a bare
-mention of its name is not; or `leaked` if a run installed a skill where
-another could find it. It also records the client's version, the model
-asked for and the one reported, where the client reports one, tokens,
-duration, whether the run read the skill, and each skill it wrote with
-the checker's verdict. Only `ok` runs count; rerun `limited` ones after
-the reset. `--help` has the rest, and `--probe` checks a jail without
-spending a model.
+`contaminated` if a baseline invoked the skill, read it, or ran a
+command whose output shows its text, which a bare mention of its name or
+path is not, though `access_unclear` marks a successful command that
+named a file in it, for a person to judge; or `leaked` if a run
+installed a skill where another could find it. It also records the
+client's version, the model asked for and the one reported, where the
+client reports one, tokens, duration, whether the run read the skill,
+and each skill it wrote with the checker's verdict. Only `ok` runs
+count; rerun `limited` ones after the reset. `--help` has the rest, and
+`--probe` checks a jail without spending a model.
 
 Where bubblewrap is missing, such as on macOS, give each run a
 throwaway user or container with the same properties: an empty home
@@ -175,12 +177,16 @@ name redacted from every text file, and links leading out of the copy
 withheld; lists the runs it left out, and why, in
 `<runs>/blind-excluded.json`; and keeps the map from ids to runs out of
 the graders' reach. `--evals` freezes each case's assertions, with ids,
-in `<blind-dir>/<case>/assertions.json`. An assertion a script can
-settle is better settled by it: written as
+beside the map, and gives the graders a copy in
+`<blind-dir>/<case>/assertions.json`. An assertion a script can settle
+is better settled by it: written as
 `{ "text": "...", "check": "check-skill" }`, it takes the checker's
-verdict from the run's own record. Give one grader per case the case's
-files, its `assertions.json`, and its outputs; for each output it writes
-`grading.json`, every assertion once:
+verdict from the run's own record; with another check's name, the
+verdict a script of yours writes to the run's `checks.json`, as
+`{ "<check>": { "passed": true, "evidence": "..." } }`. Give one
+grader per case the case's files, its `assertions.json`, and its
+outputs; for each output it writes `grading.json`, every assertion
+once:
 
 ```json
 {

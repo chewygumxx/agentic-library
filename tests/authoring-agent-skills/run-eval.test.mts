@@ -190,6 +190,28 @@ describe.skipIf(!hasBwrap)("a run", () => {
         expect(r.record).toMatchObject({ status: "ok", loaded_skill: false });
     });
 
+    it.each(["claude", "codex"])(
+        "flags, but does not count, a %s command that only names the skill",
+        (client) => {
+            const w = world();
+            const r = run(w, { client, arm: "without", mode: "echo" });
+            expect(r.record).toMatchObject({
+                status: "ok",
+                loaded_skill: false,
+                access_unclear: true,
+            });
+        },
+    );
+
+    it("counts a numbered grep of the skill as a read", () => {
+        const w = world();
+        const r = run(w, { client: "codex", arm: "without", mode: "grep" });
+        expect(r.record).toMatchObject({
+            status: "contaminated",
+            loaded_skill: true,
+        });
+    });
+
     it("marks a run of another model than asked", () => {
         const w = world();
         w.env = { ...w.env, STUB_OBSERVED: "other" };

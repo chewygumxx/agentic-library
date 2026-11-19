@@ -25,7 +25,7 @@ import {
     mkdirSync,
     readdirSync,
     readFileSync,
-    readlinkSync,
+    realpathSync,
     rmSync,
     writeFileSync,
 } from "node:fs";
@@ -41,20 +41,26 @@ blind    Copies every ok run under <runs-dir> (each a directory holding
          git-log.txt (its commits, with diffs) and final-message.md,
          with the run's own path and the skill's name replaced in every
          text file. The map from ids to runs goes to
-         <runs-dir>/blind-map.json, which graders must not see. With
-         --evals, writes each case's assertions, frozen, with ids A1,
-         A2, ..., to <blind-dir>/<case>/assertions.json, for its grader.
-         Replaces <blind-dir>.
+         <runs-dir>/blind-map.json, which graders must not see; links
+         that lead out of the copy are withheld, and listed in
+         withheld-links.txt. With --evals, freezes each admitted case's
+         assertions, with ids A1, A2, ..., in <runs-dir>/blind-rubric.json,
+         and gives each case's grader a copy in
+         <blind-dir>/<case>/assertions.json; a case with none refuses
+         the batch. Replaces <blind-dir>.
 unblind  Reads each <blind-dir>/<case>/<id>/grading.json, checks it,
          writes it to its run as grading.json, and prints totals: by
          arm, by model and arm, by case and arm, and each assertion
          whose rate differs between the arms. --json prints them as
-         JSON. With frozen assertions, a grading must give each id once,
+         JSON. With the frozen rubric, a grading must give each id once,
          a boolean and evidence; an assertion given as
          { "text", "check": "check-skill" } takes the checker's verdict
-         from the run's own record. Without them, any assertion naming
-         check-skill does. A grading that fails its check is left out
-         of the totals and listed.
+         from the run's own record, and one with any other check, its
+         verdict from the run's checks.json, which the evaluator writes:
+         { "<check>": { "passed", "evidence" } }. Without a rubric, any
+         assertion naming check-skill takes the checker's verdict. A
+         grading that fails its check is left out of the totals and
+         listed.
 
 A grader writes, in each output's directory, grading.json:
   { "assertion_results": [ { "id", "text", "passed", "evidence" } ] }
@@ -123,8 +129,51 @@ const cleanEnv = Object.fromEntries(
     Object.entries(process.env).filter(([k]) => !k.startsWith("GIT_")),
 );
 
+const rubricFile = join(runsDir, "blind-rubric.json");
+
 if (command === "blind") {
+    // With --evals, every case a run is admitted for needs its frozen
+    // assertions, checked before anything is copied.
+    let rubric = null;
+    if (evalsArg) {
+        let evals;
+        try {
+            evals = read(resolve(evalsArg)).evals;
+        } catch {
+            evals = null;
+        }
+        if (!Array.isArray(evals)) {
+            process.stderr.write(`blind-grades: ${evalsArg} holds no evals\n`);
+            process.exit(2);
+        }
+        rubric = { required: true, cases: {} };
+        for (const run of runs(runsDir)) {
+            const res = read(join(run, "result.json"));
+            if (res.status !== "ok" || res.ended === false) continue;
+            if (rubric.cases[res.case]) continue;
+            const e = evals.find(
+                (x) => x.name === res.case || String(x.id) === res.case,
+            );
+            if (!e?.assertions?.length) {
+                process.stderr.write(
+                    `blind-grades: ${evalsArg} has no assertions for ${res.case}\n`,
+                );
+                process.exit(2);
+            }
+            rubric.cases[res.case] = e.assertions.map((a, i) => ({
+                id: `A${i + 1}`,
+                ...(typeof a === "string" ? { text: a } : a),
+            }));
+        }
+    }
     rmSync(blindDir, { recursive: true, force: true });
+    // The rubric unblinding holds grades to, out of the graders' reach;
+    // without --evals, none, and grades are only checked for shape.
+    if (rubric) {
+        writeFileSync(rubricFile, `${JSON.stringify(rubric, null, 2)}\n`);
+    } else {
+        rmSync(rubricFile, { force: true });
+    }
     const map = {};
     const counts = {};
     const excluded = [];
@@ -177,13 +226,21 @@ if (command === "blind") {
         // A link is kept only while it stays inside the copy: one that
         // leads out would show the grader the run, or its arm.
         const withheld = [];
-        for (const link of filesIn(out, true)) {
-            const to = resolve(dirname(link), readlinkSync(link));
-            if (!nested(to, out)) {
+        const outReal = realpathSync(out);
+        const links = filesIn(out, true);
+        const leads = links.map((link) => {
+            try {
+                return realpathSync(link);
+            } catch {
+                return null;
+            }
+        });
+        links.forEach((link, i) => {
+            if (!leads[i] || !nested(leads[i], outReal)) {
                 rmSync(link);
                 withheld.push(relative(out, link));
             }
-        }
+        });
         if (withheld.length) {
             writeFileSync(
                 join(out, "withheld-links.txt"),
@@ -239,23 +296,13 @@ if (command === "blind") {
         join(runsDir, "blind-excluded.json"),
         `${JSON.stringify(excluded, null, 2)}\n`,
     );
-    if (evalsArg) {
-        const evals = read(resolve(evalsArg)).evals ?? [];
-        for (const c of Object.keys(counts)) {
-            const e = evals.find((x) => x.name === c || String(x.id) === c);
-            if (!e) {
-                process.stderr.write(`blind-grades: no eval named ${c}\n`);
-                continue;
-            }
-            const frozen = (e.assertions ?? []).map((a, i) => ({
-                id: `A${i + 1}`,
-                ...(typeof a === "string" ? { text: a } : a),
-            }));
-            writeFileSync(
-                join(blindDir, c, "assertions.json"),
-                `${JSON.stringify(frozen, null, 2)}\n`,
-            );
-        }
+    // The graders' copy of the rubric: the private one is what counts.
+    for (const [c, frozen] of Object.entries(rubric?.cases ?? {})) {
+        if (!counts[c]) continue;
+        writeFileSync(
+            join(blindDir, c, "assertions.json"),
+            `${JSON.stringify(frozen, null, 2)}\n`,
+        );
     }
     for (const [c, n] of Object.entries(counts).sort())
         process.stdout.write(`${c}: ${n}\n`);
@@ -270,6 +317,7 @@ if (!existsSync(mapFile)) {
     process.exit(2);
 }
 const map = read(mapFile);
+const rubric = existsSync(rubricFile) ? read(rubricFile) : null;
 const rows = [];
 const missing = [];
 const invalid = [];
@@ -320,9 +368,29 @@ for (const [id, rel] of Object.entries(map)) {
         invalid.push(`${res.case}/${id}: not JSON`);
         continue;
     }
-    const frozenFile = join(blindDir, res.case, "assertions.json");
-    const frozen = existsSync(frozenFile) ? read(frozenFile) : null;
-    const problems = check(grading, frozen);
+    const frozen = rubric ? (rubric.cases[res.case] ?? []) : null;
+    if (frozen && !frozen.length) {
+        invalid.push(`${res.case}/${id}: no frozen assertions for ${res.case}`);
+        continue;
+    }
+    // A check other than check-skill takes its verdict from the run's
+    // checks.json, which the evaluator writes: { "<check>": { "passed",
+    // "evidence" } }.
+    const checksFile = join(run, "checks.json");
+    const verdicts = existsSync(checksFile) ? read(checksFile) : {};
+    const problems = [
+        ...check(grading, frozen),
+        ...(frozen ?? [])
+            .filter((f) => f.check && f.check !== "check-skill")
+            .filter(
+                (f) =>
+                    typeof verdicts[f.check]?.passed !== "boolean" ||
+                    !String(verdicts[f.check]?.evidence ?? "").trim(),
+            )
+            .map(
+                (f) => `check ${f.check} has no verdict in ${rel}/checks.json`,
+            ),
+    ];
     if (problems.length) {
         invalid.push(`${res.case}/${id}: ${problems.join("; ")}`);
         continue;
@@ -338,8 +406,14 @@ for (const [id, rel] of Object.entries(map)) {
     // The checker's verdict comes from the run's own workspace, where the
     // skill's directory name is its own.
     for (const a of grading.assertion_results) {
+        const named = frozen?.find((f) => f.id === a.id)?.check;
+        if (named && named !== "check-skill") {
+            a.passed = verdicts[named].passed;
+            a.evidence = `from checks.json: ${verdicts[named].evidence}`;
+            continue;
+        }
         const machine = frozen
-            ? frozen.find((f) => f.id === a.id)?.check === "check-skill"
+            ? named === "check-skill"
             : /check-skill/.test(a.text ?? "");
         if (machine) {
             const skills = res.skills_written ?? [];
