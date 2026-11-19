@@ -52,6 +52,13 @@
       "version": "0.0.2",
       "computedHash": "7a32a1ea3c7d3eaea2a7c4e3ba5b3d7af441871ce7bb54d8bcd55f6b2ad64644"
     },
+    "managing-worktrunk-worktrees": {
+      "source": "@chewygumxx/skill-managing-worktrunk-worktrees",
+      "sourceType": "node_modules",
+      "skillPath": "SKILL.md",
+      "version": "0.0.1",
+      "computedHash": "ba868b2c9a1478188f94d33fba1dfd85a79a9a255fd64f63cf0dad808b0273e8"
+    },
     "mapping-tests": {
       "source": "@chewygumxx/skill-mapping-tests",
       "sourceType": "node_modules",

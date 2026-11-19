@@ -3,6 +3,7 @@
     "skills/coordinating-agents": "0.0.2",
     "skills/managing-dotfiles-with-chezmoi": "0.0.2",
     "skills/managing-git-worktrees": "0.0.2",
+    "skills/managing-worktrunk-worktrees": "0.0.1",
     "skills/mapping-tests": "0.0.2",
     "skills/publishing-skills-to-npm": "0.0.2",
     "skills/writing-usage-specs": "0.0.3"

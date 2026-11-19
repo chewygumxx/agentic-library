@@ -22,6 +22,9 @@
         "skills/managing-git-worktrees": {
             "component": "skill-managing-git-worktrees"
         },
+        "skills/managing-worktrunk-worktrees": {
+            "component": "skill-managing-worktrunk-worktrees"
+        },
         "skills/mapping-tests": {
             "component": "skill-mapping-tests"
         },
