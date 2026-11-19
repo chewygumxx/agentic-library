@@ -1,0 +1,67 @@
+{
+    "skill_name": "authoring-agent-skills",
+    "frozen": "2026-11-19, stage 3b tranche 1 (reports/counsel-next-5.md); large-docs for tranche 2b (reports/counsel-next-10.md)",
+    "evals": [
+        {
+            "id": 7,
+            "name": "evaluate-a-skill",
+            "prompt": "does my report-writer skill (skills/report-writer) actually make agents better at doing the weekly report, or are they fine without it? set up a way to find out that I can rerun whenever I change the skill. don't run anything that calls a model yet, I'll kick it off myself once I've looked at it.",
+            "expected_output": "A rerunnable evaluation of report-writer: realistic test prompts, a with-skill and a without-skill run of each in fresh, isolated contexts, checks on the outputs, and a way to compare, with nothing that calls a model run yet.",
+            "files": ["skills/report-writer/", "package.json"],
+            "assertions": [
+                "Sets up at least two concrete, distinct prompts phrased as realistic requests for the weekly ops report, with the inputs each prompt needs.",
+                "Runs each selected case both with report-writer and without it, keeping the case inputs and the requested client, model and effort comparable within each pair.",
+                "Starts each arm of each case in its own fresh client context without resuming the authoring session or another run.",
+                "The baseline cannot discover or read report-writer through the workspace, client skill roots, or any exposed source, cache or prior arm. Cite an actual launch, mount or discovery rule, or an observable no-model absence probe, as evidence.",
+                "A run cannot install or change a skill where the person’s clients or a later run could discover it. Cite the writable mounts, independent per-run state or a no-model write probe that establishes this.",
+                "Defines repeatable grading rules for the produced report and checks that incidents count by start date, including an incident that opens in one reporting week and resolves in the next.",
+                "Provides a repeatable entry point and an arm-by-arm comparison of results on the same rubric, so the owner can rerun after changing report-writer and decide whether it helps.",
+                "Keeps evaluation files and generated results outside the shipped report-writer skill or explicitly excludes them from packaging.",
+                "Makes no model call during setup and tells the owner how to start the evaluation."
+            ]
+        },
+        {
+            "id": 5,
+            "name": "upload-refused",
+            "prompt": "I'm trying to upload dist/report-writer.zip to claude.ai so the rest of the team can use the skill, and it fails with \"Upload failed: the skill folder could not be found in the archive\". It works fine in claude code from skills/report-writer. What's wrong with it? Fix whatever needs fixing so I can upload it.",
+            "expected_output": "A diagnosis that the ZIP holds the skill's files at its root rather than a report-writer/ folder, and a rebuilt dist/report-writer.zip with the folder at its root.",
+            "files": ["skills/report-writer/", "dist/report-writer.zip"],
+            "assertions": [
+                "Diagnoses the missing top-level report-writer directory in the original ZIP as the cause of the reported upload failure.",
+                {
+                    "text": "The rebuilt dist/report-writer.zip is readable, contains a regular report-writer/SKILL.md entry and puts every entry under the report-writer directory.",
+                    "check": "zip-layout"
+                },
+                {
+                    "text": "A successful recorded tool call inspects the entry layout of the rebuilt archive after creation and verifies the report-writer root and SKILL.md placement.",
+                    "check": "rebuilt-zip-inspected"
+                },
+                "Preserves the skill’s source frontmatter and content, except for a change with a stated upload-related reason.",
+                "Reports what was verified locally and avoids claiming that an upload to Claude.ai succeeded."
+            ]
+        },
+        {
+            "id": 4,
+            "name": "large-docs",
+            "prompt": "docs/ has the full reference for quarry, our data sync cli (it's big). write a skill so agents use quarry well, it'll be used in claude code and codex. put it in skills/",
+            "expected_output": "A reusable Quarry skill under skills/ for Claude Code and Codex. An agent can find the critical Quarry behavior before making each affected decision. The skill distills the repetitive reference, and any required supporting files ship with it and are reachable at the point of use. A compact single-file skill can meet all of these criteria.",
+            "files": ["docs/"],
+            "assertions": [
+                {
+                    "text": "The delivered Quarry skill passes check-skill with zero structural errors.",
+                    "check": "check-skill"
+                },
+                "The description identifies the Quarry data-sync workflow and names concrete requests or tasks that should load the skill.",
+                "Required local files and reference links resolve within the delivered skill. Legitimate paths used by Quarry itself, such as quarry.toml or ~/.quarry/token, are allowed. A compact skill without supporting files can pass this check.",
+                "The organization makes the instructions discoverable before the affected action. Accept an inline workflow or signposts from SKILL.md that say when to consult a reference. Cite the location and route that an agent would see before using the command.",
+                "Distills the long reference into usable choices, commands and gotchas, without reproducing its repetitive command templates or examples. A compact single file or a focused set of references can pass.",
+                "Before an agent syncs or chooses a direction, warns that sync pulls by default and can overwrite local changes without prompting.",
+                "Before an agent prunes snapshots, warns that omitting --keep-days deletes every snapshot.",
+                "Where the agent selects a profile, region or equivalent setting, makes clear that QUARRY_* environment variables override command-line flags.",
+                "Where the agent chooses a time window, makes clear that both --since and --until are interpreted as UTC.",
+                "Where the agent selects an export format, warns that Parquet drops nested columns and directs the agent to JSONL when nested data must survive.",
+                "In the credential setup workflow, tells the agent to run quarry auth harden after logging in."
+            ]
+        }
+    ]
+}
