@@ -143,6 +143,37 @@ describe.skipIf(!hasBwrap)("a run", () => {
         ).toBe(true);
     });
 
+    it("installs a snapshot under the skill's own name", () => {
+        const w = world();
+        const snapshot = join(w.root, "snapshot");
+        mkdirSync(snapshot);
+        writeFileSync(
+            join(snapshot, "SKILL.md"),
+            `---\nname: "${SKILL}"\ndescription: Processes things. Use when needed.\n---\n`,
+        );
+        const out = join(w.root, "out", "snap");
+        const r = spawnSync(
+            "node",
+            [
+                script,
+                ...["--client", "claude", "--model", "m", "--arm", "with"],
+                ...["--case", join(w.root, "case"), "--skill", snapshot],
+                ...["--out", out],
+            ],
+            { encoding: "utf8", env: { ...w.env, STUB_MODE: "use" } },
+        );
+        expect(r.status).toBe(0);
+        const record = JSON.parse(
+            readFileSync(join(out, "result.json"), "utf8"),
+        );
+        expect(record).toMatchObject({ skill: SKILL, loaded_skill: true });
+        expect(
+            existsSync(
+                join(out, "workspace", ".agents", "skills", SKILL, "SKILL.md"),
+            ),
+        ).toBe(true);
+    });
+
     it("keeps the skill out of a without run's workspace", () => {
         const w = world();
         const r = run(w, { arm: "without", mode: "plain" });

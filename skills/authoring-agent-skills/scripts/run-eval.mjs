@@ -170,7 +170,13 @@ if (!existsSync(join(caseDir, "prompt.md"))) {
 if (!existsSync(join(skillDir, "SKILL.md"))) {
     fail(`${o.skill} holds no SKILL.md`);
 }
-const name = basename(skillDir);
+// The skill's own name, from its frontmatter, as a snapshot's directory
+// may be named anything; else its directory's.
+const name =
+    readFileSync(join(skillDir, "SKILL.md"), "utf8")
+        .match(/^---\r?\n([\s\S]*?)\r?\n---/)?.[1]
+        ?.match(/^name:[ \t]*["']?([^"'\r\n]+?)["']?[ \t]*$/m)?.[1] ??
+    basename(skillDir);
 const bwrap = spawnSync("bwrap", ["--version"], { encoding: "utf8" });
 if (bwrap.error) {
     fail(
