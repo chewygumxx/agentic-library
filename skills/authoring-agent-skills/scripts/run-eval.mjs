@@ -187,7 +187,8 @@ const real = (p) => {
     }
 };
 const unique = (list) => [...new Set(list.filter(Boolean))];
-const within = (p, dir) => p === dir || p.startsWith(`${dir}/`);
+const within = (p, dir) =>
+    p === dir || p.startsWith(dir.endsWith("/") ? dir : `${dir}/`);
 const overlaps = (a, b) => within(a, b) || within(b, a);
 
 // A path as it will be once made: its nearest existing ancestor's real
@@ -204,6 +205,12 @@ const realOrMade = (p) => {
 // --out is emptied before the run: it must neither hold nor lie in the
 // skill or the case; and no bind may show either to the run.
 const outReal = realOrMade(out);
+// Nor may it hold the home or the current directory, whatever else.
+for (const p of [real(home) ?? home, real(process.cwd()) ?? process.cwd()]) {
+    if (within(p, outReal)) {
+        fail(`--out ${o.out} holds ${p}: give a directory of its own`);
+    }
+}
 const skillReal = real(skillDir);
 const caseReal = real(caseDir);
 for (const [flag, dir] of [
@@ -223,10 +230,10 @@ for (const flag of ["ro", "rw"]) {
     }
 }
 
-// A fresh profile, by default: each client's home is empty but for the
-// person's credentials, bound so that a refreshed token reaches their own
-// copy, with none of their settings, hooks, MCP servers, memory, sessions
-// or skills, any of which may differ between runs or name the skill.
+// A fresh profile, by default: the client's home is empty but for its
+// credentials, read-only, with none of the person's settings, hooks, MCP
+// servers, memory, sessions or skills, any of which may differ between
+// runs or name the skill.
 // --profile person keeps their client homes, sessions hidden and skills
 // read-only, to evaluate against their own setup.
 const fresh = o.profile === "fresh";

@@ -307,6 +307,24 @@ describe.skipIf(!hasBwrap)("the jail", () => {
         expect(r.stderr).toContain(`${flag} ${join(w.root, dir)} overlaps`);
     });
 
+    // Never --out /: should the guard regress, the runner would empty it.
+    it.each(["--ro", "--rw"])("refuses %s /", (flag) => {
+        const w = world();
+        const r = run(w, { extra: [flag, "/", "--dry-run"] });
+        expect(r.status).toBe(2);
+        expect(r.stdout).toBe("");
+    });
+
+    it("refuses --out holding the home", () => {
+        const w = world();
+        const box = join(w.root, "box");
+        mkdirSync(join(box, "home"), { recursive: true });
+        w.env = { ...w.env, HOME: join(box, "home") };
+        const r = run(w, { extra: ["--out", box] });
+        expect(r.status).toBe(2);
+        expect(existsSync(join(box, "home"))).toBe(true);
+    });
+
     it("refuses --out through a symlink into the case", () => {
         const w = world();
         symlinkSync(join(w.root, "case"), join(w.root, "link"));
