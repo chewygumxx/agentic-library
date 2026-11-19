@@ -110,11 +110,15 @@ A run that sees more, or less, than intended measures nothing. For each:
    (`~/.claude/skills`, `$CLAUDE_CONFIG_DIR/skills`, `~/.agents/skills`,
    `$CODEX_HOME/skills`), following links to their targets. Mark a
    baseline whose transcript names the candidate as contaminated.
-4. **A jail.** An agent asked to make a skill may install it where the
-   person's own clients look, so the next baseline finds it, and the
-   person's setup changes. Run each client with the home directory
-   read-only but for the run's directory, the clients' state and the
-   caches, and every skills directory read-only within those. With
+4. **A jail.** A run sees and changes more than its workspace. Asked to
+   make a skill, an agent may install it where the person's own clients
+   look, so the next baseline finds it; a baseline may list its way up
+   to the other arm's workspace, or find the skill in its repository,
+   a backup, or past transcripts. So run each client in an empty home,
+   binding back only what it needs: its binaries and configuration
+   read-only, its state and the caches writable, the person's own
+   skills read-only (a baseline keeps what a person has), and the run's
+   own directory. Hide the clients' past transcripts too. With
    bubblewrap, binding each skills directory by its real path, as it
    cannot mount onto a link:
 
@@ -123,17 +127,23 @@ A run that sees more, or less, than intended measures nothing. For each:
    claude_home=${CLAUDE_CONFIG_DIR:-$HOME/.claude}
    codex_skills=$(realpath "$codex_home/skills")
    claude_skills=$(realpath "$claude_home/skills")
-   bwrap --dev-bind / / --ro-bind "$HOME" "$HOME" \
-       --bind "$run" "$run" --bind /tmp /tmp \
+   bwrap --dev-bind / / --tmpfs "$HOME" \
+       --ro-bind "$HOME/.local/bin" "$HOME/.local/bin" \
+       --ro-bind "$HOME/.config" "$HOME/.config" \
        --bind "$codex_home" "$codex_home" \
        --bind "$claude_home" "$claude_home" \
+       --bind "$HOME/.cache" "$HOME/.cache" \
+       --tmpfs "$codex_home/sessions" --tmpfs "$claude_home/projects" \
        --ro-bind "$codex_skills" "$codex_skills" \
        --ro-bind "$claude_skills" "$claude_skills" \
+       --bind "$run" "$run" \
        --chdir "$run/workspace" -- <client command>
    ```
 
-   Add a `--ro-bind` for each other skills directory that exists, and
-   bind any other cache a client writes. Where bubblewrap is missing, a
+   Bind back whatever else the clients run from or write, such as a
+   version manager's installs or `~/.claude.json`, and each other skills
+   directory that exists. Keep each run's directory away from the other
+   arm's, or bind only its own. Where bubblewrap is missing, a
    throwaway user or container does the same.
 5. **Launch it unattended,** its events as JSON, with any terminal
    multiplexer's variables unset so the client's hooks do not report
@@ -145,8 +155,14 @@ A run that sees more, or less, than intended measures nothing. For each:
      candidate shows it loaded.
    - Codex: `codex exec --json -m <model> -c model_reasoning_effort=<effort>
      --dangerously-bypass-approvals-and-sandbox --skip-git-repo-check
-     -C "$run/workspace" "$prompt"`. `turn.completed` events hold
-     `usage`; a command reading `<name>/SKILL.md` shows it loaded.
+     --ephemeral -C "$run/workspace" "$prompt"`. `turn.completed` events
+     hold `usage`; a command reading `<name>/SKILL.md` shows it loaded.
+     `--ephemeral` keeps the run out of the person's session history.
+
+   A usage limit ends a run early, and Claude Code reports it as an
+   error result whose text is the notice (`api_error`
+   `usage_limit_reached`), not as a missing answer: mark such a run
+   `limited`, and rerun it after the reset.
 6. **A record per run,** `result.json` beside its transcript and
    `git status`: client, model, effort, case, arm, a status (`ok`,
    `failed`, `limited` by a usage limit, `contaminated`), duration,
