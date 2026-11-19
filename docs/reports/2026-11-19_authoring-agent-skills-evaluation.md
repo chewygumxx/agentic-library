@@ -33,8 +33,11 @@ The data beside this report, in
 each stage's assertions (`evals-stage-*.json`) and results
 (`stage-*-results.json`: totals by arm, model and case, the assertions
 whose rate differs between arms, and a row per run). Every run's
-transcript, workspace and grading is archived whole, outside the
-repository.
+transcript, workspace and grading, with the cases' input files, the
+briefs and the agents' reports, is archived whole in the private R2
+bucket `agentic-library-evals`, as
+`authoring-agent-skills/2026-11-19/evaluation-stages-1-2.tar.zst`
+(SHA-256 `2c6367a9cdd9a6f5...`, full sum beside it).
 
 ## Method
 
