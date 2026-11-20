@@ -1,0 +1,190 @@
+{
+    "queries": [
+        {
+            "id": "T01",
+            "query": "I’m drafting a project SKILL.md for our cleanup CLI. The header has name set to cloud-cleanup, description set to “Cloud cleanup,” and version set to 1.2 as a top-level key. Review the draft for Claude Code and Codex. Show the corrected header and how you would organize the command reference so the delete safeguards are seen before use.",
+            "should_trigger": true
+        },
+        {
+            "id": "T02",
+            "query": "Our Quarry CLI ignores --region when QUARRY_REGION is set. The contract is that an explicit flag wins, then the environment, then the default. argparse leaves args.region as None when the flag is omitted. The current Python line is region = os.getenv(\"QUARRY_REGION\") or args.region or \"us\". Show the minimal fix and two regression cases.",
+            "should_trigger": false
+        },
+        {
+            "id": "T03",
+            "query": "I keep correcting our coding assistants when they draft weekly ops reports. Incidents belong to the week they opened, availability uses two decimal places, and open actions carry their age in weeks. Turn those corrections into reusable project guidance that loads for report-writing requests and works in both of our coding assistants.",
+            "should_trigger": true
+        },
+        {
+            "id": "T04",
+            "query": "We use Changesets for our TypeScript package @acme/intervals, currently at 1.4.2. This patch fixes an off-by-one error on overlapping intervals without changing the public API. Draft the changeset and explain the version bump. Don’t publish anything.",
+            "should_trigger": false
+        },
+        {
+            "id": "T05",
+            "query": "The reusable PDF form workflow loads for “fill this form” but misses “enter the supplied values in this paperwork.” It also loads when people ask which PDF viewer to install. Draft a better description and a few queries we can use to test the boundary.",
+            "should_trigger": true
+        },
+        {
+            "id": "T06",
+            "query": "Draft a short help-center article for Quarry users setting up credentials. They run quarry auth login, which creates ~/.quarry/token, then quarry auth harden to restrict its permissions. Walk a new user through those two steps and explain what to check if login fails.",
+            "should_trigger": false
+        },
+        {
+            "id": "T07",
+            "query": "We added a reusable folder of instructions that the coding assistant loads for release-note work. I want to see whether the notes come out better with it available. Lay out a repeatable comparison with realistic requests, a baseline, and a scoring rubric. Don’t run any models.",
+            "should_trigger": true
+        },
+        {
+            "id": "T08",
+            "query": "Compare two already-written weekly availability summaries against this rule. The summary must contain the availability figure from the source at exactly two decimal places and mention only the API service. Source API availability is 99.915%, rounded half up. Draft A says “API availability was 99.92%.” Draft B says “API availability was 99.9%; the database was healthy.” Give each draft a pass or fail with evidence.",
+            "should_trigger": false
+        }
+    ],
+    "scores": [
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T01",
+            "should_trigger": true,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T02",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T03",
+            "should_trigger": true,
+            "hit": true,
+            "how": "Bash printed SKILL.md"
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T04",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T01",
+            "should_trigger": true,
+            "hit": true,
+            "how": "command printed SKILL.md"
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T02",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T03",
+            "should_trigger": true,
+            "hit": true,
+            "how": "command printed SKILL.md"
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T04",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T05",
+            "should_trigger": true,
+            "hit": true,
+            "how": "Read SKILL.md"
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T06",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T07",
+            "should_trigger": true,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "claude",
+            "model": "claude-haiku-5-5",
+            "effort": "xhigh",
+            "id": "T08",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T05",
+            "should_trigger": true,
+            "hit": true,
+            "how": "command printed SKILL.md"
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T06",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T07",
+            "should_trigger": true,
+            "hit": true,
+            "how": "command printed SKILL.md"
+        },
+        {
+            "client": "codex",
+            "model": "gpt-6.1-terra",
+            "effort": "xhigh",
+            "id": "T08",
+            "should_trigger": false,
+            "hit": false,
+            "how": null
+        }
+    ]
+}

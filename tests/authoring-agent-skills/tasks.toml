@@ -35,13 +35,24 @@ tags        = [
 run         = "bun test ./tests/authoring-agent-skills/extract-user-turns.test.mts"
 
 ["test:authoring-agent-skills:run-eval"]
-description = "Test run-eval.mjs with stand-in clients: what it records, and what its jail and probe refuse"
+description = "Test run-eval.mjs with stand-in clients: what it records of a run, and the arguments it refuses"
 tags        = [
     "test",
     "covers:skills/authoring-agent-skills/scripts/run-eval.mjs",
     "covers:skills/authoring-agent-skills/scripts/check-skill.mjs",
+    "covers:skills/authoring-agent-skills/scripts/vendor/yaml.mjs",
 ]
 run         = "bun test ./tests/authoring-agent-skills/run-eval.test.mts"
+
+["test:authoring-agent-skills:run-eval-jail"]
+description = "Test run-eval.mjs's jail and probe with stand-in clients: what a run can see and change, what the probe refuses"
+tags        = [
+    "test",
+    "covers:skills/authoring-agent-skills/scripts/run-eval.mjs",
+    "covers:skills/authoring-agent-skills/scripts/check-skill.mjs",
+    "covers:skills/authoring-agent-skills/scripts/vendor/yaml.mjs",
+]
+run         = "bun test ./tests/authoring-agent-skills/run-eval-jail.test.mts"
 
 ["test:authoring-agent-skills:blind-grades"]
 description = "Test blind-grades.mjs: blinding leaves nothing naming the arm; unblinding puts grades back and totals them"

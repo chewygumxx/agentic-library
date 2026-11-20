@@ -21,6 +21,7 @@ these loops for you; this is the method it implements.
 - Grading blind
 - Trigger evaluations
 - Models
+- Staging the evaluation
 - When to stop
 
 ## Where the files live
@@ -61,6 +62,7 @@ against.
      "evals": [
        {
          "id": 1,
+         "name": "<its case directory>",
          "prompt": "<what a person would type>",
          "expected_output": "<what success looks like>",
          "files": ["<input file>"],
@@ -113,52 +115,98 @@ it, and `files/`, copied into a fresh workspace with a first commit, so
 skill as a project skill, where Claude Code and Codex both find it;
 `--arm without` leaves it out. Run each case in both arms, on each model.
 
-The script runs the client in bubblewrap, in an empty home with only
-what it needs bound back, past sessions and file backups hidden, and
-every skills directory read-only. Before running it probes the jail,
-and refuses (exit 3) if a skills directory is writable or, in the
-without arm, the skill is readable anywhere a client looks: `--hide`
-what it names. Each run's `result.json` records its status (`ok`,
-`failed`, `limited` by a usage limit, `contaminated` if a baseline names
-the skill, `leaked` if a run installed one where another could find it),
-tokens, duration, whether it read the skill, and each skill it wrote
-with the checker's verdict. Only `ok` runs count; rerun `limited` ones
-after the reset. `--help` has the rest, and `--probe` checks a jail
-without spending a model.
+The script runs the client in bubblewrap. Of the host it sees only the
+system directories and the tools on `PATH`, read-only; `/tmp`, the
+runtime directory and the home are empty; and its own output directory.
+So the skill's source, the case and the other runs are out of sight
+wherever they lie, and so is the session bus, through which a run could
+start a process outside the jail. The network is shared, as the client
+needs its API.
+
+Each run gets a fresh profile: a client home empty but for that
+client's credentials, read-only, so the person's settings, hooks, MCP
+servers, memory files and skills, which differ between machines and may
+name the skill, stay out of both arms. The client, and whatever it
+runs, can read those credentials, and cannot keep a token it refreshes:
+for a long batch, give it a long-lived token in the environment, such
+as one from `claude setup-token`, or an API key. `--profile person`
+keeps the person's own setup instead, past sessions hidden and skills
+read-only, to measure the skill against what they already have. The
+skill as installed in the with arm is read-only, so a run cannot change
+what it is measured with.
+
+Before running it probes the jail, and refuses (exit 3) if the client
+does not start or is not signed in, a skills directory or the installed
+skill is writable, the skill's or the case's source or what lies beside
+the output is in sight, or, in the without arm, the skill is readable
+anywhere a client looks: `--ro` what the client lacks, `--hide` what
+the probe names.
+
+Each run's `result.json` records its status: `ok`; `failed`, also when
+the client never reported the run's end; `limited` by a usage limit;
+`mismatched` if the client reports another model than asked;
+`contaminated` if a baseline invoked the skill, read it, or ran a
+command whose output shows its text, which a bare mention of its name or
+path is not, though `access_unclear` marks a successful command that
+named a file in it, for a person to judge; or `leaked` if a run
+installed a skill where another could find it. It also records the
+client's version, the model asked for and the one reported, where the
+client reports one, tokens, duration, whether the run read the skill,
+and each skill it wrote with the checker's verdict. Only `ok` runs
+count; rerun `limited` ones after the reset. `--help` has the rest, and
+`--probe` checks a jail without spending a model.
 
 Where bubblewrap is missing, such as on macOS, give each run a
-throwaway user or container with the same properties: an empty home,
-the person's skills read-only, and the clients' past sessions out of
-reach. Launch Claude Code as `claude -p --output-format stream-json
---verbose`, and Codex as `codex exec --json --ephemeral < /dev/null`, as
-the script does.
+throwaway user or container with the same properties: an empty home
+and client profile, the skill's and the case's sources and the other
+runs out of reach, and no way to the person's session. Launch Claude
+Code as `claude -p --output-format stream-json --verbose`, and Codex as
+`codex exec --json --ephemeral < /dev/null`, as the script does.
 
 ## Grading blind
 
 A grader who knows which arm an output came from grades the arm:
 
 ```sh
-node scripts/blind-grades.mjs blind <runs> <blind-dir>
+node scripts/blind-grades.mjs blind <runs> <blind-dir> --evals evals.json
 ```
 
-It copies each `ok` run's output to `<blind-dir>/<case>/<random id>/`,
-with the run's paths and the skill's name redacted, and keeps the map
-from ids to runs out of the graders' reach. Give one grader per case the
-case's files, its assertions, and its outputs; for each output it
-writes `grading.json`:
+It copies each `ok` run that reported its end to
+`<blind-dir>/<case>/<random id>/`, with the run's paths and the skill's
+name redacted from every text file, and links leading out of the copy
+withheld; lists the runs it left out, and why, in
+`<runs>/blind-excluded.json`; and keeps the map from ids to runs out of
+the graders' reach. `--evals` freezes each case's assertions, with ids,
+beside the map, and gives the graders a copy in
+`<blind-dir>/<case>/assertions.json`. An assertion a script can settle
+is better settled by it: written as
+`{ "text": "...", "check": "check-skill" }`, it takes the checker's
+verdict from the run's own record; with another check's name, the
+verdict a script of yours writes to the run's `checks.json`, as
+`{ "<check>": { "passed": true, "evidence": "..." } }`. Give one
+grader per case the case's files, its `assertions.json`, and its
+outputs; for each output it writes `grading.json`, every assertion
+once:
 
 ```json
 {
   "assertion_results": [
-    { "text": "<assertion>", "passed": true, "evidence": "<file: quoted text>" }
+    { "id": "A1", "passed": true, "evidence": "<file: quoted text>" }
   ]
 }
 ```
 
-Then `blind-grades.mjs unblind <runs> <blind-dir>` puts each grade back
-beside its run, takes the checker's verdict from the run itself, and
-totals them by arm, by model, by case, and by assertion, as an overall
-rate hides which assertion carries the difference.
+Then `blind-grades.mjs unblind <runs> <blind-dir>` checks each grading,
+leaving out and listing any that misses, repeats or adds an id, or lacks
+a boolean or evidence; puts each grade back beside its run; and totals
+them by arm, by model, by case, and by assertion, as an overall rate
+hides which assertion carries the difference.
+
+Blinding leaves the installed skill out of each copy, so where an output
+relies on the skill's own scripts, as an evaluation built on
+`run-eval.mjs` does, its grader cannot see what the output delegates to,
+and fails what the scripts do. Give the grader the frozen snapshot's
+scripts, and grade those calls apart, as naming them names the arm.
 
 ## Trigger evaluations
 
@@ -179,9 +227,10 @@ rate hides which assertion carries the difference.
    name the category behind failed queries rather than their words.
    After several stalled rounds, try a different structure. Stay under
    1,024 characters.
-5. **Choose** the iteration with the best judging-set rate, which may
-   not be the last; about five iterations is usually enough. Confirm
-   with 5 to 10 fresh queries.
+5. **Choose** the iteration by the tuning set; about five iterations is
+   usually enough. Then freeze the description and judge it once on the
+   judging set: choosing among iterations by their judging rate spends
+   it on tuning. Confirm with 5 to 10 fresh queries.
 
 ## Models
 
@@ -190,6 +239,66 @@ shows what the skill leaves out; a large one, what it over-explains;
 another vendor's, what only one model family understood. A skill for
 several clients runs in each, as each lists and loads skills
 differently.
+
+## Staging the evaluation
+
+Spend as confidence grows: cheap, broad runs while the skill still
+changes, expensive ones once it holds still. Each stage should be able
+to turn up a finding that changes the skill or the decision to ship it;
+one that cannot is not worth its runs. Between stages, agree each fix
+with a reviewer of another model family, who catches what the author's
+family shares.
+
+1. **Rough observation.** After the draft, a review and its fixes: a
+   few paired runs on the cheaper models of each client the skill
+   targets, to find the obvious defects.
+2. **Amendments.** After those are fixed: more runs and more model
+   tiers, small, medium and large, of each family.
+3. **Data processing.** No runs: cheap models sift the transcripts and
+   grades for wasted steps, misreadings and assertions that measure
+   nothing; a large model at high effort confirms whatever they flag
+   against the original evidence, before anyone changes the skill.
+4. **Higher effort.** Agree first what adequate means, then fix, and
+   run the decisions still open at higher effort.
+5. **Repeat** until adequate, or until progress stalls below it.
+
+For example, for a skill both vendors' clients will load: stage 1, 3
+runs each on two smaller models per vendor; stage 2, 7 small, 5 medium
+and 3 large; stage 4, as stage 2, small models at their highest effort
+and others high. A short or low-stakes skill can merge stages.
+
+- **Scale runs** to how much the results vary and what a wrong call
+  costs: repeat a case whose result is mixed and would change the
+  decision, not one that is settled.
+- **Change cases between stages,** keeping a small common set to
+  measure change on. Drop one both arms pass every time: it measures the
+  model, not the skill. Add ones testing the decisions the last stage
+  found weak. When a change needs attributing, run the previous
+  snapshot against the new one on the common set, at the same effort;
+  otherwise compare arms within a stage, never one stage's rate with
+  another's, as cases, effort, graders and harness all moved.
+- **Estimate before starting,** by client, model and effort: the last
+  comparable stage's tokens per run, from each `result.json`, times the
+  runs planned, grading included, or a short pilot when the effort
+  changes. When it does not fit, drop redundant work first, and keep
+  both arms on the cases and clients that could change the decision.
+- **Keep a trigger holdout.** Tune the description on the tuning
+  queries alone; judge it on the judging set once, when it is frozen.
+  Picking among revisions by the judging rate spends the holdout.
+- **Unfit, not unfinished.** If the remaining failures are steps a
+  model keeps getting wrong however the prose puts them, or need live
+  access, move those steps into a script, or the whole skill into what
+  fits better: an MCP server, an executable, an SDK or a service.
+
+To close, commit a report beside sample data, where a permalink can
+cite it: the method; the commit evaluated, the case, assertion and
+harness versions, and each client's version, model and effort; results
+by stage, arm, model and case; exclusions; each finding and the fix it
+led to; the harness's own defects; and the limitations. The sample data
+is each stage's assertions and per-run results, cleared for sharing.
+Archive the rest whole, every transcript, workspace, grade and excluded
+run, in private storage, as transcripts can hold private data, and
+record in the report where it is and its checksum.
 
 ## When to stop
 

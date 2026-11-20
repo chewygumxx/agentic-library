@@ -11,16 +11,41 @@
 
 # A stand-in for `claude -p ... --output-format stream-json`, for
 # run-eval.mjs's tests. $STUB_MODE picks what it does: use (read the
-# skill), limit, name (name the skill in its answer), escape (write to a
-# skills directory and to the home), leak (install a skill in its state).
+# skill), tried (fail to read it), echo (print its path), limit, name (name the skill in its
+# answer), escape (write to a skills directory and to the home), leak
+# (install a skill in its state), cut (end without a result), peek (look
+# for each of $STUB_PEEK and write to each of $STUB_POKE,
+# colon-separated, and look in $XDG_RUNTIME_DIR). It reports the model
+# $STUB_OBSERVED, default m.
 
 skill=${STUB_SKILL:-processing-things}
 mode=${STUB_MODE:-use}
 config=${CLAUDE_CONFIG_DIR:?run-eval.mjs sets it}
+# Signed in when the profile holds credentials, as the jail's preflight asks.
+case $* in
+--version) echo "0.0.0 (Claude Code)" && exit 0 ;;
+"auth status")
+    if [ -f "$config/.credentials.json" ]; then
+        echo '{ "loggedIn": true }'
+    else
+        echo '{ "loggedIn": false }' && exit 1
+    fi
+    exit 0
+    ;;
+*) ;;
+esac
+printf '%s\n' "{\"type\":\"system\",\"subtype\":\"init\",\"model\":\"${STUB_OBSERVED:-m}\"}"
 mkdir -p skills/made && printf -- '---\nname: made\ndescription: Makes things. Use when needed.\n---\n' >skills/made/SKILL.md
 case $mode in
-use)
-    printf '%s\n' "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"name\":\"Read\",\"input\":{\"file_path\":\".claude/skills/$skill/SKILL.md\"}}]}}"
+use | tried)
+    error=false
+    [ "$mode" = tried ] && error=true
+    printf '%s\n' "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"id\":\"t1\",\"name\":\"Read\",\"input\":{\"file_path\":\".claude/skills/$skill/SKILL.md\"}}]}}"
+    printf '%s\n' "{\"type\":\"user\",\"message\":{\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"t1\",\"is_error\":$error}]}}"
+    ;;
+echo)
+    printf '%s\n' "{\"type\":\"assistant\",\"message\":{\"content\":[{\"type\":\"tool_use\",\"id\":\"t2\",\"name\":\"Bash\",\"input\":{\"command\":\"echo .claude/skills/$skill/SKILL.md\"}}]}}"
+    printf '%s\n' "{\"type\":\"user\",\"message\":{\"content\":[{\"type\":\"tool_result\",\"tool_use_id\":\"t2\",\"is_error\":false,\"content\":\".claude/skills/$skill/SKILL.md\"}]}}"
     ;;
 escape)
     touch "$config/skills/escaped" 2>/dev/null && echo "wrote skills" >&2
@@ -30,9 +55,23 @@ leak)
     mkdir -p "$config/installed/$skill" &&
         printf -- '---\nname: x\n---\n' >"$config/installed/$skill/SKILL.md"
     ;;
+peek)
+    IFS=:
+    for p in ${STUB_PEEK:-}; do
+        [ -e "$p" ] && echo "saw: $p" >&2
+    done
+    for p in ${STUB_POKE:-}; do
+        printf x 2>/dev/null >>"$p" && echo "wrote: $p" >&2
+    done
+    unset IFS
+    entries=$(ls -A "${XDG_RUNTIME_DIR:-/nonexistent}" 2>/dev/null || true)
+    [ -n "$entries" ] && echo "saw: runtime directory" >&2
+    ;;
 *) ;;
 esac
-if [ "$mode" = limit ]; then
+if [ "$mode" = cut ]; then
+    exit 0
+elif [ "$mode" = limit ]; then
     printf '%s\n' '{"type":"result","is_error":true,"api_error":"usage_limit_reached","api_error_status":429,"result":"You have hit your limit","usage":{}}'
 elif [ "$mode" = name ]; then
     printf '%s\n' "{\"type\":\"result\",\"result\":\"I followed $skill.\",\"usage\":{\"input_tokens\":10,\"output_tokens\":5}}"
