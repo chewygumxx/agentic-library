@@ -5,8 +5,8 @@
       "source": "@chewygumxx/skill-authoring-agent-skills",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.2",
-      "computedHash": "3867ab7f7fcc9512428ce0082348b73ebefb3cc0e4ce5e0c031dd4c3a310df5f"
+      "version": "0.1.0",
+      "computedHash": "068292321c3bf21884db6347d392de120a8989b5eef77bc838c9096f9bacdb7a"
     },
     "book-to-skill": {
       "source": "virgiliojr94/book-to-skill",

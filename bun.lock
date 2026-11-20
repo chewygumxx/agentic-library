@@ -47,7 +47,7 @@
     },
     "skills/authoring-agent-skills": {
       "name": "@chewygumxx/skill-authoring-agent-skills",
-      "version": "0.0.2",
+      "version": "0.1.0",
     },
     "skills/compacting-context": {
       "name": "@chewygumxx/skill-compacting-context",
