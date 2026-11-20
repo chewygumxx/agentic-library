@@ -21,6 +21,7 @@
         "@chewygumxx/shellcheck-config": "^1.0.1",
         "@chewygumxx/skill-authoring-agent-skills": "workspace:*",
         "@chewygumxx/skill-compacting-context": "workspace:*",
+        "@chewygumxx/skill-configuring-code-environment": "workspace:*",
         "@chewygumxx/skill-configuring-mise-tasks": "workspace:*",
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
@@ -53,6 +54,10 @@
     },
     "skills/compacting-context": {
       "name": "@chewygumxx/skill-compacting-context",
+      "version": "0.0.1",
+    },
+    "skills/configuring-code-environment": {
+      "name": "@chewygumxx/skill-configuring-code-environment",
       "version": "0.0.1",
     },
     "skills/configuring-mise-tasks": {
@@ -148,6 +153,8 @@
     "@chewygumxx/skill-authoring-agent-skills": ["@chewygumxx/skill-authoring-agent-skills@workspace:skills/authoring-agent-skills"],
 
     "@chewygumxx/skill-compacting-context": ["@chewygumxx/skill-compacting-context@workspace:skills/compacting-context"],
+
+    "@chewygumxx/skill-configuring-code-environment": ["@chewygumxx/skill-configuring-code-environment@workspace:skills/configuring-code-environment"],
 
     "@chewygumxx/skill-configuring-mise-tasks": ["@chewygumxx/skill-configuring-mise-tasks@workspace:skills/configuring-mise-tasks"],
 

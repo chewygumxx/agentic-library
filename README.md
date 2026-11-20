@@ -27,6 +27,7 @@ harnesses.
 | Skill                            | For                                                  |
 | -------------------------------- | ---------------------------------------------------- |
 | `compacting-context`             | Writing and rating a compaction's instructions       |
+| `configuring-code-environment`   | Configuring Claude Code CLI environment variables    |
 | `configuring-mise-tasks`         | Writing and naming a repository's mise tasks alike   |
 | `coordinating-agents`            | Running agents within their context and usage limits |
 | `managing-dotfiles-with-chezmoi` | Changing and applying dotfiles managed by chezmoi    |

@@ -41,6 +41,7 @@
         "@chewygumxx/shellcheck-config": "^1.0.1",
         "@chewygumxx/skill-authoring-agent-skills": "workspace:*",
         "@chewygumxx/skill-compacting-context": "workspace:*",
+        "@chewygumxx/skill-configuring-code-environment": "workspace:*",
         "@chewygumxx/skill-configuring-mise-tasks": "workspace:*",
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
