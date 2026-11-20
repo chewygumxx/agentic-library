@@ -202,6 +202,12 @@ a boolean or evidence; puts each grade back beside its run; and totals
 them by arm, by model, by case, and by assertion, as an overall rate
 hides which assertion carries the difference.
 
+Blinding leaves the installed skill out of each copy, so where an output
+relies on the skill's own scripts, as an evaluation built on
+`run-eval.mjs` does, its grader cannot see what the output delegates to,
+and fails what the scripts do. Give the grader the frozen snapshot's
+scripts, and grade those calls apart, as naming them names the arm.
+
 ## Trigger evaluations
 
 1. **Queries.** About 20: 8 to 10 that should load the skill, varied in
