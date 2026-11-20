@@ -1,6 +1,6 @@
 ---
 ctime: 2026-11-20
-mtime: 2026-11-20
+mtime: 2026-11-21
 spdx: GPL-3.0-only
 title: authoring-agent-skills follow-ups after 0.1.0
 description: >-
@@ -210,33 +210,26 @@ repository: `run-stage3.mjs` (pairs as units), `run-triggers.mjs`
 
 ## 6. This repository
 
-1. **The uncommitted `distilly` entry.** The person keeps an entry for
-   `titanwings/distilly` in their working `skills-lock.json`, never
-   committed. A lockfile change on `main` then blocks switching or
-   fast-forwarding, and `lint:spell` fails locally on its words. Next:
-   decide whether to commit it, or keep it out of tree.
-2. **Merge commits add a release-note line.** With merges, not squashes,
+1. **Merge commits add a release-note line.** With merges, not squashes,
    a pull request's conventional title becomes one more `feat` line in
    the skill's notes, as in 0.0.2 and 0.1.0. Next: decide on titles that
    are not conventional commits, if the line is unwanted.
-3. **The `feat/agentic-scholar` worktree.** Fully merged, its checkout
-   still at `6e689d0`, before the release commits. Next: remove it, or
-   fast-forward it, once the `distilly` entry is set aside.
-4. **A stale `.git/config.lock`.** Left by the crash of 2026-11-19, it
+2. **The `feat/agentic-scholar` worktree.** The feature branch is fully
+   merged. Its former checkout now holds `docs/authoring-follow-ups`.
+3. **A stale `.git/config.lock`.** Left by the crash of 2026-11-19, it
    blocked every write to the shared git config until removed on
    2026-11-20, with no git process running. Next: after a crash, check
    for `*.lock` under `.git` before anything else.
-5. **A near miss in a test.** A test passing `--out /` reached the
+4. **A near miss in a test.** A test passing `--out /` reached the
    runner's removal of `/` before `04effe1` fixed the check, and stopped
    at its first permission error, deleting nothing. No test passes it
    now. Next: never pass a destructive path to a script under test, even
    to see it refused.
-6. **The earlier deferred findings.**
+5. **The earlier deferred findings.**
    [`2026-11-19_skill-check-findings.md`](2026-11-19_skill-check-findings.md)
    is still open.
-7. **The commit helper is outside the repository.** Skill commits went
-   through a local script that resyncs `skills-lock.json` without the
-   `distilly` entry, under an 8 GB memory cap. Next: if item 6.1 keeps
-   the entry out of tree, consider a supported way to do the same.
+6. **The commit helper is outside the repository.** Skill commits went
+   through a local script that resyncs `skills-lock.json` under an 8 GB
+   memory cap.
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
