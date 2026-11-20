@@ -8,9 +8,10 @@
 //
 //
 
-// The configuring-mise-tasks skill's bundled files: its script stays the one
-// this repository runs, and its template keeps the standard task set, one
-// file per task family.
+// The configuring-mise-tasks skill's bundled examples: the standard task set,
+// one file per task family, each task extending its cgxx: template; the
+// config that installs the packages before the hooks; and the hk.pkl that
+// takes its steps from @chewygumxx/hk-config.
 
 import { describe, expect, it } from "bun:test";
 import { readdirSync, readFileSync } from "node:fs";
@@ -52,20 +53,7 @@ const families: Record<string, (name: string) => boolean> = {
         name === "format" || name.startsWith("format:"),
 };
 
-// A file without its breadcrumb, the one line that names its own path.
-const body = (path: string) =>
-    readFileSync(path, "utf8")
-        .split("\n")
-        .filter((line) => !line.startsWith("# ::: :/"))
-        .join("\n");
-
 describe("configuring-mise-tasks", () => {
-    it("bundles with-files.sh as this repository uses it", () => {
-        expect(body(join(skill, "scripts", "with-files.sh"))).toBe(
-            body(join(root, "scripts", "with-files.sh")),
-        );
-    });
-
     it("its template is one file per family", () => {
         expect(readdirSync(templates).sort()).toEqual(
             Object.keys(families).sort(),
@@ -86,33 +74,50 @@ describe("configuring-mise-tasks", () => {
         }
     });
 
-    it("its template defines the standard set", () => {
+    it("its template extends the cgxx: template of each standard task", () => {
         const tasks = template();
-        const standard = {
-            install: "i",
-            lint: "l",
-            format: "f",
-            test: "t",
-            check: "c",
-        };
-        for (const [name, alias] of Object.entries(standard)) {
-            expect([name, Boolean(tasks[name]?.description)]).toEqual([
+        for (const name of ["install", "lint", "format", "test", "check"]) {
+            expect([name, tasks[name]?.extends]).toEqual([
                 name,
-                true,
+                `cgxx:${name}`,
             ]);
-            expect([name, tasks[name]?.alias]).toEqual([name, alias]);
         }
-        const aliased = Object.keys(tasks).filter((name) => tasks[name]?.alias);
-        expect(aliased.sort()).toEqual(Object.keys(standard).sort());
+        // The templates carry the aliases and the flags.
+        for (const [name, task] of Object.entries(tasks)) {
+            expect([name, task.alias, task.usage]).toEqual([
+                name,
+                undefined,
+                undefined,
+            ]);
+        }
     });
 
-    it("its template forwards --all from check to lint", () => {
-        const tasks = template();
-        expect(tasks.check?.extends).toBe("staged");
-        expect(tasks.lint?.extends).toBe("staged");
-        expect(tasks.check?.depends).toContain(
-            "lint {% if not usage.staged %}--all{% endif %}",
+    it("its config installs the packages before the hooks, outside CI", () => {
+        const config = Bun.TOML.parse(
+            readFileSync(join(skill, "assets", "config.toml"), "utf8"),
+        ) as {
+            hooks?: { postinstall?: string };
+            task_config?: { includes?: string[] };
+        };
+        expect(config.hooks?.postinstall).toBe(
+            'test -n "${CI-}" || { bun ci && hk install --mise; }',
         );
+        expect(config.task_config?.includes).toEqual([
+            ".config/mise/tasks/*.task.toml",
+        ]);
+    });
+
+    it("its hk.pkl takes the shared steps from node_modules", () => {
+        const pkl = readFileSync(join(skill, "assets", "hk.pkl"), "utf8");
+        for (const line of [
+            'import "../node_modules/@chewygumxx/hk-config/steps.pkl" as shared',
+            "steps = cgxx.lint",
+            "steps = cgxx.format",
+            "stage = false",
+            'check = "mise run check --staged"',
+        ]) {
+            expect([line, pkl.includes(line)]).toEqual([line, true]);
+        }
     });
 
     it("its template holds no act", () => {

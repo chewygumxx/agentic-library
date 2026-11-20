@@ -11,45 +11,11 @@
 
 #
 # Copied to .config/mise/tasks/lint.task.toml, its own path above
-# changed to match. Replace each <...>, and repeat lint:<kind> once per
-# kind of file.
+# changed to match.
 #
 
 [lint]
-description = "Run every linter and format check"
-alias       = "l"
-extends     = "staged"
-depends     = [
-    "lint:<kind> {% if not usage.staged %}--all{% endif %}",
-    "lint:types",
-]
-
-# --------------------
-# Lint: file by file
-# --------------------
-
-["lint:<kind>"]
-description = "Lint <kind> files with <linter>"
-extends     = "staged:cached"
-sources     = [
-    "**/*.<ext>",
-    "!node_modules/**",
-    "<linter config>",
-    "<lockfile>",
-    ".config/mise/config.toml",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-run         = "scripts/with-files.sh '*.<ext>' -- <linter, check only>"
-
-# ---------------------
-# Lint: whole project
-# ---------------------
-
-["lint:types"]
-description = "Type-check with <type checker>"
-run         = "<type checker>"
+extends = "cgxx:lint"
 
 ["lint:commit"]
-description = "Lint a commit message file with <commit linter>"
-usage       = 'arg "<file>" help="The commit message file"'
-run         = '<commit linter> "$usage_file"'
+extends = "cgxx:lint:commit"

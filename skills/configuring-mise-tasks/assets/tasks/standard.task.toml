@@ -15,17 +15,11 @@
 #
 
 [install]
-description = "Install the locked dependency tree"
-alias       = "i"
-run         = "<locked install, such as bun ci>"
+extends = "cgxx:install"
 
 [test]
-description = "Run the tests"
-alias       = "t"
-run         = "<test command>"
+extends = "cgxx:test"
+run     = "<test command>"
 
 [check]
-description = "Run everything CI runs: lint and test"
-alias       = "c"
-extends     = "staged"
-depends     = [ "lint {% if not usage.staged %}--all{% endif %}", "test" ]
+extends = "cgxx:check"

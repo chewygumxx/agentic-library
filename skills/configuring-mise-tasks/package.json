@@ -1,7 +1,7 @@
 {
     "name": "@chewygumxx/skill-configuring-mise-tasks",
     "version": "0.0.2",
-    "description": "Sets out a repository's standard mise tasks: where each action is defined, how tasks are written and named, how they narrow to staged files, and how hooks run them. Use when adding, changing, reviewing or adopting a repository's mise tasks, deciding what belongs in package.json scripts or the runtime's equivalent, or running git hooks or worktree hooks through mise.",
+    "description": "Sets out a repository's standard mise tasks: where each action is defined, how tasks are written and named, how they hand work to the tools made for it, and how hooks run them. Use when adding, changing, reviewing or adopting a repository's mise tasks, deciding what belongs in package.json scripts or the runtime's equivalent, or running git hooks or worktree hooks through mise.",
     "keywords": [
         "agent-skills"
     ],
@@ -15,8 +15,7 @@
     "files": [
         "SKILL.md",
         "assets",
-        "references",
-        "scripts"
+        "references"
     ],
     "scripts": {
         "prepack": "cp ../../LICENSE LICENSE",
