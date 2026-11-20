@@ -48,7 +48,7 @@ whether a service or IDE inherited the same environment.
 
 | Variable | Effect and interaction |
 | --- | --- |
-| `DISABLE_TELEMETRY` | Any non-empty value opts out of telemetry and feature-flag fetching; `0` still opts out |
+| `DISABLE_TELEMETRY` | Any non-empty value opts out of Anthropic operational metrics and feature-flag fetching. The value `0` still opts out |
 | `DISABLE_ERROR_REPORTING` | Any non-empty value opts out of error reporting; independent of the telemetry variable |
 | `DO_NOT_TRACK` | Standard boolean opt-out with the telemetry and feature-flag effects above; unlike `DISABLE_TELEMETRY`, `0` does not opt out |
 | `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC` | Any non-empty value disables a broader collection, including telemetry, error reporting, automatic updates, feedback, and feature-flag fetching. Not an offline mode or a comprehensive network block |
@@ -75,8 +75,10 @@ selection. Unset presence-based variables rather than changing them to
 `CLAUDE_CODE_ENABLE_TELEMETRY=1` enables OpenTelemetry collection.
 `OTEL_METRICS_EXPORTER` and `OTEL_LOGS_EXPORTER` choose exporters;
 `OTEL_EXPORTER_OTLP_PROTOCOL` and `OTEL_EXPORTER_OTLP_ENDPOINT` choose
-the transport and destination. Per-signal settings can override the
-generic endpoint or protocol. An endpoint alone does not enable export.
+the transport and destination. Use the exporter selector to stop
+exporting a specific signal to your collector. Per-signal variables
+can override the generic endpoint and protocol unless managed settings
+pin them.
 
 For an existing local OTLP HTTP collector, these launch variables export
 metrics without enabling a log exporter:
@@ -85,17 +87,21 @@ metrics without enabling a log exporter:
 CLAUDE_CODE_ENABLE_TELEMETRY=1 \
   OTEL_METRICS_EXPORTER=otlp \
   OTEL_LOGS_EXPORTER=none \
+  OTEL_TRACES_EXPORTER=none \
   OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf \
   OTEL_EXPORTER_OTLP_ENDPOINT='http://localhost:4318' \
   claude
 ```
 
-Confirm receipt at the collector; adapt the endpoint and protocol to
-its actual listener. Check for existing per-signal overrides. For
+Confirm receipt at the collector and match the endpoint and protocol
+to its listener. Check for existing per-signal overrides. For
 persistence, use user or managed settings, the launch environment, or
-`--settings`; current versions ignore activation, destination, and
-content-capture variables in project/local settings. Certain off values
-still apply there, with special precedence; see the
+`--settings`. From v2.1.282, project and local settings filter the
+exporter variables that enable, route, or capture telemetry. Check
+`/status` or `claude doctor` for ignored variable names. An exporter
+value of `none` in project or local settings can override user settings.
+A launch environment, `--settings`, or managed value still takes
+precedence. See the
 [`env` exceptions](https://code.claude.com/docs/en/settings-reference#variables-claude-code-ignores-in-env).
 
 `OTEL_LOG_USER_PROMPTS` enables prompt content. Unless explicitly set,
@@ -106,6 +112,8 @@ the user requests it. For rotating collector headers, the
 embedding a long-lived bearer token in JSON.
 
 OpenTelemetry initializes at process startup: restart after editing.
+Claude Code strips its `OTEL_*` variables from child processes. A tool
+that needs its own telemetry configuration must receive it separately.
 Use the [monitoring guide](https://code.claude.com/docs/en/monitoring-usage)
 for exporter support, opt-out interactions, managed destination rules,
 and the variables for the requested signal.

@@ -1,7 +1,7 @@
 {
     "name": "@chewygumxx/skill-configuring-code-environment",
     "version": "0.0.1",
-    "description": "Configures environment variables for Claude Code's `claude` CLI, explaining their effects, examples, and interactions with settings, flags, and credentials. Use when setting, persisting, or diagnosing Claude Code environment variables for authentication, providers, models, runtime limits, proxies, or telemetry. Excludes general Claude Code configuration and application SDK environment setup.",
+    "description": "Configures environment variables for the Claude Code CLI (`claude`). Use when setting variables or debugging overrides for authentication, providers, models, limits, proxies, or telemetry.",
     "keywords": [
         "agent-skills"
     ],

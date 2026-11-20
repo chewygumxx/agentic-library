@@ -1,12 +1,9 @@
 ---
 name: configuring-code-environment
 description: >-
-  Configures environment variables for Claude Code's `claude` CLI,
-  explaining their effects, examples, and interactions with settings,
-  flags, and credentials. Use when setting, persisting, or diagnosing
-  Claude Code environment variables for authentication, providers,
-  models, runtime limits, proxies, or telemetry. Excludes general
-  Claude Code configuration and application SDK environment setup.
+  Configures environment variables for the Claude Code CLI (`claude`).
+  Use when setting variables or debugging overrides for authentication,
+  providers, models, limits, proxies, or telemetry.
 license: GPL-3.0-only
 ---
 
@@ -19,28 +16,29 @@ license: GPL-3.0-only
 
 # Configuring the Claude Code environment
 
-Configure the environment consumed by the `claude` process. Explain
-settings, flags, hooks, or provider credentials only where they change
-what an environment variable does. This is not a general setup guide.
+Explain settings, flags, hooks, and provider credentials where they
+affect the variables consumed by the `claude` process or its children.
 
 ## Establish the effective environment
 
-1. Establish the desired behavior, installed version (`claude --version`),
-   launch shell, and scope: one invocation, one project, or every launch.
-   Inspect the existing launcher and relevant settings before editing.
+1. For a specific installation, start with `claude --version` and the
+   actual launch command, working directory, and shell or runner.
+   Check which settings sources it loads, including any
+   `--settings` or `--setting-sources` flags and `CLAUDE_CONFIG_DIR`.
 2. Look up the variable in the official
    [environment reference](https://code.claude.com/docs/en/env-vars).
    Verify supported values, units, defaults, version requirements, and
-   any dedicated setting or flag. Treat undocumented names as unsupported;
-   do not infer a variable from a similarly named settings key.
+   any dedicated setting or flag. Describe names absent from the docs
+   as undocumented and verify them for the installed version before
+   recommending them.
 3. Choose the narrowest persistent scope the request needs. Keep
    credentials in the launch environment or a credential helper, rather
    than a tracked settings file. Merge into an existing `env` object.
 4. Explain each proposed variable through its effect, a runnable example
    with placeholders for private values, and its interactions with other
    configuration. Say how to remove the override and verify the result.
-5. Relaunch through the actual launcher and check the affected behavior.
-   Reporting a shell value alone does not prove Claude Code used it.
+5. Relaunch through the same launcher and check the affected behavior.
+   When changing a startup model default, test in a fresh session.
 
 Read only the reference needed:
 
@@ -51,10 +49,6 @@ Read only the reference needed:
 - [Networking and telemetry](references/networking-telemetry.md) for
   proxy/TLS variables, optional traffic, updates, and OpenTelemetry.
 
-For variables outside those examples, use the same procedure against
-the upstream reference. Keep the delivered change limited to the
-requested environment behavior.
-
 ## Place the variables
 
 | Location | Scope and example |
@@ -64,6 +58,7 @@ requested environment behavior.
 | User settings | Every local project: `~/.claude/settings.json`, under `env` |
 | Shared project settings | Team defaults: `.claude/settings.json`, under `env`; commit only non-secret values |
 | Local project settings | Personal project override: `.claude/settings.local.json`, under `env`; ensure it is ignored if creating it by hand |
+| CLI settings | A session-specific `env` entry passed as JSON or a file via `--settings` |
 | Managed settings | Administrator-deployed environment values; inspect their effects rather than assuming a user override works |
 
 An ordinary persistent value, merged into the chosen settings file:
@@ -96,6 +91,8 @@ Remove-Item Env:API_TIMEOUT_MS
 An exported value lasts for that shell and its children. A profile,
 service, CI runner, and IDE can launch with different environments;
 changing one does not update an already running parent process.
+A project `.env` file supplies launch values only if the launcher
+loads and exports them.
 
 ## Resolve conflicts per variable
 
@@ -119,27 +116,35 @@ resulting variable interacts with a dedicated setting or flag.
   [exceptions](https://code.claude.com/docs/en/settings-reference#variables-claude-code-ignores-in-env)
   before proposing placement.
 
-The [`env` reference](https://code.claude.com/docs/en/settings-reference#env)
-also explains workspace trust and when settings are applied. Safe
-variables can apply before trust; other project/local values apply
-after trust in interactive sessions, or at startup in `-p` mode.
+For example, if a project settings file sets `API_TIMEOUT_MS`, a shell
+prefix assignment usually loses. Set the same entry through
+`--settings` to try a 20-minute timeout for one launch, subject to
+managed settings:
+
+```sh
+claude --settings '{"env":{"API_TIMEOUT_MS":"1200000"}}'
+```
+
+Safe variables can apply before workspace trust. Other project and
+local entries apply after trust in interactive sessions, or at
+startup in `-p` mode. See the [`env` reference](https://code.claude.com/docs/en/settings-reference#env).
 
 ## Verify and remove overrides
 
-Inspect only the relevant variable names and non-secret values. Never
-dump the whole environment, settings, or credential files. For a key,
-check presence without printing it:
+Inspect only the relevant names and non-secret values. To check if a
+non-empty key is exported to a child of the current POSIX shell,
+run this without printing the value:
 
 ```sh
-if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
-  printf '%s\n' 'ANTHROPIC_API_KEY is non-empty'
-fi
+sh -c 'if [ -n "${ANTHROPIC_API_KEY:-}" ]; then
+  printf "%s\n" "ANTHROPIC_API_KEY is exported and non-empty"
+fi'
 ```
 
-Use `/status` for authentication and settings status, `/model` for the
-selected model, and `/mcp` for MCP connections. Use `claude doctor` or
-`claude --debug` when placement or ignored variables remain unclear;
-inspect logs locally and redact credentials before sharing excerpts.
+Use `/status` to check active settings sources and authentication,
+`/model` to check the selected model, and `/mcp` for MCP connections.
+Use `claude --debug` when placement or ignored variables remain unclear.
+Inspect logs locally and redact credentials before sharing excerpts.
 Make an API request only when verifying inference is part of the task.
 
 To remove a persistent override, delete its exact `env` entry or profile
@@ -160,7 +165,11 @@ behavior to numeric limits or credentials.
 - `CLAUDE_ENV_FILE` is sourced for tool shell commands. A hook writing
   exports there, or `export` inside one Bash tool call, does not
   reconfigure the parent Claude process's model or authentication.
-- Environment values can reach child processes. Do not promise secret
-  isolation merely because a value lives outside a tracked file.
+- When Claude itself works but a Bash command, hook, or stdio MCP
+  server lacks a credential, check `CLAUDE_CODE_SUBPROCESS_ENV_SCRUB`.
+  At `1` it removes matching credentials from child environments while
+  preserving Claude's own credentials. GitHub tokens and proxy variables
+  are among the exceptions. See the
+  [scrub rules](https://code.claude.com/docs/en/env-vars#what-the-subprocess-environment-scrub-removes).
 
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->

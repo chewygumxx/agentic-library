@@ -24,7 +24,7 @@ check model support, defaults, caps, and installed-version behavior.
 | Variable | Effect and synergy |
 | --- | --- |
 | `ANTHROPIC_MODEL` | Selects an alias or model ID. Beats `model` in settings; `--model` and `/model` override it |
-| `ANTHROPIC_DEFAULT_MODEL` | Starting fallback for new sessions when no settings file selects `model`; requires v2.1.236 or later. Unlike `ANTHROPIC_MODEL`, does not override a configured `model` |
+| `ANTHROPIC_DEFAULT_MODEL` | Starting fallback for new sessions. An explicit selection through `--model`, `ANTHROPIC_MODEL`, the `model` setting, or an organization default takes precedence. Requires v2.1.236 or later |
 | `ANTHROPIC_DEFAULT_OPUS_MODEL`, `ANTHROPIC_DEFAULT_SONNET_MODEL`, `ANTHROPIC_DEFAULT_HAIKU_MODEL` | Map aliases to deployment-specific IDs; selecting an alias and redefining it are different operations. Haiku mapping also affects background functionality |
 | `CLAUDE_CODE_SUBAGENT_MODEL` | Default for agents without a model assigned another way. Since v2.1.251, per-invocation and definition models, including `inherit`, take precedence; check the installed version before diagnosing an override |
 | `CLAUDE_CODE_EFFORT_LEVEL` | Reasoning effort for supported models. Beats `--effort`, `/effort`, `modelSettings`, and `effortLevel`; a managed `maxEffortLevel` cap still applies. Supported levels depend on the model |
@@ -37,10 +37,11 @@ For a model that supports high effort:
 ANTHROPIC_MODEL=sonnet CLAUDE_CODE_EFFORT_LEVEL=high claude
 ```
 
-If `/effort` or `--effort` appears ineffective, inspect this environment
-override. Remove it to restore those controls. To override just the
-model for one invocation, `claude --model opus` beats the model variable;
-an organization's allowed-model rules still apply.
+If `/effort` or `--effort` appears ineffective, remove the environment
+override to restore those controls. The literal value `unset` tells
+Claude Code to omit effort from the request. To verify a starting
+model, use a new session because a resumed session can keep its saved
+model.
 
 For a gateway that requires a deployment ID, merge this template into
 the intended settings file and replace the placeholder first:
@@ -70,18 +71,20 @@ Check the model guide before promising either behavior.
 `CLAUDE_CODE_MAX_CONTEXT_TOKENS` corrects Claude Code's assumed context
 size for supported custom/gateway IDs; it cannot increase the server's
 actual capacity. Whether it applies depends on how the ID resolves.
-`CLAUDE_CODE_AUTO_COMPACT_WINDOW` sets the compaction window, whereas
-`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` lowers the trigger percentage of that
-window; it cannot raise the default trigger percentage. Consult the
-model guide before combining them with `autoCompactWindow` settings.
+`CLAUDE_CODE_AUTO_COMPACT_WINDOW` sets the compaction window in tokens.
+A usable value overrides `--autocompact`, `/autocompact`, and
+`autoCompactWindow`. Use a full count such as `200000`. The bare value
+`200` means 200 tokens in this variable and 200,000 in `/autocompact`.
+`CLAUDE_AUTOCOMPACT_PCT_OVERRIDE` lowers the trigger percentage in
+sessions that compact before the model's context limit.
 
 ```sh
-CLAUDE_AUTOCOMPACT_PCT_OVERRIDE=50 claude
+CLAUDE_CODE_AUTO_COMPACT_WINDOW=200000 claude
 ```
 
-This requests earlier compaction in sessions where the percentage
-override applies; it does not change model capacity. If automatic
-compaction was disabled elsewhere, remove that disable first.
+This sets the compaction boundary for a deployment with a 200,000 token
+limit. Claude Code caps the window at the model's context size. If
+automatic compaction was disabled elsewhere, remove that disable first.
 `DISABLE_AUTO_COMPACT=1` overrides `autoCompactEnabled` and leaves manual
 `/compact` available. `DISABLE_COMPACT=1` disables both forms.
 
