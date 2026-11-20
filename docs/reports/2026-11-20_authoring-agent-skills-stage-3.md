@@ -238,6 +238,10 @@ passed cases counsel built to fail them.
 
 ## What next
 
+Every open item, with its evidence and a next step, is in
+[the follow-ups](../deferred/2026-11-20_authoring-agent-skills-follow-ups.md).
+In brief:
+
 - Redesign upload repair and large docs to separate the arms, or drop
   them.
 - When the behaviour graded lives in the skill's own scripts, give the
