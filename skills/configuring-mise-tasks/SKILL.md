@@ -91,9 +91,14 @@ Remove any other entry, and change its mentions from `bun run <name>` to
 - Every task has a `description`, which `mise tasks` shows. Otherwise a
   task file carries labels, and at most a one-line why where a setting is
   not obvious. Longer reasoning goes in the directory's guidance file.
-- Tools mise pins run by name. Tools the runtime installs run through it:
-  `bunx --bun --no-install <cli>` for Bun, as `mise run` gives neither
-  `node_modules/.bin` on `PATH` nor `bun run`'s Bun-as-node.
+- Tools mise pins run by name. Tools the runtime installs run through it,
+  as `mise run` puts no `node_modules/.bin` on `PATH`: `bun run <cli>` for
+  Bun, with `[run] bun = true` in `bunfig.toml`, so a CLI whose shebang
+  names `node` runs on Bun. `bun run` never installs, and a
+  `package.json` script of the CLI's name runs in its place, so name no
+  script after a CLI. Not `bunx`, which runs such a CLI on Node without
+  `--bun`, and without `--no-install` fetches the package named for the
+  CLI, which need not be the one locked.
 
 ## The standard set
 

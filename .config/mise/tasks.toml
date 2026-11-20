@@ -90,7 +90,7 @@ scripts/with-files.sh '.github/workflows/*.yaml' '.github/workflows/*.yml' -- ac
 ["lint:biome"]
 description = "Lint and check formatting with Biome"
 extends     = "staged:cached"
-run         = "scripts/with-files.sh -- bunx --bun --no-install biome ci --no-errors-on-unmatched --files-ignore-unknown=true"
+run         = "scripts/with-files.sh -- bun run biome ci --no-errors-on-unmatched --files-ignore-unknown=true"
 
 ["lint:editorconfig"]
 description = "Check files against .editorconfig"
@@ -115,14 +115,14 @@ sources     = [
     "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
 ]
 run         = [
-    "scripts/with-files.sh '*.md' -- bunx --bun --no-install remark --rc-path .config/remarkrc.json --frail --quiet --no-stdout",
-    "scripts/with-files.sh '*.md' -- bunx --bun --no-install markdownlint-cli2",
+    "scripts/with-files.sh '*.md' -- bun run remark --rc-path .config/remarkrc.json --frail --quiet --no-stdout",
+    "scripts/with-files.sh '*.md' -- bun run markdownlint-cli2",
 ]
 
 ["lint:secrets"]
 description = "Scan for secrets with secretlint"
 extends     = "staged:cached"
-run         = "scripts/with-files.sh -- bunx --bun --no-install secretlint"
+run         = "scripts/with-files.sh -- bun run secretlint"
 
 ["lint:sh"]
 description = "Lint shell scripts with shfmt and ShellCheck"
@@ -135,7 +135,7 @@ run         = [
 ["lint:spell"]
 description = "Check spelling with cspell"
 extends     = "staged:cached"
-run         = "scripts/with-files.sh -- bunx --bun --no-install cspell --no-progress --no-summary --no-must-find-files"
+run         = "scripts/with-files.sh -- bun run cspell --no-progress --no-summary --no-must-find-files"
 
 ["lint:toml"]
 description = "Lint and check formatting of TOML with Tombi"
@@ -168,7 +168,7 @@ env         = {
     YAMLLINT_CONFIG_FILE = "node_modules/@chewygumxx/yamllint-config/config.yaml"
 }
 run         = [
-    "scripts/with-files.sh '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --check",
+    "scripts/with-files.sh '*.yaml' '*.yml' -- bun run prettier --config .config/prettierrc.json --check",
     "scripts/with-files.sh '*.yaml' '*.yml' -- yamllint --strict",
 ]
 
@@ -178,7 +178,7 @@ run         = [
 
 ["lint:deps"]
 description = "Find unused files and dependencies with knip"
-run         = "bunx --bun --no-install knip"
+run         = "bun run knip"
 
 # publint packs each skill as npm would, so it reads the skill's files too.
 ["lint:package"]
@@ -192,8 +192,8 @@ sources     = [
 ]
 outputs     = { auto = true }
 run         = [
-    "bunx --bun --no-install sort-package-json --check package.json skills/*/package.json",
-    'for dir in skills/*/; do bunx --bun --no-install publint --level warning "$dir" || exit 1; done',
+    "bun run sort-package-json --check package.json skills/*/package.json",
+    'for dir in skills/*/; do bun run publint --level warning "$dir" || exit 1; done',
 ]
 
 # The skill's own script, as any repository publishing skills would run
@@ -215,16 +215,16 @@ run         = "node skills/publishing-skills-to-npm/scripts/skill-packages.mjs c
 
 ["lint:types"]
 description = "Type-check with tsc"
-run         = "bunx --bun --no-install tsc"
+run         = "bun run tsc"
 
 ["lint:commit"]
 description = "Lint a commit message file with commitlint"
 usage       = 'arg "<file>" help="The commit message file"'
-run         = 'bunx --bun --no-install commitlint --edit "$usage_file"'
+run         = 'bun run commitlint --edit "$usage_file"'
 
 ["lint:headers"]
 description = "Verify files' repository and path header lines"
-run         = "bunx --bun --no-install sync-header-metadata"
+run         = "bun run sync-header-metadata"
 
 # -------
 # Format
@@ -233,7 +233,7 @@ run         = "bunx --bun --no-install sync-header-metadata"
 ["format:biome"]
 description = "Format with Biome"
 extends     = "staged"
-run         = "scripts/with-files.sh -- bunx --bun --no-install biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"
+run         = "scripts/with-files.sh -- bun run biome format --write --no-errors-on-unmatched --files-ignore-unknown=true"
 
 ["format:sh"]
 description = "Format shell scripts with shfmt"
@@ -248,7 +248,7 @@ run         = "scripts/with-files.sh '*.toml' -- tombi format"
 ["format:yaml"]
 description = "Format YAML with Prettier"
 extends     = "staged"
-run         = "scripts/with-files.sh '*.yaml' '*.yml' -- bunx --bun --no-install prettier --config .config/prettierrc.json --write --log-level warn"
+run         = "scripts/with-files.sh '*.yaml' '*.yml' -- bun run prettier --config .config/prettierrc.json --write --log-level warn"
 
 # ------
 # Other
@@ -256,7 +256,7 @@ run         = "scripts/with-files.sh '*.yaml' '*.yml' -- bunx --bun --no-install
 
 [commit]
 description = "Compose a commit with commitizen"
-run         = "bunx --bun --no-install cz"
+run         = "bun run cz"
 
 [skills]
 description = "Sync the skills package.json declares, this repository's own included"
