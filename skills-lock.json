@@ -28,7 +28,7 @@
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
       "version": "0.0.1",
-      "computedHash": "7d79bf3695c074a53972860afab492ae30e920741996febb71e77579e533a512"
+      "computedHash": "631ec4d2e0da796bcf9f92175f15e4d4ac9625128530971fa715506e9e65e00a"
     },
     "configuring-mise-tasks": {
       "source": "@chewygumxx/skill-configuring-mise-tasks",

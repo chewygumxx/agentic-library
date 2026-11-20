@@ -10,6 +10,7 @@
 ## Contents
 
 - [Direct API, subscription, or gateway](#direct-api-subscription-or-gateway)
+- [Credentials for scripts](#credentials-for-scripts)
 - [Select one provider deliberately](#select-one-provider-deliberately)
 - [Separate configuration directories](#separate-configuration-directories)
 
@@ -22,9 +23,9 @@ Inspect all three before changing one. Confirm variable behavior in the
 
 | Variable | Effect and interaction |
 | --- | --- |
-| `ANTHROPIC_API_KEY` | Sends an `X-Api-Key` credential. When present, `-p` uses it instead of a logged-in subscription; interactive sessions ask for approval once. Remove it from both launch environment and settings to return to subscription authentication |
+| `ANTHROPIC_API_KEY` | Sends an `X-Api-Key` credential. It takes precedence over the saved subscription login in print mode (`-p`). In an interactive session Claude Code remembers your approval choice. Change it through **Use custom API key** in `/config` while the variable is set |
 | `ANTHROPIC_AUTH_TOKEN` | Supplies a bearer credential; Claude Code adds the `Bearer` prefix and a space, so provide only the token. Use when the chosen gateway requires bearer authentication; it is not interchangeable with an API key |
-| `ANTHROPIC_BASE_URL` | Routes API requests to another endpoint. Does not select a model, make an incompatible gateway compatible, or bypass provider permissions |
+| `ANTHROPIC_BASE_URL` | Routes API requests to another endpoint. Use a model ID and credential accepted by that endpoint |
 | `ANTHROPIC_CUSTOM_HEADERS` | Adds headers, one `Name: Value` pair per line. Use only headers required by the endpoint; credentials and routing headers can affect authentication and settings approval |
 | `CLAUDE_CODE_API_KEY_HELPER_TTL_MS` | Refresh interval in milliseconds for the credential supplied by the `apiKeyHelper` setting; it does nothing useful without that helper |
 
@@ -53,14 +54,40 @@ claude
 ```
 
 This works only after removing any settings or launcher assignment that
-would restore the key. Check `/status` in the new session. `/login` does
-not permanently remove an environment credential.
+would restore the key. Check `/status` in the new session.
+
+When the direct API or an LLM gateway is selected, check credentials
+in this order: `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_API_KEY`,
+`apiKeyHelper`, `CLAUDE_CODE_OAUTH_TOKEN`, a profile selected with
+`ANTHROPIC_PROFILE` or federation credentials, then saved subscription
+login. An implicit profile can rank below the saved login. A cloud
+provider selection uses its own credentials. A signed-in Claude apps
+gateway takes precedence over cloud provider selectors and direct API
+credentials. Check managed login requirements if a configured
+credential is rejected at startup.
+
+## Credentials for scripts
+
+To use a subscription in CI, inject a token from `claude setup-token`
+as the job secret `CLAUDE_CODE_OAUTH_TOKEN`. A regular print-mode run
+can use it, for example:
+
+```sh
+claude -p 'Reply with OK.'
+```
+
+Check for higher-priority credentials before running. Project and
+local settings cannot set this token. Bare mode, selected by either
+`--bare` or `CLAUDE_CODE_SIMPLE=1`, skips OAuth credentials. For direct
+API access in bare mode, inject `ANTHROPIC_API_KEY` or pass an
+`apiKeyHelper` through `--settings`. This uses API billing. See
+[bare mode](https://code.claude.com/docs/en/headless#start-faster-with-bare-mode).
 
 ## Select one provider deliberately
 
-These are alternative configurations, not a block to enable together.
-Keep only the selector for the intended backend and use its matching
-credential chain. Do not add skip-auth variables to fix missing credentials.
+Keep only the selector for the intended backend and use its credential
+chain. If authentication fails, verify the selected provider and its
+credentials first.
 
 | Backend | Environment and configuration synergy |
 | --- | --- |
@@ -97,8 +124,8 @@ CLAUDE_CONFIG_DIR="$HOME/.claude-work" claude
 ```
 
 The first run can require login. Project settings and inherited
-credentials still apply, so this is not full environment isolation.
-It is ignored in project/local `env`. Credential storage depends on the
+credentials still apply. Claude Code ignores this variable in
+project and local settings. Credential storage depends on the
 authentication method: separate directories do not isolate two Console
 sign-ins without an API key. Check the authentication guide before
 claiming complete account separation.
