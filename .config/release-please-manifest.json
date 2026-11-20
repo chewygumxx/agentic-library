@@ -1,6 +1,6 @@
 {
     "skills/authoring-agent-skills": "0.1.0",
-    "skills/configuring-mise-tasks": "0.0.2",
+    "skills/configuring-mise-tasks": "0.1.0",
     "skills/coordinating-agents": "0.0.2",
     "skills/managing-dotfiles-with-chezmoi": "0.0.2",
     "skills/managing-git-worktrees": "0.0.2",

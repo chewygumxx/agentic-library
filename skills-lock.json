@@ -27,8 +27,8 @@
       "source": "@chewygumxx/skill-configuring-mise-tasks",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.2",
-      "computedHash": "5ae887c4b3f941b43d31c56e52a7932eac9d08881f400e8c7479975ec32e5ec4"
+      "version": "0.1.0",
+      "computedHash": "d12254dbcf729fe67985580235515c23156439e1ebcc42294e97354c74da4d76"
     },
     "coordinating-agents": {
       "source": "@chewygumxx/skill-coordinating-agents",
