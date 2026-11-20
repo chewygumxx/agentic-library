@@ -14,13 +14,8 @@
 #
 
 ["test:configuring-mise-tasks"]
-description = "Test the configuring-mise-tasks skill's bundled script and task template"
-tags        = [
-    "test",
-    "covers:scripts/with-files.sh",
-    "covers:skills/configuring-mise-tasks/scripts/with-files.sh",
-    "covers:skills/configuring-mise-tasks/assets/tasks",
-]
+description = "Test the configuring-mise-tasks skill's bundled examples"
+tags        = [ "test", "covers:skills/configuring-mise-tasks/assets" ]
 run         = "bun test ./tests/configuring-mise-tasks.test.mts"
 
 ["test:lint-emdash"]
@@ -39,12 +34,11 @@ tags        = [
 run         = "bun test ./tests/mapping-tests.test.mts"
 
 ["test:mise-tasks"]
-description = "Test that the mise tasks, here and in the skill's template, skip honestly"
+description = "Test that this repository's mise tasks skip honestly, and that the skill hands that to hk"
 tags        = [
     "test",
     "covers:.config/mise/config.toml",
     "covers:.config/mise/tasks.toml",
-    "covers:skills/configuring-mise-tasks/assets",
     "covers:skills/configuring-mise-tasks/SKILL.md",
 ]
 run         = "bun test ./tests/mise-tasks.test.mts"

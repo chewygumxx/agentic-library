@@ -8,14 +8,14 @@
 //
 //
 
-// What keeps a task's skip honest, in this repository's tasks and in the
-// skill's template: a staged run watches git's index by an absolute path,
-// and a check watches the lockfile and tool pins that govern it. And what
-// keeps both staged by default: task templates declare the flag, --all
-// turns a run to every file, and no run templates the flag itself.
+// What keeps a task's skip honest in this repository's tasks: a staged run
+// watches git's index by an absolute path, and a check watches the lockfile
+// and tool pins that govern it. And what keeps them staged by default: task
+// templates declare the flag, --all turns a run to every file, and no run
+// templates the flag itself. The skill's own tasks hand all of this to hk.
 
 import { describe, expect, it } from "bun:test";
-import { readdirSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
@@ -37,12 +37,6 @@ const sets: Record<string, { config: string; tasks: string[] }> = {
     "this repository": {
         config: join(root, ".config", "mise", "config.toml"),
         tasks: [join(root, ".config", "mise", "tasks.toml")],
-    },
-    "the skill's template": {
-        config: join(skill, "assets", "config.toml"),
-        tasks: readdirSync(join(skill, "assets", "tasks")).map((file) =>
-            join(skill, "assets", "tasks", file),
-        ),
     },
 };
 
@@ -174,17 +168,25 @@ describe.each(Object.entries(sets))("%s's staged runs", (_, set) => {
     });
 });
 
-it("the skill recommends no config-wide index variable", () => {
+it("the skill hands file selection and caching to hk", () => {
     const text = readFileSync(join(skill, "SKILL.md"), "utf8");
+    for (const phrase of [
+        "`--staged`",
+        "`--all`",
+        "`cgxx-hk`",
+        "`cache_inputs`",
+        '"check": "mise run check --all"',
+    ]) {
+        expect([phrase, text.includes(phrase)]).toEqual([phrase, true]);
+    }
+    expect(text).not.toContain("with-files.sh");
     expect(text).not.toContain("vars.index");
-    expect(text).toContain("--path-format=absolute --git-path index");
+    expect(text).not.toMatch(/usage_staged:[+-]/);
 });
 
-it("the skill teaches staged runs by default, and --all", () => {
+it("the skill names a tool for each kind of work", () => {
     const text = readFileSync(join(skill, "SKILL.md"), "utf8");
-    expect(text).toContain('flag "--staged" negate="--all" default=#true');
-    expect(text).toContain("[task_templates.staged]");
-    expect(text).toContain("$usage_staged");
-    expect(text).not.toMatch(/usage_staged:[+-]/);
-    expect(text).toContain('"check": "mise run check --all"');
+    for (const tool of ["hk", "worktrunk", "herdr", "skills-cli", "act"]) {
+        expect([tool, text.includes(tool)]).toEqual([tool, true]);
+    }
 });

@@ -11,28 +11,12 @@
 
 #
 # Merged into .config/mise/config.toml: the task files' include, and the
-# templates their file-based tasks extend, as a task file holds tasks alone.
+# install order the hooks need. The templates come from
+# @chewygumxx/mise-tasks-config, linked into .config/mise/conf.d/.
 #
+
+[hooks]
+postinstall = 'test -n "${CI-}" || { bun ci && hk install --mise; }'
 
 [task_config]
 includes = [ ".config/mise/tasks/*.task.toml" ]
-
-[task_templates.staged]
-usage = '''
-flag "--staged" negate="--all" default=#true {
-    help "Act on staged files alone, or every file with --all"
-}
-'''
-
-[task_templates."staged:cached"]
-usage   = '''
-flag "--staged" negate="--all" default=#true {
-    help "Act on staged files alone, or every file with --all"
-}
-'''
-sources = [
-    "**/*",
-    "!node_modules/**",
-    "{% if usage.staged %}{{ exec(command=\"git rev-parse --path-format=absolute --git-path index\") }}{% endif %}"
-]
-outputs = { auto = true }

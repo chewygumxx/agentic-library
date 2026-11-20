@@ -10,12 +10,12 @@
 The one exception to TOML-only tasks: `act`, and any CI task that depends on
 a remote script referenced by a tag and fetched uncached. Such a task is
 a hidden remote file task, run by a visible wrapper that fetches it
-afresh each time, both in `other.task.toml`:
+afresh each time, both in `other.task.toml`. The wrapper extends
+`cgxx:act`, which runs `mise run --no-cache act-cached`:
 
 ```toml
 [act]
-description = "Run CI locally"
-run         = "mise run --no-cache act-cached"
+extends = "cgxx:act"
 
 [act-cached]
 description = "[Internal] Run CI locally"
