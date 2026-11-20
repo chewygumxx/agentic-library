@@ -26,7 +26,14 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { hasBwrap, run, SKILL, script, world } from "./run-eval-world.mts";
+import {
+    hasBwrap,
+    NODE,
+    run,
+    SKILL,
+    script,
+    world,
+} from "./run-eval-world.mts";
 
 describe.skipIf(!hasBwrap)("the jail", () => {
     it.each(["with", "without"])(
@@ -186,7 +193,7 @@ describe.skipIf(!hasBwrap)("the jail", () => {
         const w = world();
         const skill = join(w.root, "skills", SKILL);
         const r = spawnSync(
-            "node",
+            NODE,
             [
                 script,
                 ...["--client", "claude", "--model", "m", "--arm", "with"],

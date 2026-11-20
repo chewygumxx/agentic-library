@@ -17,7 +17,14 @@ import { describe, expect, it } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { hasBwrap, run, SKILL, script, world } from "./run-eval-world.mts";
+import {
+    hasBwrap,
+    NODE,
+    run,
+    SKILL,
+    script,
+    world,
+} from "./run-eval-world.mts";
 
 describe.skipIf(!hasBwrap)("a run", () => {
     it("records a with run that read the skill and wrote one", () => {
@@ -60,7 +67,7 @@ describe.skipIf(!hasBwrap)("a run", () => {
         );
         const out = join(w.root, "out", "snap");
         const r = spawnSync(
-            "node",
+            NODE,
             [
                 script,
                 ...["--client", "claude", "--model", "m", "--arm", "with"],
@@ -99,7 +106,7 @@ describe.skipIf(!hasBwrap)("a run", () => {
             );
             const out = join(w.root, "out", "yaml");
             const r = spawnSync(
-                "node",
+                NODE,
                 [
                     script,
                     ...["--client", "claude", "--model", "m", "--arm", "with"],
@@ -244,7 +251,7 @@ describe.skipIf(!hasBwrap)("a run", () => {
 
 describe("arguments", () => {
     it("refuses a missing option, briefly", () => {
-        const r = spawnSync("node", [script, "--client", "claude"], {
+        const r = spawnSync(NODE, [script, "--client", "claude"], {
             encoding: "utf8",
         });
         expect(r.status).toBe(2);

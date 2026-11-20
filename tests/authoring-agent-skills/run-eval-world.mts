@@ -34,6 +34,9 @@ export const script = join(
 );
 const stubs = join(import.meta.dir, "bin");
 export const hasBwrap = !spawnSync("bwrap", ["--version"]).error;
+// Node by its full path, found on the tests' own PATH, so a test that
+// narrows the PATH a run sees still starts the script.
+export const NODE = Bun.which("node") ?? "node";
 export const SKILL = "processing-things";
 
 // A fresh home, client homes, a case and a skill, all under one root.
@@ -79,7 +82,7 @@ export function run(
         `${options.client ?? "claude"}-${options.arm ?? "with"}-${options.mode ?? "use"}`,
     );
     const result = spawnSync(
-        "node",
+        NODE,
         [
             script,
             "--client",
