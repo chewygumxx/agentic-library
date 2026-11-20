@@ -97,4 +97,16 @@ and licence. CI applies it on every push to `main`, so edit those settings
 there and never in the GitHub web interface: Nothing rejects a web edit, and
 the next push silently reverts it.
 
+## Data by Function
+
+Keep each kind of data in its own file, beside what it concerns:
+
+- Directives for tools stay inline: licence headers, modelines, schema
+  lines and lint suppressions.
+- A why tied to one line stays inline, in one line.
+- What a unit is for and what it promises goes in a file beside it.
+- Pair files by a shared basename, not by "see" pointers. An index, such as
+  a task file or a skill table, stays whole in one known place.
+- Every split pair has a check that fails when the two disagree.
+
 <!-- vim:set expandtab shiftwidth=2 filetype=markdown foldlevel=3: -->
