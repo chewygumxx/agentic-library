@@ -28,7 +28,7 @@
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
       "version": "0.0.2",
-      "computedHash": "2a86e0f99f29265f480d5536c3fb75cc62def7d4d1981379410e6d7976644deb"
+      "computedHash": "a91fdbdb508abb877bcf4df409035e99045eaf0c468970cce1283b9918b40eba"
     },
     "coordinating-agents": {
       "source": "@chewygumxx/skill-coordinating-agents",
