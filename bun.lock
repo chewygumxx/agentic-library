@@ -12,7 +12,9 @@
         "@chewygumxx/cspell-config": "^1.0.2",
         "@chewygumxx/cz-commitlint": "^1.0.2",
         "@chewygumxx/editorconfig-checker-config": "^1.0.1",
+        "@chewygumxx/hk-config": "0.1.0",
         "@chewygumxx/markdownlint-cli2-config": "^1.1.0",
+        "@chewygumxx/mise-tasks-config": "0.1.0",
         "@chewygumxx/prettier-config": "^1.0.1",
         "@chewygumxx/remark-preset": "^1.1.0",
         "@chewygumxx/secretlint-rule-preset": "^1.0.1",
@@ -129,7 +131,11 @@
 
     "@chewygumxx/editorconfig-checker-config": ["@chewygumxx/editorconfig-checker-config@1.0.1", "", {}, "sha512-Rxlvxza6hPdeU2WEOSbo7iASqGL2G4S5GhBcyA0KgeftAz1K7SULShm041qiSFMaLSi2eMa0yAxKO1QKFBPAJg=="],
 
+    "@chewygumxx/hk-config": ["@chewygumxx/hk-config@0.1.0", "", { "peerDependencies": { "@arethetypeswrong/cli": "^0.18.5", "@biomejs/biome": "2.6.8", "cspell": "^10.3.6", "knip": "^6.40.0", "markdownlint-cli2": "^0.23.3", "prettier": "^3.9.9", "publint": "^0.3.25", "remark-cli": "^12.0.1", "secretlint": "^13.0.7", "sort-package-json": "^4.0.0", "sync-header-metadata": "^2.4.3", "typescript": "^7.0.2" }, "optionalPeers": ["@arethetypeswrong/cli", "@biomejs/biome", "cspell", "knip", "markdownlint-cli2", "prettier", "publint", "remark-cli", "secretlint", "sort-package-json", "sync-header-metadata", "typescript"], "bin": { "cgxx-lint-emdash": "bin/cgxx-lint-emdash", "cgxx-lint-packages": "bin/cgxx-lint-packages" } }, "sha512-TULowFseAdR4gRYybnHEbGXJZWYHHIhb23mwVX4qeSWan8vI0QcTLveVeiKYiNQ/h+LBqHqA0w3CGfwp8G3dbw=="],
+
     "@chewygumxx/markdownlint-cli2-config": ["@chewygumxx/markdownlint-cli2-config@1.1.0", "", { "peerDependencies": { "markdownlint-cli2": "^0.23.3" } }, "sha512-kkHjZ6IeCumPU0J3xECzdA6sGrq8eJTlLtMgTq+uiZTdolWFbwK6j1NCd3VC+W1JefC+2YGYpvmC7Vm9rioTFg=="],
+
+    "@chewygumxx/mise-tasks-config": ["@chewygumxx/mise-tasks-config@0.1.0", "", { "bin": { "cgxx-hk": "bin/cgxx-hk" } }, "sha512-JBes/OG/4CTU25NDN7J+6VYQQxxE/t0YKwxssOpi1i+CHrNcwj7ONwlCnPxLec3dp+CJtj+X55+j9rdprVTIrQ=="],
 
     "@chewygumxx/prettier-config": ["@chewygumxx/prettier-config@1.0.1", "", { "peerDependencies": { "prettier": "^3.9.9" } }, "sha512-d+5fJ8suSkAvKuPFEz0cbcnVRao0udOnRGKdkWZU2MofYjrn+NQ3FJdVS5bA2tt0JUgvs5IDK+RBbE6/X7umQw=="],
 
