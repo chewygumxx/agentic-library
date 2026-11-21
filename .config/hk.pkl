@@ -43,10 +43,6 @@ local skills = new Step {
 hooks {
     ["check"] {
         steps = (cgxx.lint) {
-            // hk-config 0.1.0 leaves actionlint to find its own config.
-            ["actionlint"] {
-                check = "actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml {{files}}"
-            }
             ["packages"] {
                 check = "bun run cgxx-lint-packages skills/*/"
             }
