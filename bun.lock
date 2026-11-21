@@ -24,6 +24,7 @@
         "@chewygumxx/skill-configuring-code-environment": "workspace:*",
         "@chewygumxx/skill-configuring-mise-tasks": "workspace:*",
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
+        "@chewygumxx/skill-creating-bun-repositories": "workspace:*",
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
         "@chewygumxx/skill-managing-git-worktrees": "workspace:*",
         "@chewygumxx/skill-managing-worktrunk-worktrees": "workspace:*",
@@ -67,6 +68,10 @@
     "skills/coordinating-agents": {
       "name": "@chewygumxx/skill-coordinating-agents",
       "version": "0.0.2",
+    },
+    "skills/creating-bun-repositories": {
+      "name": "@chewygumxx/skill-creating-bun-repositories",
+      "version": "0.0.1",
     },
     "skills/managing-dotfiles-with-chezmoi": {
       "name": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
@@ -159,6 +164,8 @@
     "@chewygumxx/skill-configuring-mise-tasks": ["@chewygumxx/skill-configuring-mise-tasks@workspace:skills/configuring-mise-tasks"],
 
     "@chewygumxx/skill-coordinating-agents": ["@chewygumxx/skill-coordinating-agents@workspace:skills/coordinating-agents"],
+
+    "@chewygumxx/skill-creating-bun-repositories": ["@chewygumxx/skill-creating-bun-repositories@workspace:skills/creating-bun-repositories"],
 
     "@chewygumxx/skill-managing-dotfiles-with-chezmoi": ["@chewygumxx/skill-managing-dotfiles-with-chezmoi@workspace:skills/managing-dotfiles-with-chezmoi"],
 

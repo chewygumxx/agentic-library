@@ -1,0 +1,27 @@
+{
+    "name": "@chewygumxx/skill-creating-bun-repositories",
+    "version": "0.0.1",
+    "description": "Creates GitHub repositories for Bun projects with @chewygumxx/create-repo, whose templates set them up on mise tasks, hk hooks and the shared @chewygumxx configurations, and keeps those repositories working. Use when creating a repository with create-repo or `bun create @chewygumxx/repo`, choosing between its templates and flags, fixing a create-repo repository's failing checks, hooks or first CI run, bumping @chewygumxx/hk-config, mise-tasks-config or the Biome they pin, or moving an existing repository from husky and long package.json scripts to the same mise and hk setup.",
+    "keywords": [
+        "agent-skills"
+    ],
+    "homepage": "https://github.com/chewygumxx/agentic-library/blob/main/skills/creating-bun-repositories/SKILL.md",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/chewygumxx/agentic-library.git",
+        "directory": "skills/creating-bun-repositories"
+    },
+    "license": "GPL-3.0-only",
+    "files": [
+        "SKILL.md",
+        "references"
+    ],
+    "scripts": {
+        "prepack": "cp ../../LICENSE LICENSE",
+        "postpack": "rm LICENSE"
+    },
+    "publishConfig": {
+        "access": "public",
+        "provenance": true
+    }
+}
