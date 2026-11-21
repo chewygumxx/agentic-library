@@ -11,6 +11,7 @@
     "book-to-skill": {
       "source": "virgiliojr94/book-to-skill",
       "ref": "e7bb659d3261491c8b28793dcb9102fa64a46c22",
+      "commit": "e7bb659d3261491c8b28793dcb9102fa64a46c22",
       "sourceType": "github",
       "skillPath": "SKILL.md",
       "computedHash": "e350ac25dc27c37c8f2d3224a66f7be7d3dcf3bc1af7a985448e27910cdf6706",
@@ -47,6 +48,7 @@
     "find-skills": {
       "source": "vercel-labs/skills",
       "ref": "77cfce8221e6e112a70152a230abc848b8b14c19",
+      "commit": "77cfce8221e6e112a70152a230abc848b8b14c19",
       "sourceType": "github",
       "skillPath": "skills/find-skills/SKILL.md",
       "computedHash": "7bc223e2aafbdbf6e50ea243ba6ef67fe432bb069ab439fea0390795dac0bf7f",
@@ -90,6 +92,7 @@
     "skill-builder": {
       "source": "yusufkaraaslan/Skill_Seekers",
       "ref": "d26c2e3e0384c664a6fcc71ca10ddcd26026ac0b",
+      "commit": "d26c2e3e0384c664a6fcc71ca10ddcd26026ac0b",
       "sourceType": "github",
       "skillPath": "skills/skill-seekers/SKILL.md",
       "computedHash": "864979b1be5fd3753250e1dbeb29288d42ccf2417cf374a3d1a2b499ef09eb4f",
@@ -98,6 +101,7 @@
     "skill-creator": {
       "source": "anthropics/skills",
       "ref": "2c5958ecac7cee2b583967a2c4981d0f4a75c579",
+      "commit": "2c5958ecac7cee2b583967a2c4981d0f4a75c579",
       "sourceType": "github",
       "skillPath": "skills/skill-creator/SKILL.md",
       "computedHash": "2d7f889e6ae93c6c27d699856942c336b5b8644537496987d5571043d059b1dc",
