@@ -31,15 +31,14 @@
     // a vendored bundle exports what its library does, used or not.
     "ignore": ["skills/*/assets/**", "skills/*/scripts/vendor/**"],
     "ignoreDependencies": [
-        // The shared configurations, named by path in the mise tasks,
-        // by `extends` or `import`, or from `.secretlintrc.json`.
+        // The shared configurations, named by path in the hk steps or the
+        // mise conf.d link, by `extends` or `import`, or from
+        // `.secretlintrc.json`.
         "@chewygumxx/.+",
         // Extended by @chewygumxx/commitlint-config, which depends on them.
         "@commitlint/config-conventional",
         "conventional-changelog-conventionalcommits",
-        // Run by the mise tasks, which knip does not read.
-        "@biomejs/biome",
-        "cspell",
+        // Run by the hk steps, which knip does not read.
         "publint",
         "secretlint",
         "sort-package-json",
@@ -48,8 +47,8 @@
     // The tool manager, which `package.json` runs for its `check`; and
     // bubblewrap, which run-eval.mjs jails each evaluation run in.
     "ignoreBinaries": ["mise", "bwrap"],
-    // Configured under `.config/`, where neither tool looks unless the mise
-    // tasks pass the path.
+    // Configured under `.config/`, where neither tool looks unless the hk
+    // steps pass the path.
     "prettier": {
         "config": [".config/prettierrc.json"]
     },

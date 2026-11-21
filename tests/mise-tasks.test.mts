@@ -8,163 +8,90 @@
 //
 //
 
-// What keeps a task's skip honest in this repository's tasks: a staged run
-// watches git's index by an absolute path, and a check watches the lockfile
-// and tool pins that govern it. And what keeps them staged by default: task
-// templates declare the flag, --all turns a run to every file, and no run
-// templates the flag itself. The skill's own tasks hand all of this to hk.
+// What keeps this repository's mise tasks a thin switchboard: each
+// standard task extends a cgxx: template from @chewygumxx/mise-tasks-config,
+// linked into conf.d, and lint and format leave file selection to hk, whose
+// steps come from @chewygumxx/hk-config. No task declares its own --staged,
+// and nothing picks files by itself. The skill teaches the same.
 
 import { describe, expect, it } from "bun:test";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync, readlinkSync } from "node:fs";
 import { join } from "node:path";
 
 const root = join(import.meta.dir, "..");
 const skill = join(root, "skills", "configuring-mise-tasks");
+const mise = join(root, ".config", "mise");
 
 type Task = {
     extends?: string;
     usage?: string;
     sources?: string[];
-    depends?: string[];
     run?: string | string[];
 };
 
 const parse = (path: string) =>
     Bun.TOML.parse(readFileSync(path, "utf8")) as Record<string, unknown>;
 
-// A set of task files, and the config whose task templates they extend.
-const sets: Record<string, { config: string; tasks: string[] }> = {
-    "this repository": {
-        config: join(root, ".config", "mise", "config.toml"),
-        tasks: [join(root, ".config", "mise", "tasks.toml")],
-    },
-};
+const taskFiles = readdirSync(join(mise, "tasks"))
+    .filter((name) => name.endsWith(".task.toml"))
+    .map((name) => join(mise, "tasks", name));
 
-const templatesOf = (config: string) =>
-    (parse(config).task_templates ?? {}) as Record<string, Task>;
+const tasks = Object.fromEntries(
+    taskFiles.flatMap((path) =>
+        Object.entries(parse(path) as Record<string, Task>),
+    ),
+);
 
-// Each task as mise merges it with the template it extends: the usage
-// specs joined, the template's first, and every other field the task's
-// own, else the template's.
-const tasksOf = ({ config, tasks }: { config: string; tasks: string[] }) => {
-    const templates = templatesOf(config);
-    return tasks.flatMap((path) =>
-        Object.entries(parse(path) as Record<string, Task>).map(
-            ([name, task]): [string, Task, Task] => {
-                const base = task.extends ? templates[task.extends] : {};
-                if (!base) throw new Error(`${name}: no ${task.extends}`);
-                const usage = [base.usage, task.usage].filter(Boolean);
-                return [
-                    name,
-                    {
-                        ...base,
-                        ...task,
-                        usage: usage.length ? usage.join("\n") : undefined,
-                    },
-                    task,
-                ];
-            },
-        ),
-    );
-};
-
-const text = ({ config, tasks }: { config: string; tasks: string[] }) =>
-    [config, ...tasks].map((path) => readFileSync(path, "utf8")).join("\n");
-
-// git prints the index's path relative to where mise runs the template,
-// `.config/mise/`, unless asked for an absolute one.
-const absoluteIndex =
-    '{% if usage.staged %}{{ exec(command="git rev-parse --path-format=absolute --git-path index") }}{% endif %}';
-
-describe.each(Object.entries(sets))("%s", (_, set) => {
-    it("watches git's index by an absolute path in every staged run", () => {
-        const runs = [
-            ...Object.entries(templatesOf(set.config)),
-            ...tasksOf(set),
-        ];
-        for (const [name, task] of runs) {
-            if (!task.usage?.includes("--staged") || !task.sources) continue;
-            expect([name, task.sources]).toEqual([
-                name,
-                expect.arrayContaining([absoluteIndex]),
-            ]);
-        }
-    });
-
-    it("never reads the index through a config-wide variable", () => {
-        expect(text(set)).not.toContain("vars.index");
-    });
-
-    it("never skips a check that reads the whole project", () => {
-        const whole = Object.fromEntries(tasksOf(set));
-        for (const name of ["lint:types", "lint:deps", "test"]) {
-            if (!whole[name]) continue;
-            expect([name, whole[name].sources]).toEqual([name, undefined]);
-        }
-    });
-
-    it("watches the lockfile and tool pins in every check", () => {
-        for (const [name, task] of tasksOf(set)) {
-            if (!task.sources) continue;
-            const sources = task.sources.join(" ");
-            const watched =
-                task.sources.includes("**/*") ||
-                (/lock/.test(sources) &&
-                    sources.includes(".config/mise/config.toml"));
-            expect([name, watched]).toEqual([name, true]);
-        }
-    });
-});
-
-describe.each(Object.entries(sets))("%s's staged runs", (_, set) => {
-    const templates = Object.entries(templatesOf(set.config)).filter(
-        ([, template]) => template.usage?.includes("--staged"),
-    );
-
-    it("runs on the staged files by default, and on every file by --all", () => {
-        expect(templates.length).toBeGreaterThan(0);
-        for (const [name, template] of templates) {
-            expect([name, template.usage]).toEqual([
-                name,
-                expect.stringContaining(
-                    'flag "--staged" negate="--all" default=#true',
-                ),
-            ]);
-        }
-    });
-
-    it("declares the flag in a template alone, never in a task", () => {
-        const staged = tasksOf(set).filter(([, task]) =>
-            task.usage?.includes("--staged"),
+describe("this repository", () => {
+    it("links the shared templates into conf.d", () => {
+        expect(readlinkSync(join(mise, "conf.d", "50-cgxx.toml"))).toBe(
+            "../../../node_modules/@chewygumxx/mise-tasks-config/tasks.toml",
         );
-        expect(staged.length).toBeGreaterThan(0);
-        for (const [name, , own] of staged) {
-            expect([name, own.usage]).toEqual([name, undefined]);
-        }
     });
 
-    // Under default=#true, mise sets $usage_staged to "false" for --all,
-    // which ${usage_staged:+...} would read as set. The scripts read it
-    // themselves, so no run templates the flag either.
-    it("never tests the flag in a run", () => {
-        expect(text(set)).not.toMatch(/usage_staged:[+-]/);
-        for (const [name, task] of tasksOf(set)) {
-            expect([name, [task.run ?? []].flat().join("\n")]).toEqual([
+    it("declares no templates of its own", () => {
+        expect(parse(join(mise, "config.toml")).task_templates).toBeUndefined();
+    });
+
+    it("extends a cgxx: template for each standard task", () => {
+        for (const name of [
+            "install",
+            "lint",
+            "format",
+            "test",
+            "check",
+            "lint:commit",
+            "commit",
+            "act",
+        ]) {
+            expect([name, tasks[name]?.extends]).toEqual([
                 name,
-                expect.not.stringContaining("usage.staged"),
+                `cgxx:${name}`,
             ]);
         }
     });
 
-    it("passes --all, never --staged, on to what it depends on", () => {
-        for (const [name, task] of tasksOf(set)) {
-            for (const dep of task.depends ?? []) {
-                expect([name, dep]).not.toEqual([
-                    name,
-                    expect.stringContaining("--staged"),
-                ]);
-            }
+    it("leaves file selection and caching to hk", () => {
+        for (const [name, task] of Object.entries(tasks)) {
+            expect([name, task.usage ?? ""]).toEqual([
+                name,
+                expect.not.stringContaining("--staged"),
+            ]);
+            expect([name, task.sources]).toEqual([name, undefined]);
         }
+        const text = taskFiles
+            .map((path) => readFileSync(path, "utf8"))
+            .join("\n");
+        expect(text).not.toContain("with-files.sh");
+        expect(text).not.toContain("git rev-parse");
+    });
+
+    it("lints and formats with the shared hk steps", () => {
+        const hk = readFileSync(join(root, ".config", "hk.pkl"), "utf8");
+        expect(hk).toContain(
+            'import "../node_modules/@chewygumxx/hk-config/steps.pkl"',
+        );
+        expect(hk).toContain('check = "mise run check --staged"');
     });
 });
 

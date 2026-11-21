@@ -18,11 +18,6 @@ description = "Test the configuring-mise-tasks skill's bundled examples"
 tags        = [ "test", "covers:skills/configuring-mise-tasks/assets" ]
 run         = "bun test ./tests/configuring-mise-tasks.test.mts"
 
-["test:lint-emdash"]
-description = "Test lint-emdash.sh in a throwaway git repository"
-tags        = [ "test", "covers:scripts/lint-emdash.sh" ]
-run         = "bun test ./tests/lint-emdash.test.mts"
-
 ["test:mapping-tests"]
 description = "Test the mapping-tests skill's bundled files, and its agreement with configuring-mise-tasks"
 tags        = [
@@ -34,11 +29,13 @@ tags        = [
 run         = "bun test ./tests/mapping-tests.test.mts"
 
 ["test:mise-tasks"]
-description = "Test that this repository's mise tasks skip honestly, and that the skill hands that to hk"
+description = "Test that this repository's mise tasks hand their work to hk through the shared templates, as the skill teaches"
 tags        = [
     "test",
     "covers:.config/mise/config.toml",
-    "covers:.config/mise/tasks.toml",
+    "covers:.config/mise/conf.d",
+    "covers:.config/mise/tasks",
+    "covers:.config/hk.pkl",
     "covers:skills/configuring-mise-tasks/SKILL.md",
 ]
 run         = "bun test ./tests/mise-tasks.test.mts"
@@ -58,8 +55,3 @@ tags        = [
     "covers:tests/publishing-skills-to-npm/tasks.toml",
 ]
 run         = "bun test ./tests/test-tasks.test.mts"
-
-["test:with-files"]
-description = "Test with-files.sh in a throwaway git repository"
-tags        = [ "test", "covers:scripts/with-files.sh" ]
-run         = "bun test ./tests/with-files.test.mts"

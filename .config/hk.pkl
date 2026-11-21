@@ -11,15 +11,63 @@
 //
 // https://hk.jdx.dev/configuration
 //
-// The git hooks. Each step hands off to a mise task, which owns the file
-// selection and the tools, so a hook runs exactly what `mise run` does.
-// `mise install` installs the hooks; see [hooks] in .config/mise/config.toml.
+// The git hooks, and the check and fix hooks that `mise run lint` and
+// `mise run format` run. The steps come from @chewygumxx/hk-config, with
+// the skills as this repository's packages, and a step of its own for the
+// skills' frontmatter. `mise install` installs the hooks; see [hooks] in
+// .config/mise/config.toml.
 //
 
 amends "package://github.com/jdx/hk/releases/download/v2.13.0/hk@2.13.0#/Config.pkl"
 
+import "../node_modules/@chewygumxx/hk-config/steps.pkl" as shared
+
+local cgxx = (shared) {}
+
+// The skill's own script, as any repository publishing skills would run
+// it: each package, release-please entry and root devDependency must be
+// what the skill's frontmatter implies.
+local skills = new Step {
+    check = "node skills/publishing-skills-to-npm/scripts/skill-packages.mjs check"
+    cache = true
+    cache_inputs = List(
+        "bun.lock",
+        ".config/mise/config.toml",
+        ".config/release-please.json",
+        ".config/release-please-manifest.json",
+        "package.json",
+        "skills/**/*",
+    )
+}
+
 hooks {
+    ["check"] {
+        steps = (cgxx.lint) {
+            // hk-config 0.1.0 leaves actionlint to find its own config.
+            ["actionlint"] {
+                check = "actionlint -config-file node_modules/@chewygumxx/actionlint-config/config.yaml {{files}}"
+            }
+            ["packages"] {
+                check = "bun run cgxx-lint-packages skills/*/"
+            }
+            ["sort_package_json"] {
+                check = "bun run sort-package-json --check package.json skills/*/package.json"
+            }
+            ["skills"] = skills
+        }
+    }
+    ["fix"] {
+        stage = false
+        steps = (cgxx.format) {
+            ["sort_package_json"] {
+                fix = "bun run sort-package-json package.json skills/*/package.json"
+            }
+        }
+    }
     ["pre-commit"] {
+        stash = "git"
+        fix = false
+        stage = false
         steps {
             ["check"] {
                 check = "mise run check --staged"
@@ -29,14 +77,7 @@ hooks {
     ["commit-msg"] {
         steps {
             ["commitlint"] {
-                check = "mise run lint:commit {{ commit_msg_file }}"
-            }
-        }
-    }
-    ["pre-push"] {
-        steps {
-            ["headers"] {
-                check = "mise run lint:headers"
+                check = "mise run lint:commit \"{{ commit_msg_file }}\""
             }
         }
     }
