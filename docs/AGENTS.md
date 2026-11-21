@@ -41,11 +41,11 @@ Filename format conforms to `YYYY-MM-DD_<abbreviated-title>.md` where
 
 - Each file opens with frontmatter (`ctime`, `mtime`, `spdx`, `title`,
   `description`, `tags`) and the breadcrumb comment; copy both from a
-  sibling, and bump `mtime` when you edit. `lint:headers` checks the
+  sibling, and bump `mtime` when you edit. `lint`'s `headers` step checks the
   breadcrumb against the file's path.
 - Lines are at most 80 characters, inline code included: a long command
   goes in a fenced block. Links are Markdown links, never `[[...]]` wiki
-  links. `lint:md` runs remark and markdownlint, which enforce both.
+  links. `lint` runs remark and markdownlint, which enforce both.
 - A spec says what and why; a plan says how, task by task, with the code.
 - A report records each probe and how it was run, the rulings made on the
   spec, and the verification, with commands and their output.
