@@ -83,12 +83,18 @@ its `publishConfig` asks for provenance, which only CI can attest. A
 ## Git Hooks
 
 [hk](https://hk.jdx.dev) runs the git hooks declared in `.config/hk.pkl`:
-`check --staged` before a commit, `lint:commit` on its message, and
-`lint:headers` before a push. Each step only runs its mise task, so change
-what a hook checks in the task, never in `hk.pkl`. `mise install` installs
-the hooks, by the `postinstall` hook in `.config/mise/config.toml`, into the
-git config every worktree shares. Never pass `--no-verify`, nor set `HK=0`,
-to get past a failing hook: fix what it reports.
+`check --staged` before a commit, and `lint:commit` on its message. The
+mise tasks are thin: each extends a `cgxx:` template from
+`@chewygumxx/mise-tasks-config`, linked into `.config/mise/conf.d/`, and
+`lint` and `format` run hk's `check` and `fix` hooks, whose steps come from
+`@chewygumxx/hk-config`. Change what is checked in `hk.pkl`. With no flag
+they act on the changed files, `--staged` on the staged files alone, and
+`--all` on every file git does not ignore. `mise install` installs the
+packages, then the hooks, by the `postinstall` hook in
+`.config/mise/config.toml`, into the git config every worktree shares. No
+mise task loads before the packages are installed. Never pass
+`--no-verify`, nor set `HK=0`, to get past a failing hook: fix what it
+reports.
 
 ## Repository Metadata
 
