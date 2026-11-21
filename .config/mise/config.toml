@@ -48,31 +48,17 @@ hk = "2.13.0"
 "aqua:FiloSottile/age" = "1.3.2"
 
 # Lint and Format
-[tools."aqua:editorconfig-checker/editorconfig-checker"]
-version   = "4.0.2"
-lazy      = true
-lazy_bins = [ "editorconfig-checker" ]
-
-[tools."aqua:koalaman/shellcheck"]
-version   = "0.11.0"
-lazy      = true
-lazy_bins = [ "shellcheck" ]
-
-[tools."aqua:tombi-toml/tombi"]
-version   = "1.11.3"
-lazy      = true
-lazy_bins = [ "tombi" ]
-
-[tools."aqua:rhysd/actionlint"]
-version   = "1.7.12"
-lazy      = true
-lazy_bins = [ "actionlint" ]
-
-[tools."pypi:yamllint"]
-version   = "1.38.0"
-depends   = [ "uv" ]
-lazy      = true
-lazy_bins = [ "yamllint" ]
+#
+# Installed up front, not lazily: hk runs its steps in parallel, and a lazy
+# install from inside a step has failed CI.
+"aqua:editorconfig-checker/editorconfig-checker" = "4.0.2"
+"aqua:koalaman/shellcheck"                       = "0.11.0"
+"aqua:tombi-toml/tombi"                          = "1.11.3"
+"aqua:rhysd/actionlint"                          = "1.7.12"
+"pypi:yamllint"                                  = {
+    version = "1.38.0",
+    depends = [ "uv" ]
+}
 
 # Agentic
 [tools."pypi:skill-seekers"]
