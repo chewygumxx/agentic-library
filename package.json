@@ -44,6 +44,7 @@
         "@chewygumxx/skill-configuring-code-environment": "workspace:*",
         "@chewygumxx/skill-configuring-mise-tasks": "workspace:*",
         "@chewygumxx/skill-coordinating-agents": "workspace:*",
+        "@chewygumxx/skill-creating-bun-repositories": "workspace:*",
         "@chewygumxx/skill-managing-dotfiles-with-chezmoi": "workspace:*",
         "@chewygumxx/skill-managing-git-worktrees": "workspace:*",
         "@chewygumxx/skill-managing-worktrunk-worktrees": "workspace:*",

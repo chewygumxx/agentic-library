@@ -22,6 +22,9 @@
         "skills/coordinating-agents": {
             "component": "skill-coordinating-agents"
         },
+        "skills/creating-bun-repositories": {
+            "component": "skill-creating-bun-repositories"
+        },
         "skills/managing-dotfiles-with-chezmoi": {
             "component": "skill-managing-dotfiles-with-chezmoi"
         },
