@@ -49,8 +49,8 @@
       "source": "@chewygumxx/skill-creating-bun-repositories",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.1",
-      "computedHash": "4613c389bae26106124e3b111afa199fbbf100b906cae67ecb4246ac0125687b"
+      "version": "0.0.2",
+      "computedHash": "b22d81f2f4842af22fffc447934be648ffaa0006dda1b3b57c1ea320b32877b3"
     },
     "find-skills": {
       "source": "vercel-labs/skills",

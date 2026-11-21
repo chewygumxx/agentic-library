@@ -71,7 +71,7 @@
     },
     "skills/creating-bun-repositories": {
       "name": "@chewygumxx/skill-creating-bun-repositories",
-      "version": "0.0.1",
+      "version": "0.0.2",
     },
     "skills/managing-dotfiles-with-chezmoi": {
       "name": "@chewygumxx/skill-managing-dotfiles-with-chezmoi",
