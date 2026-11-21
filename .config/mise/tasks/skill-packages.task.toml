@@ -5,13 +5,13 @@
 #
 #
 # ~chewygumxx/agentic-library.git
-# ::: :/.config/mise/skill-packages.task.toml
+# ::: :/.config/mise/tasks/skill-packages.task.toml
 #
 #
 
 #
 # The publishing-skills-to-npm skill's tasks, from its template, run on
-# its own script. lint:skills runs skill-packages:check's script too.
+# its own script. hk's skills step runs skill-packages:check's script too.
 #
 
 ["skill-packages:check"]
