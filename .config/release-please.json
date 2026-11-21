@@ -13,9 +13,6 @@
         "skills/authoring-agent-skills": {
             "component": "skill-authoring-agent-skills"
         },
-        "skills/configuring-code-environment": {
-            "component": "skill-configuring-code-environment"
-        },
         "skills/configuring-mise-tasks": {
             "component": "skill-configuring-mise-tasks"
         },
