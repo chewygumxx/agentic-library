@@ -72,6 +72,35 @@ another failure, such as Enter failing after the text was written.
 label it `[from <name>, scheduled]`; [recovery](./recovery.md) covers
 them, their retries and their record.
 
+## Guarding a send
+
+A program that sends on its own, rather than an agent at the keyboard,
+pins whom it sends to. A send now takes these guards, each checked again
+once the pane's lock is held, and refuses before writing anything:
+
+```text
+send-prompt.sh [--from <name>] [--expect-pane <id>]
+               [--require-idle | --require-ready]
+               [--expect-session <id> | --expect-process <pid> <boot:start>]
+               [--deadline-at <epoch-ms>] <agent>
+```
+
+- `--expect-pane`: the agent must be in that pane (exit 5).
+- `--require-idle`: it must be idle; `--require-ready`, idle or done
+  (exit 6).
+- `--expect-session`: herdr's session of the agent must be that one;
+  `--expect-process`: the pane's foreground process must be that pid,
+  started at that boot and tick (exit 9). Either pins the occupant, not
+  just the terminal.
+- `--deadline-at`: an absolute deadline in milliseconds, capping the
+  lock's wait and the pause, and checked before each write: exit 10
+  before the text, 11 after it, when delivery is uncertain.
+
+`send-interrupt.sh` sends one Escape (`--key ctrl+c` to quit) under the
+same lock and guards, with `--expect-terminal` too and `--lock-wait`
+seconds (5 by default) for the lock: exit 7 when the lock is not had in
+time, 8 for another terminal.
+
 ## The pane lock
 
 One writer at a time per pane:
