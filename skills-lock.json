@@ -42,8 +42,8 @@
       "source": "@chewygumxx/skill-coordinating-agents",
       "sourceType": "node_modules",
       "skillPath": "SKILL.md",
-      "version": "0.0.2",
-      "computedHash": "2f50dc70c00df8988746901b954a2579d1034a879229b01bd9b1c7f7d9fa24a2"
+      "version": "0.0.3",
+      "computedHash": "90d32dec7df0e2aca9498ffd3accf256de96a8520ec4106341e1857b80bb6724"
     },
     "creating-bun-repositories": {
       "source": "@chewygumxx/skill-creating-bun-repositories",
