@@ -67,7 +67,7 @@
     },
     "skills/coordinating-agents": {
       "name": "@chewygumxx/skill-coordinating-agents",
-      "version": "0.0.2",
+      "version": "0.0.3",
     },
     "skills/creating-bun-repositories": {
       "name": "@chewygumxx/skill-creating-bun-repositories",
