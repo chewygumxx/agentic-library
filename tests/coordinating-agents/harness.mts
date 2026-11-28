@@ -34,6 +34,7 @@ export const scripts = join(
     "scripts",
 );
 export const send = join(scripts, "send-prompt.sh");
+export const interrupt = join(scripts, "send-interrupt.sh");
 export const compact = join(scripts, "compact-self.sh");
 export const job = join(scripts, "job.sh");
 export const stopped = join(scripts, "job-stopped.sh");

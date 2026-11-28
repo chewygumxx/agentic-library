@@ -103,6 +103,7 @@ Each part works without the ones it does not name:
 | `agent-name.sh`                     | herdr and jq                  |
 | `send-prompt.sh`, sent now          | herdr, jq and flock           |
 | `send-prompt.sh`, `--at` and `--in` | those, and systemd            |
+| `send-interrupt.sh`                 | herdr, jq and flock           |
 | `compact-self.sh`                   | herdr, jq, flock, Claude Code |
 
 Outside herdr, with no `$HERDR_PANE_ID`, the budget and resume-note
@@ -132,7 +133,9 @@ examples in the references take `S` as that directory, wherever this
 skill is installed:
 
 - [`send-prompt.sh`](./scripts/send-prompt.sh): a message to an agent,
-  now, at a dated time or after a span.
+  now, at a dated time or after a span; a send now may be guarded.
+- [`send-interrupt.sh`](./scripts/send-interrupt.sh): one Escape, or
+  ctrl+c, to an agent's turn, under the same lock and guards.
 - [`compact-self.sh`](./scripts/compact-self.sh): compacts your own
   conversation once your turn ends.
 - [`job.sh`](./scripts/job.sh), with
