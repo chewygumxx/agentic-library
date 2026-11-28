@@ -72,6 +72,24 @@ tags        = [
 ]
 run         = "bun test ./tests/coordinating-agents/send-prompt.test.mts"
 
+["test:coordinating-agents:send-prompt-guards"]
+description = "Test send-prompt.sh's guards: pane, state, occupant and deadline"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/send-prompt.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+]
+run         = "bun test ./tests/coordinating-agents/send-prompt-guards.test.mts"
+
+["test:coordinating-agents:send-interrupt"]
+description = "Test send-interrupt.sh: one key to an agent's turn, under the lock and guards"
+tags        = [
+    "test",
+    "covers:skills/coordinating-agents/scripts/send-interrupt.sh",
+    "covers:skills/coordinating-agents/scripts/pane-lock.sh",
+]
+run         = "bun test ./tests/coordinating-agents/send-interrupt.test.mts"
+
 ["test:coordinating-agents:statusline"]
 description = "Test statusline.sh: drawing the status line and keeping the usage"
 tags        = [

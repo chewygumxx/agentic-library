@@ -17,10 +17,14 @@
 #   moved.<pane>    the pane <pane> has moved to: `pane get` follows it,
 #                   as the real herdr does, and `agent get` knows only
 #                   the new id
+#   terminal        the terminal_id of every agent, else term_1
+#   session         the agent_session id of every agent, else none
+#   pgid            the pane's foreground process group, else 0
 #   absent          no agent anywhere
 #   fail-text       every `pane send-text` fails
 #   fail-instructions   every `pane send-text` but of "/compact " fails
 #   fail-keys       every `pane send-keys` fails
+#   expire-on-text  `pane send-text` makes the file `expired`
 
 STUB=${STUB:?}
 
@@ -39,12 +43,22 @@ case "$1 $2" in
     name=$(cat "$STUB/name.$3" 2>/dev/null || printf %s "$3")
     pane=$(cat "$STUB/pane.$3" 2>/dev/null || echo w1:p2)
     status=$(cat "$STUB/status")
-    printf '{"result":{"agent":{"name":"%s","pane_id":"%s","agent_status":"%s"}}}\n' \
-        "$name" "$pane" "$status"
+    term=$(cat "$STUB/terminal" 2>/dev/null || echo term_1)
+    session=$(cat "$STUB/session" 2>/dev/null || true)
+    if [ -n "$session" ]; then
+        session=$(printf ',"agent_session":{"agent":"claude","kind":"id","source":"herdr:claude","value":"%s"}' "$session")
+    fi
+    printf '{"result":{"agent":{"name":"%s","pane_id":"%s","agent_status":"%s","terminal_id":"%s"%s}}}\n' \
+        "$name" "$pane" "$status" "$term" "$session"
+    ;;
+"pane process-info")
+    pgid=$(cat "$STUB/pgid" 2>/dev/null || echo 0)
+    printf '{"result":{"process_info":{"foreground_process_group_id":%s}}}\n' "$pgid"
     ;;
 "pane send-text")
     [ -e "$STUB/fail-text" ] && exit 1
     [ -e "$STUB/fail-instructions" ] && [ "$4" != "/compact " ] && exit 1
+    [ -e "$STUB/expire-on-text" ] && : >"$STUB/expired"
     ;;
 "pane send-keys") [ -e "$STUB/fail-keys" ] && exit 1 ;;
 *) ;;
